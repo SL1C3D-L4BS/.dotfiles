@@ -2,7 +2,7 @@
 
 <img src="../icons/Logo.svg" alt="SL1C3D" width="24" height="24" />
 
-Canonical location for SL1C3D-L4BS wallpapers. Waypaper, Wallust/Matugen, and wallpaper scripts use this folder (wired via `~/.config/sl1c3d/wallpapers` symlink to the repo `assets/wallpapers/` after `make install`).
+Canonical location for SL1C3D-L4BS wallpapers. Waypaper, Wallust/Matugen, and wallpaper scripts use this folder. Symlink for this machine: `~/.config/SL1C3D-L4BS/wallpapers` → `~/assets/wallpapers` (created by chezmoi run_once).
 
 **Default wallpaper:** `sl1c3d-l4bs-06.png`
 
@@ -14,4 +14,4 @@ Canonical location for SL1C3D-L4BS wallpapers. Waypaper, Wallust/Matugen, and wa
 | sl1c3d-l4bs-08.png … sl1c3d-l4bs-10.png | Reserved (in progress) |
 | sl1c3d-l4bs-11.png … sl1c3d-l4bs-15.png | 11–15 |
 
-Point waypaper, `settings.toml` wallpaper directory, and Wallust/Matugen at this folder (or at `~/.config/sl1c3d/wallpapers` after deploy).
+Point waypaper, `settings.toml` wallpaper directory, and Wallust/Matugen at `~/assets/wallpapers` or `~/.config/SL1C3D-L4BS/wallpapers`.

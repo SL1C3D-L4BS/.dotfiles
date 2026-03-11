@@ -7,7 +7,4 @@ After `chezmoi apply`, these are available at **~/assets/**.
 
 **Usage:** Point Hyprland (hyprpaper), Waypaper, Wallust, or any wallpaper chooser at `~/assets/wallpapers`. Use `~/assets/icons/Logo.svg` for app icons or UI.
 
-**Optional symlink** (e.g. for scripts that expect a config path):
-```bash
-mkdir -p ~/.config/sl1c3d && ln -sfn ~/assets/wallpapers ~/.config/sl1c3d/wallpapers
-```
+**Symlinks for this setup:** A run_once script creates `~/.config/SL1C3D-L4BS/wallpapers` → `~/assets/wallpapers` and `~/.config/SL1C3D-L4BS/icons` → `~/assets/icons`. Point tools at `~/.config/SL1C3D-L4BS/wallpapers` or `~/assets/wallpapers`.
