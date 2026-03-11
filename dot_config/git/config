@@ -1,0 +1,14 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Git — Local overrides (included from ~/.gitconfig). SL1C3D-L4BS.
+# Edit [user] name/email and signing here; stays in dotfiles.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# [user]
+#   name = Your Name
+#   email = you@example.com
+#   signingKey = KEY_ID
+#   gpgsign = true
+
+# Optional: use delta as pager (paru -S delta)
+# [include]
+#   path = ~/.config/git/delta.conf

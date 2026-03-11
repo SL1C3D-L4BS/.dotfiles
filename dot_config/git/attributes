@@ -1,0 +1,19 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Git attributes — apply to all repos (global core.attributesFile or per-repo).
+# SL1C3D-L4BS.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Binary / generated
+*.png binary
+*.jpg binary
+*.ico binary
+*.pdf binary
+*.lock binary
+lazy-lock.json binary
+
+# Diff: use delta for common configs (if delta installed)
+*.conf diff=delta
+*.toml diff=delta
+*.kdl diff=delta
+*.lua diff=delta
+*.qml diff=delta

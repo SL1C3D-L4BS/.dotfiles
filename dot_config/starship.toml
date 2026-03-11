@@ -1,0 +1,96 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Starship — Hyprland #1 brand (white, black, grey, Discord Blurple #5865F2)
+# ─────────────────────────────────────────────────────────────────────────────
+
+"$schema" = 'https://starship.rs/config-schema.json'
+
+add_newline = true
+scan_timeout = 20
+palette = "brand"
+
+# Brand palette (matches ~/.config/hypr/colors.conf)
+[palettes.brand]
+accent   = "#5865F2"
+bg       = "#0d0d0d"
+surface  = "#1a1a1a"
+border   = "#2d2d2d"
+fg       = "#f8f8f2"
+fgdim    = "#e0e0e0"
+muted    = "#909090"
+success  = "#5865F2"
+error    = "#ff5555"
+warn     = "#f1fa8c"
+
+# Prompt layout: directory, git, character; time on right
+format = """
+$directory\
+$git_branch\
+$git_status\
+$character"""
+
+right_format = "$time"
+
+# ─── Character (prompt symbol) ──────────────────────────────────────────────
+[character]
+success_symbol = "[❯](bold fg:accent)"
+error_symbol   = "[❯](bold fg:error)"
+vimcmd_symbol  = "[❮](bold fg:accent)"
+
+# ─── Directory ─────────────────────────────────────────────────────────────
+[directory]
+style = "bold fg:fgdim"
+truncation_length = 3
+truncation_symbol = "…/"
+format = "[$path]($style)[$read_only]($read_only_style) "
+
+# ─── Git branch ────────────────────────────────────────────────────────────
+[git_branch]
+symbol = " "
+style = "bold fg:accent"
+format = "on [$symbol$branch]($style) "
+
+# ─── Git status ────────────────────────────────────────────────────────────
+[git_status]
+style = "bold fg:muted"
+format = '([\[$all_status$ahead_behind\]]($style) )'
+
+# ─── Time (right prompt) ──────────────────────────────────────────────────
+[time]
+style = "fg:muted"
+format = '[$time]($style) '
+time_format = "%I:%M %p"
+disabled = false
+
+# ─── Hostname (SSH) ────────────────────────────────────────────────────────
+[hostname]
+ssh_only = true
+style = "fg:muted"
+format = "[$ssh_symbol$hostname]($style) in "
+
+# ─── Command duration ──────────────────────────────────────────────────────
+[cmd_duration]
+min_time = 2000
+style = "fg:muted"
+format = "took [$duration]($style) "
+
+# ─── Optional: disable heavy or unused modules ──────────────────────────────
+[package]
+disabled = true
+
+[golang]
+style = "fg:fgdim"
+
+[nodejs]
+style = "fg:fgdim"
+
+[python]
+style = "fg:fgdim"
+
+[rust]
+style = "fg:fgdim"
+
+[conda]
+style = "fg:fgdim"
+
+[docker_context]
+style = "fg:muted"

@@ -1,0 +1,73 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# SL1C3D-L4BS Elite Zsh — Hyprland #1 brand (white, black, grey, Discord Blurple)
+# Fast startup, Starship, plugins (Zinit or fallback), fzf, dir stack
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ─── Completion (cache for speed) ────────────────────────────────────────────
+autoload -Uz compinit
+[[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]] && compinit -C || compinit
+zstyle ':completion:*' menu select
+zstyle ':completion:*' list-colors ''
+setopt COMPLETE_IN_WORD
+setopt ALWAYS_TO_END
+
+# ─── History ───────────────────────────────────────────────────────────────
+HISTFILE="${ZDOTDIR:-$HOME}/.zsh_history"
+HISTSIZE=10000
+SAVEHIST=10000
+setopt EXTENDED_HISTORY
+setopt SHARE_HISTORY
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt HIST_IGNORE_SPACE
+setopt APPEND_HISTORY
+
+# ─── Directory stack & navigation ────────────────────────────────────────────
+DIRSTACKSIZE=8
+setopt AUTO_PUSHD
+setopt PUSHD_MINUS
+setopt PUSHD_SILENT
+setopt PUSHD_TO_HOME
+alias dh='dirs -v'
+CDPATH=.:~:~/src:~/projects:~/dev
+
+# ─── Prompt: Starship (brand palette in ~/.config/starship.toml) ────────────
+eval "$(starship init zsh)"
+
+# ─── Zinit (turbo) + plugins — load after first prompt when installed ──────
+if [[ -f ${ZDOTDIR:-$HOME}/.local/share/zinit/zinit.git/zinit.zsh ]]; then
+  source "${ZDOTDIR:-$HOME}/.local/share/zinit/zinit.git/zinit.zsh"
+  zinit ice wait lucid atload"zicompinit; zicdreplay"
+  zinit light zdharma-continuum/fast-syntax-highlighting
+  zinit ice wait lucid
+  zinit light zsh-users/zsh-autosuggestions
+else
+  # Fallback: Arch /usr/share plugins if installed (paru -S zsh-autosuggestions fast-syntax-highlighting)
+  [[ -f /usr/share/zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh ]] && source /usr/share/zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
+  [[ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
+
+# ─── Autosuggestions: brand muted grey (#909090) ────────────────────────────
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#909090'
+
+# ─── fzf: keybindings + brand colors ───────────────────────────────────────
+if command -v fzf &>/dev/null; then
+  if [[ -f /usr/share/fzf/shell/key-bindings.zsh ]]; then
+    source /usr/share/fzf/shell/key-bindings.zsh
+  elif [[ -f /usr/share/fzf/key-bindings.zsh ]]; then
+    source /usr/share/fzf/key-bindings.zsh
+  else
+    source <(fzf --zsh 2>/dev/null) 2>/dev/null || true
+  fi
+  export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border --color=fg:#f8f8f2,bg:#0d0d0d,hl:#5865F2,fg+:#f8f8f2,bg+:#1a1a1a,hl+:#5865F2,info:#909090,prompt:#5865F2,pointer:#5865F2,marker:#5865F2,spinner:#5865F2,header:#909090"
+  export FZF_CTRL_R_OPTS="--border --header 'Ctrl+R: history'"
+fi
+
+# ─── Dotfiles: chezmoi (source ~/.local/share/chezmoi). Old bare repo: dot alias below ─
+export PATH="$HOME/.local/bin:$PATH"
+alias cm=chezmoi
+# Optional: keep for legacy; remove once fully on chezmoi
+# alias dot='git --git-dir=$HOME/.dotfiles --work-tree=$HOME'
+
+# ─── Optional: compdump in background (freshen cache without blocking) ─────
+( compdump 2>/dev/null & )

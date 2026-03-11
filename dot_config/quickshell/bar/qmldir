@@ -1,0 +1,5 @@
+module bar
+singleton Time 1.0 Time.qml
+singleton SystemInfo 1.0 SystemInfo.qml
+BrandTheme 1.0 BrandTheme.qml
+Bar 1.0 Bar.qml

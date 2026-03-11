@@ -1,0 +1,99 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# SL1C3D-L4BS — Elite Git config (2026). Modular: overrides in ~/.config/git/
+# https://git-scm.com/docs/git-config
+# ─────────────────────────────────────────────────────────────────────────────
+
+[include]
+	path = ~/.config/git/config
+
+# ─── Identity (set in ~/.config/git/config or here) ───────────────────────────
+[user]
+	name = The Architect
+	email = the_architect@SL1C3D-L4BS.local
+	# Signing (uncomment after: gpg --quick-generate-key "The Architect" default default 0)
+	# signingKey = YOUR_KEY_ID
+	# gpgsign = true
+
+# ─── Core ────────────────────────────────────────────────────────────────────
+[core]
+	editor = nvim
+	pager = less -FRX
+	autocrlf = input
+	defaultBranch = main
+	# Optional: protect repo integrity on crash (slight cost)
+	# fsyncObjectFiles = true
+
+# ─── Init & clone ───────────────────────────────────────────────────────────
+[init]
+	defaultBranch = main
+
+# ─── Pull: rebase by default (linear history) ───────────────────────────────
+[pull]
+	rebase = true
+	autostash = true
+
+# ─── Push: modern defaults ──────────────────────────────────────────────────
+[push]
+	autoSetupRemote = true
+	followTags = true
+	default = current
+
+# ─── Fetch: prune stale refs ─────────────────────────────────────────────────
+[fetch]
+	prune = true
+	pruneTags = true
+
+# ─── Diff: readable, rename-aware ────────────────────────────────────────────
+[diff]
+	colorMoved = plain
+	colorMovedWS = allow-indentation-change
+	algorithm = histogram
+	renames = true
+	mnemonicPrefix = true
+
+# ─── Merge: clearer conflict style ───────────────────────────────────────────
+[merge]
+	conflictStyle = zdiff3
+	tool = nvimdiff
+
+# ─── Branch: sort by recency ─────────────────────────────────────────────────
+[branch]
+	sort = -committerdate
+
+# ─── Help: typo correction ───────────────────────────────────────────────────
+[help]
+	autocorrect = prompt
+
+# ─── Aliases (elite workflow) ────────────────────────────────────────────────
+[alias]
+	# Log: one-line graph
+	lg = log --oneline --graph --decorate -n 25
+	lgg = log --oneline --graph --decorate
+	# Short status
+	st = status -sb
+	# Checkout / switch
+	co = checkout
+	sw = switch
+	# Branch
+	br = branch
+	# Last commit
+	last = log -1 --stat
+	# Unstage
+	unstage = restore --staged
+	# Amend without editing message
+	amend = commit --amend --no-edit
+	# Stash with message
+	sp = stash push -m
+	sl = stash list
+	# Diff staged
+	ds = diff --staged
+	# List remotes
+	rem = remote -v
+	# Rebase interactive (use with care)
+	ri = rebase -i
+	# Dotfiles (when using bare repo at ~/.dotfiles)
+	# dot = !git --git-dir=$HOME/.dotfiles --work-tree=$HOME
+
+# ─── Delta (optional: install delta, then uncomment in ~/.config/git/config) ─
+# When delta is installed: set core.pager = delta and add [delta] section there.
+# [delta] navigate = true; line-numbers = true; dark = true
