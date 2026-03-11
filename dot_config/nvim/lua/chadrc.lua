@@ -45,6 +45,11 @@ M.base46 = {
     NvimTreeFolderName = { fg = "#5865F2" },
     TelescopeBorder = { fg = "#2d2d2d" },
     TelescopeSelection = { fg = "#f8f8f2", bg = "#5865F2" },
+    WinSeparator = { fg = "#2d2d2d" },
+    TabLine = { fg = "#909090", bg = "#1a1a1a" },
+    TabLineFill = { bg = "#0d0d0d" },
+    TabLineSel = { fg = "#f8f8f2", bg = "#5865F2" },
+    FloatTitle = { fg = "#e0e0e0", bg = "#1a1a1a" },
   },
   changed_themes = {
     onedark = {

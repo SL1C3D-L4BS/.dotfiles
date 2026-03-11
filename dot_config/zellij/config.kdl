@@ -18,6 +18,13 @@ on_force_close "detach"
 show_startup_tips false
 show_release_notes false
 
+// UI: rounded pane frames (NvChad-style soft corners)
+ui {
+    pane_frames {
+        rounded_corners true
+    }
+}
+
 // Keybinds: Ctrl+g lock/unlock, Ctrl+o session, Ctrl+p pane, Ctrl+t tab, Ctrl+s scroll
 keybinds {
     locked {

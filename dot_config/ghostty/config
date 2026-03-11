@@ -1,0 +1,41 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Ghostty — SL1C3D-L4BS | floating pills + brand everywhere
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Theme: brand palette (full 16 ANSI in themes/sl1c3d-l4bs)
+theme = sl1c3d-l4bs
+
+# Font: Nerd Font for icons + Zellij rounded corners
+font-family = "JetBrainsMono Nerd Font"
+font-size = 11
+
+# Colors (override if theme not loaded)
+background = 0d0d0d
+foreground = f8f8f2
+cursor-color = 5865f2
+selection-background = 2d2d2d
+selection-foreground = f8f8f2
+
+# Full ANSI palette (brand) — used when theme doesn't set palette
+palette = 0=#0d0d0d
+palette = 1=#ff5555
+palette = 2=#50fa7b
+palette = 3=#f1fa8c
+palette = 4=#5865F2
+palette = 5=#5865F2
+palette = 6=#e0e0e0
+palette = 7=#f8f8f2
+palette = 8=#2d2d2d
+palette = 9=#ff5555
+palette = 10=#50fa7b
+palette = 11=#f1fa8c
+palette = 12=#5865F2
+palette = 13=#5865F2
+palette = 14=#e0e0e0
+palette = 15=#f8f8f2
+
+# Window: slight padding (floating feel), no decoration
+window-padding-x = 12
+window-padding-y = 12
+window-decoration = false
+background-opacity = 0.92

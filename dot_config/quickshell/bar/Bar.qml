@@ -11,7 +11,6 @@ import Quickshell.Services.Pipewire
 Scope {
     id: root
     property var theme: BrandTheme {}
-    property bool barVisible: true
 
     property var activePlayer: {
         const players = Mpris.players.values
@@ -20,11 +19,6 @@ Scope {
             if (p.playbackState === MprisPlaybackState.Playing) return p
         }
         return players[0]
-    }
-
-    IpcHandler {
-        target: "bar"
-        function toggle() { root.barVisible = !root.barVisible }
     }
 
     PwObjectTracker {
@@ -82,19 +76,53 @@ Scope {
         PanelWindow {
             required property var modelData
             screen: modelData
-            visible: root.barVisible
+            visible: true
 
             anchors.top: true
             anchors.left: true
             anchors.right: true
 
-            implicitHeight: 32
-            color: root.theme.bgBase
+            margins {
+                left: 16
+                right: 16
+                top: 12
+                bottom: 0
+            }
+
+            implicitHeight: 44
+            color: "transparent"
 
             Item {
                 anchors.fill: parent
-                anchors.leftMargin: 10
-                anchors.rightMargin: 10
+                anchors.leftMargin: 0
+                anchors.rightMargin: 0
+                anchors.topMargin: 0
+                anchors.bottomMargin: 0
+
+                Rectangle {
+                    id: barPill
+                    anchors.fill: parent
+                    anchors.leftMargin: 0
+                    anchors.rightMargin: 0
+                    anchors.topMargin: 0
+                    radius: 12
+                    color: root.theme.bgSurface
+                    layer.effect: null
+                }
+
+                Rectangle {
+                    anchors.fill: barPill
+                    anchors.margins: -4
+                    anchors.topMargin: 2
+                    z: -1
+                    radius: 14
+                    color: "#20000000"
+                }
+
+                Item {
+                    anchors.fill: parent
+                    anchors.leftMargin: 12
+                    anchors.rightMargin: 12
 
                 Row {
                     id: leftSection
@@ -105,8 +133,8 @@ Scope {
                     Rectangle {
                         height: 24
                         width: timeDate.width + 16
-                        radius: 12
-                        color: root.theme.bgSurface
+                        radius: 8
+                        color: root.theme.bgBase
 
                         Row {
                             id: timeDate
@@ -145,9 +173,9 @@ Scope {
 
                                 width: modelData.focused ? 32 : 24
                                 height: 24
-                                radius: 12
+                                radius: 8
                                 color: modelData.focused ? root.theme.accentPrimary :
-                                    (modelData.urgent && urgentBlink ? root.theme.accentRed : root.theme.bgSurface)
+                                    (modelData.urgent && urgentBlink ? root.theme.accentRed : root.theme.bgBase)
 
                                 Behavior on color {
                                     ColorAnimation { duration: 150 }
@@ -187,8 +215,8 @@ Scope {
                     Rectangle {
                         height: 24
                         width: nowPlayingContent.width + 16
-                        radius: 12
-                        color: root.theme.bgSurface
+                        radius: 8
+                        color: root.theme.bgBase
                         visible: root.activePlayer !== null
 
                         Accessible.role: Accessible.Button
@@ -264,8 +292,8 @@ Scope {
                     Rectangle {
                         height: 24
                         width: volContent.width + 12
-                        radius: 12
-                        color: root.theme.bgSurface
+                        radius: 8
+                        color: root.theme.bgBase
 
                         Accessible.role: Accessible.StaticText
                         Accessible.name: {
@@ -331,8 +359,8 @@ Scope {
                     Rectangle {
                         height: 24
                         width: brightContent.width + 12
-                        radius: 12
-                        color: root.theme.bgSurface
+                        radius: 8
+                        color: root.theme.bgBase
                         visible: brightnessFile.path !== ""
 
                         Accessible.role: Accessible.StaticText
@@ -384,8 +412,8 @@ Scope {
                         Rectangle {
                             height: 24
                             width: netContent.width + 12
-                            radius: 12
-                            color: root.theme.bgSurface
+                            radius: 8
+                            color: root.theme.bgBase
                             Accessible.role: Accessible.StaticText
                             Accessible.name: "Network: " + SystemInfo.networkInfo
 
@@ -413,8 +441,8 @@ Scope {
                         Rectangle {
                             height: 24
                             width: battContent.width + 12
-                            radius: 12
-                            color: root.theme.bgSurface
+                            radius: 8
+                            color: root.theme.bgBase
                             visible: SystemInfo.batteryIcon !== ""
                             Accessible.role: Accessible.StaticText
                             Accessible.name: "Battery: " + SystemInfo.batteryLevel
@@ -452,8 +480,8 @@ Scope {
                     Rectangle {
                         implicitHeight: 24
                         implicitWidth: trayIcons.implicitWidth + 4
-                        radius: 12
-                        color: root.theme.bgSurface
+                        radius: 8
+                        color: root.theme.bgBase
 
                         RowLayout {
                             id: trayIcons

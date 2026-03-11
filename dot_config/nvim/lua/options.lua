@@ -12,3 +12,8 @@ o.signcolumn = "yes"
 o.colorcolumn = "80"
 o.updatetime = 200
 o.mouse = "a"
+
+-- Rounded float borders (NvChad-style floating pills)
+vim.diagnostic.config({ float = { border = "rounded" } })
+vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" })
+vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = "rounded" })
