@@ -1644,22 +1644,17 @@ Scope {
             // ═══════════════════════════════════════════════════════════════
             PopupWindow {
                 id: focusPopup
-                anchor.window: panelWindow
+                anchor.item: timePill
+                anchor.edges: Edges.Bottom | Edges.Left
+                anchor.gravity: Edges.Bottom | Edges.Right
                 anchor.adjustment: PopupAdjustment.Flip
+                anchor.margins.top: 8
                 implicitWidth: 268
                 implicitHeight: 416
                 visible: panelWindow.focusOpen
                 color: "transparent"
 
                 onVisibleChanged: if (!visible) panelWindow.focusOpen = false
-
-                anchor.onAnchoring: {
-                    if (!anchor.window || !timePill) return
-                    const win = anchor.window
-                    const pr = win.contentItem.mapFromItem(
-                        timePill, 0, timePill.height, timePill.width, timePill.height)
-                    anchor.rect = Qt.rect(pr.x, pr.y + 6, implicitWidth, implicitHeight)
-                }
 
                 GlassSurface {
                     id: focusCard
@@ -1914,23 +1909,17 @@ Scope {
             // ═══════════════════════════════════════════════════════════════
             PopupWindow {
                 id: calPopup
-                anchor.window: panelWindow
+                anchor.item: timeDatePill
+                anchor.edges: Edges.Bottom | Edges.Left
+                anchor.gravity: Edges.Bottom | Edges.Right
                 anchor.adjustment: PopupAdjustment.Flip
+                anchor.margins.top: 8
                 implicitWidth: 332
                 implicitHeight: 430
                 visible: panelWindow.calendarOpen
                 color: "transparent"
 
                 onVisibleChanged: if (!visible) panelWindow.calendarOpen = false
-
-                anchor.onAnchoring: {
-                    if (!anchor.window || !timeDatePill) return
-                    const win = anchor.window
-                    const pr = win.contentItem.mapFromItem(
-                        timeDatePill, 0, timeDatePill.height, timeDatePill.width, timeDatePill.height)
-                    // align left edge of popup with left edge of date pill
-                    anchor.rect = Qt.rect(pr.x, pr.y + 6, implicitWidth, implicitHeight)
-                }
 
                 GlassSurface {
                     id: calCard
