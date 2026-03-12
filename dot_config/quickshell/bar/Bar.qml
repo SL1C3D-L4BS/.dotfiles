@@ -283,60 +283,6 @@ Scope {
                         }
                     }
 
-                    Row {
-                        spacing: 4
-                        Repeater {
-                            model: Hyprland.workspaces
-
-                            Rectangle {
-                                id: wsPill
-                                required property var modelData
-                                property bool urgentBlink: false
-
-                                Accessible.role: Accessible.Button
-                                Accessible.name: "Workspace " + modelData.id + (modelData.focused ? ", active" : "") + (modelData.urgent ? ", urgent" : "")
-
-                                width: modelData.focused ? 32 : 24
-                                height: 24
-                                radius: 8
-                                color: modelData.focused ? root.theme.accentPrimary :
-                                    (modelData.urgent && urgentBlink ? root.theme.accentRed : root.theme.bgBase)
-
-                                Behavior on color {
-                                    ColorAnimation { duration: 150 }
-                                }
-
-                                SequentialAnimation {
-                                    loops: Animation.Infinite
-                                    running: wsPill.modelData.urgent && !wsPill.modelData.focused
-                                    PropertyAction { target: wsPill; property: "urgentBlink"; value: true }
-                                    PauseAnimation { duration: 500 }
-                                    PropertyAction { target: wsPill; property: "urgentBlink"; value: false }
-                                    PauseAnimation { duration: 500 }
-                                    onStopped: wsPill.urgentBlink = false
-                                }
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: wsPill.modelData.id
-                                    color: wsPill.modelData.focused ? root.theme.bgBase : root.theme.textPrimary
-                                    font.pixelSize: 11
-                                    font.family: root.theme.fontFamily
-                                    font.bold: wsPill.modelData.focused
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    onClicked: wsPill.modelData.activate()
-                                }
-
-                                Behavior on width {
-                                    NumberAnimation { duration: 150 }
-                                }
-                            }
-                        }
-                    }
-
                     Rectangle {
                         height: 24
                         width: nowPlayingContent.width + 16
@@ -399,21 +345,123 @@ Scope {
                     }
                 }
 
+                // ─── Center: 10 fixed floating workspace pills ─────────────
                 Item {
                     anchors.centerIn: parent
                     height: parent.height
-                    width: Math.max(0, parent.width - leftSection.width - rightSection.width - 32)
+                    width: centerWsRow.width
 
-                    Text {
-                        Accessible.role: Accessible.StaticText
-                        Accessible.name: "Active window: " + text
-                        text: Hyprland.activeToplevel ? Hyprland.activeToplevel.title : ""
-                        color: root.theme.textPrimary
-                        font.pixelSize: 13
-                        font.family: root.theme.fontFamily
-                        elide: Text.ElideRight
-                        width: Math.min(implicitWidth, parent.width)
+                    Row {
+                        id: centerWsRow
                         anchors.centerIn: parent
+                        spacing: 5
+
+                        Repeater {
+                            model: 10
+
+                            Item {
+                                id: wsFixed
+                                required property int modelData
+                                property int wsId: modelData + 1
+                                property bool urgentBlink: false
+
+                                // Live workspace lookup — null when workspace doesn't exist yet
+                                property var wsData: {
+                                    const all = Hyprland.workspaces.values
+                                    for (const w of all) {
+                                        if (w.id === wsId) return w
+                                    }
+                                    return null
+                                }
+
+                                property bool isActive: {
+                                    const mon = Hyprland.focusedMonitor
+                                    return mon !== null
+                                        && mon.activeWorkspace !== null
+                                        && mon.activeWorkspace.id === wsId
+                                }
+                                property bool isOccupied: wsData !== null
+                                property bool isUrgent:   wsData !== null && wsData.urgent
+
+                                // active=36  occupied=26  empty=18
+                                width:  isActive ? 36 : (isOccupied ? 26 : 18)
+                                height: 24
+
+                                Behavior on width {
+                                    NumberAnimation { duration: 140; easing.type: Easing.OutCubic }
+                                }
+
+                                // Urgent blink animation
+                                SequentialAnimation {
+                                    loops: Animation.Infinite
+                                    running: wsFixed.isUrgent && !wsFixed.isActive
+                                    PropertyAction { target: wsFixed; property: "urgentBlink"; value: true }
+                                    PauseAnimation  { duration: 480 }
+                                    PropertyAction { target: wsFixed; property: "urgentBlink"; value: false }
+                                    PauseAnimation  { duration: 480 }
+                                    onStopped: wsFixed.urgentBlink = false
+                                }
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: 8
+                                    color: wsFixed.isUrgent && wsFixed.urgentBlink
+                                               ? root.theme.accentRed
+                                           : wsFixed.isActive
+                                               ? root.theme.accentPrimary
+                                           : wsFixed.isOccupied
+                                               ? root.theme.bgBase
+                                           : "#141414"
+
+                                    border.width: wsFixed.isOccupied && !wsFixed.isActive ? 1 : 0
+                                    border.color: root.theme.border
+
+                                    Behavior on color { ColorAnimation { duration: 140 } }
+
+                                    // Occupied dot (shown when not active)
+                                    Rectangle {
+                                        anchors.centerIn: parent
+                                        width:  wsFixed.isOccupied ? 5 : 4
+                                        height: wsFixed.isOccupied ? 5 : 4
+                                        radius: 3
+                                        color:  wsFixed.isOccupied
+                                                    ? root.theme.accentPrimary
+                                                    : root.theme.textMuted
+                                        opacity: wsFixed.isOccupied ? 0.80 : 0.18
+                                        visible: !wsFixed.isActive
+                                    }
+
+                                    // Workspace number — active only
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: wsFixed.wsId
+                                        color: root.theme.bgBase
+                                        font.pixelSize: 11
+                                        font.family: root.theme.fontFamily
+                                        font.bold: true
+                                        visible: wsFixed.isActive
+                                    }
+
+                                    Accessible.role: Accessible.Button
+                                    Accessible.name: "Workspace " + wsFixed.wsId
+                                        + (wsFixed.isActive   ? ", active"   : "")
+                                        + (wsFixed.isOccupied ? ", occupied" : "")
+                                        + (wsFixed.isUrgent   ? ", urgent"   : "")
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (wsFixed.wsData) {
+                                            wsFixed.wsData.activate()
+                                        } else {
+                                            Hyprland.dispatch("workspace " + wsFixed.wsId)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -606,49 +654,102 @@ Scope {
                         }
                     }
 
-                    // ─── CPU + RAM pill ───────────────────────────────────────
+                    // ─── CPU + RAM pill — SVG icons, color-coded, click→btop ─
                     Rectangle {
+                        id: cpuRamPill
                         height: 24
-                        width: cpuRamContent.width + 12
+                        width: cpuRamContent.width + 14
                         radius: 8
                         color: root.theme.bgBase
                         visible: SystemInfo.cpuUsage !== "0%"
 
-                        Accessible.role: Accessible.StaticText
-                        Accessible.name: "CPU: " + SystemInfo.cpuUsage + "  RAM: " + SystemInfo.memoryUsage
+                        Accessible.role: Accessible.Button
+                        Accessible.name: "CPU: " + SystemInfo.cpuUsage + ", RAM: " + SystemInfo.memoryUsage + ". Click to open btop."
+
+                        // Dynamic color based on load level
+                        readonly property real cpuNum: parseFloat(SystemInfo.cpuUsage) || 0
+                        readonly property real ramNum: parseFloat(SystemInfo.memoryUsage) || 0
+                        readonly property color cpuColor: cpuNum > 80 ? root.theme.accentRed
+                                                        : cpuNum > 50 ? root.theme.accentOrange
+                                                        :               root.theme.accentGreen
+                        readonly property color ramColor: ramNum > 80 ? root.theme.accentRed
+                                                        : ramNum > 50 ? root.theme.accentOrange
+                                                        :               root.theme.logoPurple
 
                         Row {
                             id: cpuRamContent
                             anchors.centerIn: parent
-                            spacing: 6
+                            spacing: 5
 
-                            Text {
+                            // CPU icon (blurple chip SVG)
+                            Image {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: ""
-                                color: root.theme.accentPrimary
-                                font.pixelSize: 11
-                                font.family: root.theme.fontFamily
+                                source: root.phosphorDir + "/cpu.svg"
+                                width: 13
+                                height: 13
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                                mipmap: true
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: SystemInfo.cpuUsage
-                                color: root.theme.textPrimary
+                                color: cpuRamPill.cpuColor
                                 font.pixelSize: 11
                                 font.family: root.theme.fontFamily
+                                Behavior on color { ColorAnimation { duration: root.theme.motionBaseMs } }
                             }
-                            Text {
+
+                            // Divider
+                            Rectangle {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: "  "
-                                color: root.theme.logoPurple
-                                font.pixelSize: 11
-                                font.family: root.theme.fontFamily
+                                width: 1
+                                height: 12
+                                color: root.theme.border
+                                opacity: 0.6
+                            }
+
+                            // RAM icon (purple memory SVG)
+                            Image {
+                                anchors.verticalCenter: parent.verticalCenter
+                                source: root.phosphorDir + "/memory.svg"
+                                width: 13
+                                height: 13
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                                mipmap: true
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: SystemInfo.memoryUsage
-                                color: root.theme.textPrimary
+                                color: cpuRamPill.ramColor
                                 font.pixelSize: 11
                                 font.family: root.theme.fontFamily
+                                Behavior on color { ColorAnimation { duration: root.theme.motionBaseMs } }
+                            }
+                        }
+
+                        // Hover highlight
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: parent.radius
+                            color: btopMouseArea.containsMouse ? "#18ffffff" : "transparent"
+                            Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                        }
+
+                        MouseArea {
+                            id: btopMouseArea
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            hoverEnabled: true
+                            onClicked: {
+                                hubLauncher.command = [
+                                    "bash", "-c",
+                                    root.homeDir + "/.config/hypr/scripts/scratch-toggle.sh " +
+                                    "btop btop-scratch " +
+                                    "'ghostty --class=btop-scratch -e btop'"
+                                ]
+                                hubLauncher.running = true
                             }
                         }
                     }

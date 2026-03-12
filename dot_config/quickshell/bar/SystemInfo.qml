@@ -82,7 +82,7 @@ Singleton {
     }
 
     Timer {
-        interval: 2000
+        interval: 1500
         running: true
         repeat: true
         onTriggered: function() {
