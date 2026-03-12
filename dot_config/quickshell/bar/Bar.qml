@@ -14,9 +14,6 @@ Scope {
     property string homeDir: (typeof Qt !== "undefined" && Qt.environment && typeof Qt.environment.value === "function" ? Qt.environment.value("HOME") : null) || "/home/the_architect"
     property string phosphorDir: "file://" + homeDir + "/assets/icons/phosphor"
 
-    property string activeWindowAppId: (Hyprland.activeToplevel && Hyprland.activeToplevel.wayland && Hyprland.activeToplevel.wayland.appId) ? Hyprland.activeToplevel.wayland.appId : ""
-    property string activeWindowIconSource: activeWindowAppId ? ("image://icon/" + activeWindowAppId) : ("file://" + homeDir + "/assets/icons/Logo-bar.svg")
-
     property var activePlayer: {
         const players = Mpris.players.values
         if (!players || players.length === 0) return null
@@ -344,34 +341,6 @@ Scope {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 8
-
-                    Rectangle {
-                        height: 24
-                        width: 24
-                        radius: 8
-                        color: root.theme.bgBase
-                        visible: !!Hyprland.activeToplevel
-
-                        Accessible.role: Accessible.Button
-                        Accessible.name: "Active window: " + (Hyprland.activeToplevel ? Hyprland.activeToplevel.title : "")
-
-                        IconImage {
-                            anchors.centerIn: parent
-                            source: root.activeWindowIconSource
-                            implicitSize: 18
-                            smooth: true
-                            mipmap: true
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                if (Hyprland.activeToplevel && Hyprland.activeToplevel.wayland)
-                                    Hyprland.activeToplevel.wayland.activate()
-                            }
-                        }
-                    }
 
                     Rectangle {
                         height: 24
