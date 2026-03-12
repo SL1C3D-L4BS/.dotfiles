@@ -1,6 +1,7 @@
 window.QuickSettings {
   background: transparent;
   color: #f8f8f2;
+  font-family: "JetBrains Mono Nerd Font", "JetBrains Mono", monospace;
 }
 
 window.QuickSettings > box#panel {

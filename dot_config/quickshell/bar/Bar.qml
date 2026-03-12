@@ -237,7 +237,7 @@ Scope {
                                 text: root.barTimeString
                                 color: "#5865F2"
                                 font.pixelSize: 14
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 width: Math.max(implicitWidth, 48)
                             }
                             Image {
@@ -254,7 +254,7 @@ Scope {
                                 text: root.barDateString
                                 color: "#b366ff"
                                 font.pixelSize: 12
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 width: Math.max(implicitWidth, 88)
                             }
                         }
@@ -304,7 +304,7 @@ Scope {
                                     text: wsPill.modelData.id
                                     color: wsPill.modelData.focused ? root.theme.bgBase : root.theme.textPrimary
                                     font.pixelSize: 11
-                                    font.family: "JetBrainsMono Nerd Font"
+                                    font.family: root.theme.fontFamily
                                     font.bold: wsPill.modelData.focused
                                 }
 
@@ -368,7 +368,7 @@ Scope {
                                 }
                                 color: root.theme.textPrimary
                                 font.pixelSize: 11
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 elide: Text.ElideRight
                                 width: Math.min(implicitWidth, 200)
                             }
@@ -393,7 +393,7 @@ Scope {
                         text: Hyprland.activeToplevel ? Hyprland.activeToplevel.title : ""
                         color: root.theme.textPrimary
                         font.pixelSize: 13
-                        font.family: "JetBrainsMono Nerd Font"
+                        font.family: root.theme.fontFamily
                         elide: Text.ElideRight
                         width: Math.min(implicitWidth, parent.width)
                         anchors.centerIn: parent
@@ -440,7 +440,7 @@ Scope {
                                     return root.theme.accentPrimary
                                 }
                                 font.pixelSize: 14
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
@@ -452,7 +452,7 @@ Scope {
                                 }
                                 color: root.theme.textPrimary
                                 font.pixelSize: 11
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                             }
                         }
 
@@ -501,7 +501,7 @@ Scope {
                                 text: Math.round(root.brightnessValue * 100) + "%"
                                 color: root.theme.textPrimary
                                 font.pixelSize: 11
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                             }
                         }
 
@@ -552,7 +552,7 @@ Scope {
                                     text: SystemInfo.networkInfo
                                     color: root.theme.textPrimary
                                     font.pixelSize: 11
-                                    font.family: "JetBrainsMono Nerd Font"
+                                    font.family: root.theme.fontFamily
                                 }
                             }
                         }
@@ -583,7 +583,7 @@ Scope {
                                     text: SystemInfo.batteryLevel
                                     color: sysInfo.batteryColor
                                     font.pixelSize: 11
-                                    font.family: "JetBrainsMono Nerd Font"
+                                    font.family: root.theme.fontFamily
                                 }
                             }
                         }
@@ -716,7 +716,7 @@ Scope {
                                     text: "SL1C3D-L4BS"
                                     color: root.theme.logoPurple
                                     font.pixelSize: 12
-                                    font.family: "JetBrainsMono Nerd Font"
+                                    font.family: root.theme.fontFamily
                                     font.weight: Font.DemiBold
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
@@ -734,7 +734,7 @@ Scope {
                                     text: "×"
                                     color: root.theme.textMuted
                                     font.pixelSize: 18
-                                    font.family: "JetBrainsMono Nerd Font"
+                                    font.family: root.theme.fontFamily
                                 }
                             }
                         }
@@ -755,7 +755,7 @@ Scope {
                                 text: "CONTROL_PLANE"
                                 color: root.theme.textMuted
                                 font.pixelSize: 9
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 font.letterSpacing: 0.8
                             }
                         }
@@ -801,7 +801,7 @@ Scope {
                                 text: "Reload_Hypr"
                                 color: root.theme.logoPurple
                                 font.pixelSize: 10
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 MouseArea {
                                     anchors.fill: parent
                                     anchors.margins: -4
@@ -864,7 +864,7 @@ Scope {
                                 text: "DEVELOPER"
                                 color: root.theme.textMuted
                                 font.pixelSize: 9
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 font.letterSpacing: 0.8
                             }
                         }
@@ -887,7 +887,7 @@ Scope {
                                     text: modelData.label
                                     color: root.theme.textSecondary
                                     font.pixelSize: 10
-                                    font.family: "JetBrainsMono Nerd Font"
+                                    font.family: root.theme.fontFamily
                                     elide: Text.ElideMiddle
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
@@ -902,7 +902,7 @@ Scope {
                                             text: "Yazi"
                                             color: root.theme.accentPrimary
                                             font.pixelSize: 10
-                                            font.family: "JetBrainsMono Nerd Font"
+                                            font.family: root.theme.fontFamily
                                             MouseArea {
                                             anchors.fill: parent
                                             anchors.margins: -4
@@ -923,7 +923,7 @@ Scope {
                                         text: "Terminal"
                                         color: root.theme.accentPrimary
                                         font.pixelSize: 10
-                                        font.family: "JetBrainsMono Nerd Font"
+                                        font.family: root.theme.fontFamily
                                         MouseArea {
                                             anchors.fill: parent
                                             anchors.margins: -4
@@ -954,7 +954,7 @@ Scope {
                                 text: "WALLPAPERS"
                                 color: root.theme.textMuted
                                 font.pixelSize: 9
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 font.letterSpacing: 0.8
                             }
                         }
@@ -977,7 +977,7 @@ Scope {
                                     text: modelData
                                     color: root.theme.textSecondary
                                     font.pixelSize: 10
-                                    font.family: "JetBrainsMono Nerd Font"
+                                    font.family: root.theme.fontFamily
                                     elide: Text.ElideMiddle
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
@@ -985,7 +985,7 @@ Scope {
                                     text: "Set"
                                     color: root.theme.accentPrimary
                                     font.pixelSize: 10
-                                    font.family: "JetBrainsMono Nerd Font"
+                                    font.family: root.theme.fontFamily
                                     MouseArea {
                                         anchors.fill: parent
                                         anchors.margins: -4
@@ -1007,7 +1007,7 @@ Scope {
                                 text: "Open folder"
                                 color: root.theme.logoPurple
                                 font.pixelSize: 10
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 MouseArea {
                                     anchors.fill: parent
                                     anchors.margins: -4
@@ -1023,7 +1023,7 @@ Scope {
                                 text: "Waypaper GUI"
                                 color: root.theme.accentPrimary
                                 font.pixelSize: 10
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 MouseArea {
                                     anchors.fill: parent
                                     anchors.margins: -4
@@ -1051,7 +1051,7 @@ Scope {
                                 text: "SYSTEM"
                                 color: root.theme.textMuted
                                 font.pixelSize: 9
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 font.letterSpacing: 0.8
                             }
                         }
@@ -1069,7 +1069,7 @@ Scope {
                                 text: "AI (OpenClaw)"
                                 color: root.theme.accentPrimary
                                 font.pixelSize: 10
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 MouseArea {
                                     anchors.fill: parent
                                     anchors.margins: -4
@@ -1090,7 +1090,7 @@ Scope {
                                 text: "Fuzzel"
                                 color: root.theme.accentPrimary
                                 font.pixelSize: 10
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 MouseArea {
                                     anchors.fill: parent
                                     anchors.margins: -4
@@ -1111,7 +1111,7 @@ Scope {
                                 text: "Hypr config"
                                 color: root.theme.accentPrimary
                                 font.pixelSize: 10
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 MouseArea {
                                     anchors.fill: parent
                                     anchors.margins: -4
@@ -1132,7 +1132,7 @@ Scope {
                                 text: "Waypaper"
                                 color: root.theme.accentPrimary
                                 font.pixelSize: 10
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 MouseArea {
                                     anchors.fill: parent
                                     anchors.margins: -4
@@ -1225,7 +1225,7 @@ Scope {
                                         text: "‹"
                                         color: root.theme.logoPurple
                                         font.pixelSize: 18
-                                        font.family: "JetBrainsMono Nerd Font"
+                                        font.family: root.theme.fontFamily
                                     }
                                 }
                             }
@@ -1236,7 +1236,7 @@ Scope {
                                 text: calendarContent.monthNames[calendarContent.viewMonth] + " " + calendarContent.viewYear
                                 color: root.theme.logoPurple
                                 font.pixelSize: 14
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 font.weight: Font.DemiBold
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: parent.width - 32 - 32 - 16
@@ -1265,7 +1265,7 @@ Scope {
                                         text: "›"
                                         color: root.theme.logoPurple
                                         font.pixelSize: 18
-                                        font.family: "JetBrainsMono Nerd Font"
+                                        font.family: root.theme.fontFamily
                                     }
                                 }
                             }
@@ -1282,7 +1282,7 @@ Scope {
                                     text: modelData
                                     color: root.theme.accentPrimary
                                     font.pixelSize: 10
-                                    font.family: "JetBrainsMono Nerd Font"
+                                    font.family: root.theme.fontFamily
                                 }
                             }
                         }
@@ -1331,7 +1331,7 @@ Scope {
                                             return root.theme.accentPrimary
                                         }
                                         font.pixelSize: 12
-                                        font.family: "JetBrainsMono Nerd Font"
+                                        font.family: root.theme.fontFamily
                                         font.weight: {
                                             var d = index - calendarGrid.firstDay + 1
                                             var today = new Date()
@@ -1355,14 +1355,14 @@ Scope {
                                 text: root.barTimeString
                                 color: root.theme.logoPurple
                                 font.pixelSize: 20
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 font.weight: Font.Bold
                             }
                             Text {
                                 text: root.barDateString
                                 color: root.theme.logoPurple
                                 font.pixelSize: 12
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: root.theme.fontFamily
                                 anchors.verticalCenter: parent.verticalCenter
                             }
                         }

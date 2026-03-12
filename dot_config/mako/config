@@ -22,7 +22,7 @@ on-button-middle=dismiss-group
 on-touch=dismiss
 
 # Style (global default)
-font=JetBrains Mono 10
+font=JetBrains Mono Nerd Font 10
 background-color=#1a1a1aff
 text-color=#f8f8f2ff
 width=320
