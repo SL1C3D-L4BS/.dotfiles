@@ -1307,7 +1307,8 @@ Scope {
                                                 radius: root.theme.radiusPill; color: root.theme.bgBase
                                                 border.width: 1; border.color: root.theme.border
                                                 Row {
-                                                    anchors { fill: parent; margins: 10 }; spacing: 10
+                                                    anchors { fill: parent; margins: 10 }
+                                                    spacing: 10
                                                     Image {
                                                         width: 36; height: 36; radius: 6
                                                         source: hubCard.mprisPlayer?.trackArtUrl ?? ""
@@ -1579,7 +1580,8 @@ Scope {
                                                     color: root.theme.bgBase; border.width: 1; border.color: root.theme.border
                                                     property string rp: modelData.path.replace("~", hubCard.home)
                                                     Row {
-                                                        anchors { fill: parent; leftMargin: 10; rightMargin: 10 }; spacing: 8
+                                                        anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
+                                                        spacing: 8
                                                         Image { width: 14; height: 14; source: root.phosphorDir + "/" + modelData.icon + ".svg"; fillMode: Image.PreserveAspectFit; anchors.verticalCenter: parent.verticalCenter }
                                                         Text { text: modelData.label; color: root.theme.textSecondary; font.pixelSize: 10; font.family: root.theme.fontFamily; anchors.verticalCenter: parent.verticalCenter; width: 80; elide: Text.ElideRight }
                                                         Item { width: devCol.width - 10 - 14 - 8 - 80 - 8 - 52 - 6 - 60 - (modelData.git ? 6+52 : 0) - 10; height: 1 }
@@ -1792,7 +1794,8 @@ Scope {
                                                     required property var modelData
                                                     width: sysCol.width; height: 26
                                                     Row {
-                                                        anchors { fill: parent; leftMargin: 4; rightMargin: 4 }; spacing: 0
+                                                        anchors { fill: parent; leftMargin: 4; rightMargin: 4 }
+                                                        spacing: 0
                                                         Rectangle {
                                                             height: 20; width: kbdTxt.width + 12; radius: 5
                                                             color: root.theme.bgBase; border.width: 1; border.color: root.theme.border
