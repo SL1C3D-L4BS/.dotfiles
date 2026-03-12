@@ -2425,11 +2425,11 @@ Scope {
 
                                 Flickable {
                                     id: noteFlickable
-                                    anchors.fill: parent; anchors.margins: 8
+                                    anchors { top: parent.top; left: parent.left; bottom: parent.bottom; right: noteScrollBar.left }
+                                    anchors.margins: 8; anchors.rightMargin: 2
                                     contentHeight: notesEditor.contentHeight
                                     clip: true
                                     interactive: contentHeight > height
-                                    ScrollBar.vertical: ScrollBar { policy: noteFlickable.contentHeight > noteFlickable.height ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff }
 
                                     TextEdit {
                                         id: notesEditor
@@ -2454,6 +2454,26 @@ Scope {
                                         font.pixelSize: 12; font.family: root.theme.fontFamily
                                         wrapMode: Text.Wrap
                                         visible: notesEditor.text.length === 0 && !notesEditor.activeFocus
+                                    }
+                                }
+
+                                // Slim custom scrollbar (no QtQuick.Controls needed)
+                                Rectangle {
+                                    id: noteScrollBar
+                                    anchors { top: parent.top; right: parent.right; bottom: parent.bottom; margins: 4 }
+                                    width: 3; radius: 2
+                                    color: root.theme.border
+                                    visible: noteFlickable.contentHeight > noteFlickable.height
+                                    Rectangle {
+                                        width: parent.width; radius: 2
+                                        color: root.theme.accentPrimary
+                                        height: noteFlickable.height > 0
+                                            ? (noteFlickable.height / noteFlickable.contentHeight) * parent.height
+                                            : parent.height
+                                        y: noteFlickable.contentHeight > noteFlickable.height
+                                            ? (noteFlickable.contentY / noteFlickable.contentHeight) * parent.height
+                                            : 0
+                                        Behavior on y { NumberAnimation { duration: 80 } }
                                     }
                                 }
                             }
