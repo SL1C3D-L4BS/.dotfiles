@@ -1,5 +1,4 @@
-# Ignore build script and temp files inside source
-build-chezmoi-from-source.sh
+# Ignore temp files inside source
 *.swp
 *.bak
 .git/
