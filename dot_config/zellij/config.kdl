@@ -73,7 +73,7 @@ keybinds clear-defaults=false {
     }
 
     pane {
-        bind "Escape" { SwitchToMode "Normal"; }
+        bind "Esc" { SwitchToMode "Normal"; }
         bind "h" "Left"   { MoveFocus "Left";  SwitchToMode "Normal"; }
         bind "l" "Right"  { MoveFocus "Right"; SwitchToMode "Normal"; }
         bind "j" "Down"   { MoveFocus "Down";  SwitchToMode "Normal"; }
