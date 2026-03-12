@@ -72,6 +72,7 @@ Existing install: `chezmoi apply` from anywhere (source = `~/.local/share/chezmo
 | Scratchpad (toggle / move) | Super+S / Super+Shift+S |
 | Focus direction | Super+Arrow |
 | Lock screen | Super+L |
+| Window overview | Super+A |
 | Keybinds help | Super+/ |
 | Notifications (dismiss / DND) | Super+N / Super+D |
 

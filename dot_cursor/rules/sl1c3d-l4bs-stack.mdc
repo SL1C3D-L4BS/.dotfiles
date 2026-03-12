@@ -10,7 +10,7 @@ This project is the **SL1C3D-L4BS** dotfiles and workstation config. Single sour
 ## Stack
 
 - **OS:** Arch Linux
-- **WM:** Hyprland (colors, binds, autostart, programs in `~/.config/hypr/`). User overrides: `custom.conf` (sourced last). Lock: hyprlock (Super+L); idle: hypridle. Keybind help: Super+/ runs `~/.config/hypr/scripts/keybinds.sh` (Fuzzel).
+- **WM:** Hyprland (colors, binds, autostart, programs in `~/.config/hypr/`). User overrides: `custom.conf` (sourced last). Lock: hyprlock (Super+L); idle: hypridle. Keybind help: Super+/ runs `~/.config/hypr/scripts/keybinds.sh` (Fuzzel). Window overview: Super+A runs `~/.config/hypr/scripts/overview.sh` (Fuzzel list → focus).
 - **Bar:** Quickshell (QML), `~/.config/quickshell/`
 - **Terminal:** Ghostty, theme `sl1c3d-l4bs`, JetBrains Mono Nerd Font
 - **Prompt:** Starship, `~/.config/starship.toml`, palette `brand`
