@@ -13,6 +13,18 @@ Singleton {
     property real   ramUsageNum: 0
     property real   diskUsageNum: 0
     property string networkInfo: "Disconnected"
+
+    // Sparkline history — last 30 samples (one per ~1.5s = ~45s window)
+    property var cpuHistory: []
+    property var ramHistory: []
+    readonly property int sparkMaxSamples: 30
+
+    function pushSample(arr, val) {
+        const copy = arr.slice()
+        copy.push(val)
+        if (copy.length > sparkMaxSamples) copy.shift()
+        return copy
+    }
     property int batteryLevelRaw: 0
     property string batteryLevel: "0%"
     property string batteryIcon: ""
@@ -27,7 +39,9 @@ Singleton {
             onStreamFinished: function() {
                 const s = (text && text.trim()) ? text.trim() : "0%"
                 root.cpuUsage = s
-                root.cpuUsageNum = parseFloat(s) || 0
+                const n = parseFloat(s) || 0
+                root.cpuUsageNum = n
+                root.cpuHistory = root.pushSample(root.cpuHistory, n)
             }
         }
     }
@@ -40,7 +54,9 @@ Singleton {
             onStreamFinished: function() {
                 const s = (text && text.trim()) ? text.trim() : "0%"
                 root.memoryUsage = s
-                root.ramUsageNum = parseFloat(s) || 0
+                const n = parseFloat(s) || 0
+                root.ramUsageNum = n
+                root.ramHistory = root.pushSample(root.ramHistory, n)
             }
         }
     }

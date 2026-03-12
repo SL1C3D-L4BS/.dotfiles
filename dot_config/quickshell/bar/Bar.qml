@@ -64,7 +64,20 @@ Scope {
     }
 
     PwObjectTracker {
+        id: rootPwTracker
         objects: [Pipewire.defaultAudioSink]
+    }
+
+    // Volume OSD — reacts globally to Pipewire volume changes
+    property real lastKnownVolume: -1.0
+    Connections {
+        target: Pipewire.defaultAudioSink ? Pipewire.defaultAudioSink.audio : null
+        function onVolumeChanged() {
+            const v = Pipewire.defaultAudioSink?.audio?.volume ?? 0
+            if (root.lastKnownVolume < 0) { root.lastKnownVolume = v; return }
+            root.lastKnownVolume = v
+            // Broadcast to all panelWindows via the Variants model
+        }
     }
 
     property real brightnessValue: 0
@@ -178,6 +191,9 @@ Scope {
             property bool calendarOpen: false
             property bool focusOpen: false
             property bool powerMenuOpen: false
+            property bool networkPopupOpen: false
+            property bool volumeOsdVisible: false
+            property real volumeOsdLevel: 0.0
             property int  lastHubSection: 0
             property string calTab: "cal"  // "cal" | "notes"
             property string calSelectedDate: ""
@@ -238,10 +254,15 @@ Scope {
                     spacing: 8
 
                     MouseArea {
+                        id: logoPillMa
                         width: 36
                         height: 24
                         cursorShape: Qt.PointingHandCursor
+                        hoverEnabled: true
                         onClicked: panelWindow.hubOpen = true
+
+                        scale: logoPillMa.containsMouse ? (logoPillMa.pressed ? 0.90 : 1.08) : 1.0
+                        Behavior on scale { SpringAnimation { spring: 3.0; damping: 0.6 } }
 
                         GlassSurface {
                             theme: root.theme
@@ -276,6 +297,8 @@ Scope {
                             border.width: 1
                             border.color: panelWindow.focusOpen ? root.theme.accentPrimary : "transparent"
                             Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                            scale: timePillMa.containsMouse ? (timePillMa.pressed ? 0.93 : 1.04) : 1.0
+                            Behavior on scale { SpringAnimation { spring: 2.8; damping: 0.65 } }
                             Row {
                                 id: timePillRow
                                 anchors.centerIn: parent
@@ -295,8 +318,10 @@ Scope {
                                 }
                             }
                             MouseArea {
+                                id: timePillMa
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
+                                hoverEnabled: true
                                 onClicked: {
                                     panelWindow.calendarOpen = false
                                     panelWindow.focusOpen = !panelWindow.focusOpen
@@ -314,6 +339,8 @@ Scope {
                             border.width: 1
                             border.color: panelWindow.calendarOpen ? root.theme.logoPurple : "transparent"
                             Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                            scale: datePillMa.containsMouse ? (datePillMa.pressed ? 0.93 : 1.04) : 1.0
+                            Behavior on scale { SpringAnimation { spring: 2.8; damping: 0.65 } }
                             Row {
                                 id: datePillRow
                                 anchors.centerIn: parent
@@ -333,8 +360,10 @@ Scope {
                                 }
                             }
                             MouseArea {
+                                id: datePillMa
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
+                                hoverEnabled: true
                                 onClicked: {
                                     panelWindow.focusOpen = false
                                     panelWindow.calendarOpen = !panelWindow.calendarOpen
@@ -349,6 +378,8 @@ Scope {
                         radius: 8
                         color: root.theme.bgBase
                         visible: root.activePlayer !== null
+                        scale: nowPlayingMa.containsMouse ? (nowPlayingMa.pressed ? 0.93 : 1.04) : 1.0
+                        Behavior on scale { SpringAnimation { spring: 2.8; damping: 0.65 } }
 
                         Accessible.role: Accessible.Button
                         Accessible.name: {
@@ -398,8 +429,10 @@ Scope {
                         }
 
                         MouseArea {
+                            id: nowPlayingMa
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
+                            hoverEnabled: true
                             onClicked: root.activePlayer && root.activePlayer.togglePlaying()
                         }
                     }
@@ -653,12 +686,18 @@ Scope {
                         spacing: 4
 
                         Rectangle {
+                            id: netPill
                             height: 24
                             width: netContent.width + 12
                             radius: 8
                             color: root.theme.bgBase
-                            Accessible.role: Accessible.StaticText
-                            Accessible.name: "Network: " + SystemInfo.networkInfo
+                            border.width: 1
+                            border.color: panelWindow.networkPopupOpen ? root.theme.accentPrimary : "transparent"
+                            Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                            scale: netPillMa.containsMouse ? (netPillMa.pressed ? 0.93 : 1.04) : 1.0
+                            Behavior on scale { SpringAnimation { spring: 2.8; damping: 0.65 } }
+                            Accessible.role: Accessible.Button
+                            Accessible.name: "Network: " + SystemInfo.networkInfo + ". Click for details."
 
                             Row {
                                 id: netContent
@@ -675,10 +714,18 @@ Scope {
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: SystemInfo.networkInfo
-                                    color: root.theme.textPrimary
+                                    color: SystemInfo.networkInfo === "Disconnected" ? root.theme.accentRed : root.theme.accentGreen
+                                    Behavior on color { ColorAnimation { duration: root.theme.motionBaseMs } }
                                     font.pixelSize: 11
                                     font.family: root.theme.fontFamily
                                 }
+                            }
+                            MouseArea {
+                                id: netPillMa
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                hoverEnabled: true
+                                onClicked: panelWindow.networkPopupOpen = !panelWindow.networkPopupOpen
                             }
                         }
 
@@ -722,6 +769,8 @@ Scope {
                         radius: 8
                         color: root.theme.bgBase
                         visible: SystemInfo.cpuUsage !== "0%"
+                        scale: btopMouseArea.containsMouse ? (btopMouseArea.pressed ? 0.93 : 1.04) : 1.0
+                        Behavior on scale { SpringAnimation { spring: 2.8; damping: 0.65 } }
 
                         Accessible.role: Accessible.Button
                         Accessible.name: "CPU: " + SystemInfo.cpuUsage + ", RAM: " + SystemInfo.memoryUsage + ". Click to open btop."
@@ -1075,8 +1124,8 @@ Scope {
 
                     property string selectedWallpaper: ""
 
-                    // ── MPRIS live data ───────────────────────────────────────
-                    property var mprisPlayer: MprisController.players.length > 0 ? MprisController.players[0] : null
+                    // ── MPRIS live data (Mpris is the singleton, not MprisController) ─
+                    property var mprisPlayer: Mpris.players.length > 0 ? Mpris.players[0] : null
                     PwObjectTracker { id: pwTracker; objects: [Pipewire.defaultAudioSink] }
                     property real audioVolume: Pipewire.defaultAudioSink?.audio?.volume ?? 1.0
 
@@ -1084,7 +1133,7 @@ Scope {
                     Timer {
                         id: mprisTicker
                         interval: 1000; repeat: true
-                        running: hubCard.mprisPlayer !== null && hubCard.mprisPlayer.isPlaying && panelWindow.hubOpen
+                        running: hubCard.mprisPlayer !== null && (hubCard.mprisPlayer?.isPlaying ?? false) && panelWindow.hubOpen
                         onTriggered: if (hubCard.mprisPlayer) hubCard.mprisPlayer.positionChanged()
                     }
 
@@ -1295,6 +1344,83 @@ Scope {
                                                                 text: modelData.label
                                                                 color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily
                                                             }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            // CPU / RAM sparkline history chart
+                                            Item {
+                                                width: parent.width; height: 52
+                                                Canvas {
+                                                    id: sparklineChart
+                                                    anchors.fill: parent
+                                                    property var cpuHist: SystemInfo.cpuHistory
+                                                    property var ramHist: SystemInfo.ramHistory
+                                                    onCpuHistChanged: requestPaint()
+                                                    onRamHistChanged: requestPaint()
+                                                    onPaint: {
+                                                        var ctx = getContext("2d")
+                                                        ctx.clearRect(0, 0, width, height)
+                                                        // Background glass
+                                                        ctx.fillStyle = "#0affffff"
+                                                        roundedRect(ctx, 0, 0, width, height, 8)
+                                                        ctx.fill()
+                                                        // Grid lines at 25/50/75%
+                                                        ctx.strokeStyle = "#14ffffff"
+                                                        ctx.lineWidth = 1
+                                                        ;[0.25, 0.5, 0.75].forEach(function(p) {
+                                                            var y = height - p * height
+                                                            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke()
+                                                        })
+                                                        function drawSparkline(hist, hexColor, alphaFill) {
+                                                            if (!hist || hist.length < 2) return
+                                                            var pts = []
+                                                            for (var i = 0; i < hist.length; i++) {
+                                                                pts.push({ x: (i / (hist.length - 1)) * (width - 4) + 2, y: height - 2 - (hist[i] / 100) * (height - 8) })
+                                                            }
+                                                            // Fill area
+                                                            ctx.beginPath()
+                                                            ctx.moveTo(pts[0].x, height)
+                                                            for (var j = 0; j < pts.length; j++) ctx.lineTo(pts[j].x, pts[j].y)
+                                                            ctx.lineTo(pts[pts.length-1].x, height)
+                                                            ctx.closePath()
+                                                            ctx.fillStyle = hexColor + alphaFill
+                                                            ctx.fill()
+                                                            // Line
+                                                            ctx.beginPath()
+                                                            ctx.moveTo(pts[0].x, pts[0].y)
+                                                            for (var k = 1; k < pts.length; k++) ctx.lineTo(pts[k].x, pts[k].y)
+                                                            ctx.strokeStyle = hexColor + "cc"
+                                                            ctx.lineWidth = 1.8
+                                                            ctx.stroke()
+                                                            // Dot at latest value
+                                                            var last = pts[pts.length-1]
+                                                            ctx.beginPath(); ctx.arc(last.x, last.y, 3, 0, 2*Math.PI)
+                                                            ctx.fillStyle = hexColor + "ff"; ctx.fill()
+                                                        }
+                                                        function roundedRect(c, x, y, w, h, r) {
+                                                            c.beginPath(); c.moveTo(x+r,y); c.lineTo(x+w-r,y)
+                                                            c.arcTo(x+w,y,x+w,y+r,r); c.lineTo(x+w,y+h-r)
+                                                            c.arcTo(x+w,y+h,x+w-r,y+h,r); c.lineTo(x+r,y+h)
+                                                            c.arcTo(x,y+h,x,y+h-r,r); c.lineTo(x,y+r)
+                                                            c.arcTo(x,y,x+r,y,r); c.closePath()
+                                                        }
+                                                        drawSparkline(cpuHist, "#5865F2", "22")
+                                                        drawSparkline(ramHist, "#b366ff", "22")
+                                                    }
+                                                }
+                                                // Legend
+                                                Row {
+                                                    anchors { right: parent.right; bottom: parent.bottom; margins: 6 }
+                                                    spacing: 8
+                                                    Repeater {
+                                                        model: [{ label: "CPU", color: root.theme.accentPrimary }, { label: "RAM", color: root.theme.logoPurple }]
+                                                        delegate: Row {
+                                                            required property var modelData
+                                                            spacing: 3
+                                                            Rectangle { width: 10; height: 2; radius: 1; color: modelData.color; anchors.verticalCenter: parent.verticalCenter }
+                                                            Text { text: modelData.label; color: root.theme.textMuted; font.pixelSize: 8; font.family: root.theme.fontFamily }
                                                         }
                                                     }
                                                 }
@@ -1630,6 +1756,7 @@ Scope {
                                                     { label: "Chezmoi apply",   sub: "Sync dotfiles",  icon: "arrow-clockwise",cmd: ["ghostty", "-e", "bash", "-lc", "chezmoi apply && echo done; read"] }
                                                 ]
                                                 delegate: HubActionRow {
+                                                    required property var modelData
                                                     width: devCol.width; theme: root.theme; phosphorDir: root.phosphorDir
                                                     labelText: modelData.label; subText: modelData.sub; iconName: modelData.icon
                                                     onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
@@ -1741,7 +1868,12 @@ Scope {
                                                     { label: "Reload Hyprland",     sub: "Apply hypr config",        icon: "arrow-clockwise", cmd: ["sh", "-c", "hyprctl reload >/dev/null 2>&1 || true"] },
                                                     { label: "Restart Quickshell",  sub: "Reload bar",               icon: "squares-four",    cmd: ["sh", "-c", "pkill quickshell; sleep 0.5; quickshell &"] }
                                                 ]
-                                                delegate: HubActionRow { width: ctrlCol.width; theme: root.theme; phosphorDir: root.phosphorDir; labelText: modelData.label; subText: modelData.sub; iconName: modelData.icon; onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false } }
+                                                delegate: HubActionRow {
+                                                    required property var modelData
+                                                    width: ctrlCol.width; theme: root.theme; phosphorDir: root.phosphorDir
+                                                    labelText: modelData.label; subText: modelData.sub; iconName: modelData.icon
+                                                    onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                }
                                             }
 
                                             Text { text: "DISPLAY & CAPTURE"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
@@ -1752,7 +1884,12 @@ Scope {
                                                     { label: "Color picker",        sub: "Pick & copy hex color",    icon: "palette", cmd: ["sh", "-c", "hyprpicker -a"] },
                                                     { label: "Toggle DND",          sub: "Mako do-not-disturb",      icon: "bell",    cmd: ["sh", "-c", "makoctl mode -t do-not-disturb"] }
                                                 ]
-                                                delegate: HubActionRow { width: ctrlCol.width; theme: root.theme; phosphorDir: root.phosphorDir; labelText: modelData.label; subText: modelData.sub; iconName: modelData.icon; onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false } }
+                                                delegate: HubActionRow {
+                                                    required property var modelData
+                                                    width: ctrlCol.width; theme: root.theme; phosphorDir: root.phosphorDir
+                                                    labelText: modelData.label; subText: modelData.sub; iconName: modelData.icon
+                                                    onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                }
                                             }
 
                                             Text { text: "SERVICES"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
@@ -1761,7 +1898,12 @@ Scope {
                                                     { label: "AI Gateway (restart)", sub: "OpenClaw gateway", icon: "arrow-clockwise", cmd: ["sh", "-c", "systemctl --user restart openclaw-gateway.service >/dev/null 2>&1 || true"] },
                                                     { label: "AGS doctor",           sub: "Quick settings",  icon: "gear",            cmd: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/.config/SL1C3D-L4BS/bin/sl1c3d-ags doctor; read"] }
                                                 ]
-                                                delegate: HubActionRow { width: ctrlCol.width; theme: root.theme; phosphorDir: root.phosphorDir; labelText: modelData.label; subText: modelData.sub; iconName: modelData.icon; onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false } }
+                                                delegate: HubActionRow {
+                                                    required property var modelData
+                                                    width: ctrlCol.width; theme: root.theme; phosphorDir: root.phosphorDir
+                                                    labelText: modelData.label; subText: modelData.sub; iconName: modelData.icon
+                                                    onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                }
                                             }
                                         }
                                     }
@@ -2801,6 +2943,199 @@ Scope {
                         }
                     }
                 }
+            }
+
+            // ─── Volume OSD ─────────────────────────────────────────────────
+            PwObjectTracker { id: osdPwTracker; objects: [Pipewire.defaultAudioSink] }
+
+            Timer {
+                id: volumeOsdDismiss
+                interval: 2200; repeat: false
+                onTriggered: panelWindow.volumeOsdVisible = false
+            }
+            Connections {
+                target: Pipewire.defaultAudioSink ? Pipewire.defaultAudioSink.audio : null
+                function onVolumeChanged() {
+                    const v = Pipewire.defaultAudioSink?.audio?.volume ?? 0
+                    panelWindow.volumeOsdLevel = Math.min(1.0, v)
+                    panelWindow.volumeOsdVisible = true
+                    volumeOsdDismiss.restart()
+                }
+            }
+
+            PopupWindow {
+                anchor.window: panelWindow
+                implicitWidth: 220
+                implicitHeight: 52
+                color: "transparent"
+                visible: panelWindow.volumeOsdVisible
+
+                anchor.onAnchoring: {
+                    if (!anchor.window) return
+                    const pw = anchor.window.width
+                    const ph = anchor.window.height
+                    const x = (pw - implicitWidth) / 2
+                    const y = ph - implicitHeight - 64
+                    anchor.rect = Qt.rect(x, y, implicitWidth, implicitHeight)
+                }
+
+                GlassSurface {
+                    theme: root.theme
+                    strong: true
+                    anchors.fill: parent
+                    radius: root.theme.radiusPill
+
+                    scale:   panelWindow.volumeOsdVisible ? 1.0 : 0.88
+                    opacity: panelWindow.volumeOsdVisible ? 1.0 : 0.0
+                    Behavior on scale   { SpringAnimation { spring: 2.5; damping: 0.7 } }
+                    Behavior on opacity { NumberAnimation { duration: root.theme.motionBaseMs; easing.type: Easing.OutCubic } }
+
+                    Row {
+                        anchors { fill: parent; leftMargin: 14; rightMargin: 14 }
+                        spacing: 10
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: {
+                                const v = panelWindow.volumeOsdLevel
+                                if (v === 0) return "🔇"
+                                if (v < 0.33) return "🔈"
+                                if (v < 0.66) return "🔉"
+                                return "🔊"
+                            }
+                            font.pixelSize: 14
+                        }
+
+                        // Volume bar
+                        Item {
+                            width: parent.width - 50 - 46
+                            height: 6
+                            anchors.verticalCenter: parent.verticalCenter
+                            Rectangle {
+                                anchors.fill: parent; radius: 3; color: root.theme.border
+                                Rectangle {
+                                    width: parent.width * panelWindow.volumeOsdLevel
+                                    height: parent.height; radius: 3
+                                    color: panelWindow.volumeOsdLevel > 1.0 ? root.theme.accentRed : root.theme.accentPrimary
+                                    Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                                }
+                            }
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: Math.round(panelWindow.volumeOsdLevel * 100) + "%"
+                            color: root.theme.textPrimary
+                            font.pixelSize: 12; font.family: root.theme.fontFamily; font.weight: Font.DemiBold
+                            width: 36; horizontalAlignment: Text.AlignRight
+                        }
+                    }
+                }
+            }
+
+            // ─── Network quick-settings popup ───────────────────────────────
+            Process {
+                id: netDetailsProc
+                property string output: ""
+                command: ["sh", "-c", "ip route get 1 2>/dev/null | awk '{print $7; exit}'; echo '---'; nmcli -t -f active,ssid,signal dev wifi 2>/dev/null | awk -F: '$1==\"yes\"{print $2\"|\"$3; exit}'; echo '---'; ip -4 addr show 2>/dev/null | awk '/inet /{print $2; exit}'"]
+                running: false
+                stdout: StdioCollector {
+                    onStreamFinished: netDetailsProc.output = text.trim()
+                }
+            }
+            PopupWindow {
+                anchor.item: netPill
+                anchor.edges: Edges.Bottom
+                anchor.gravity: Edges.Bottom
+                anchor.adjustment: PopupAdjustment.Flip
+                anchor.margins.top: 8
+                implicitWidth: 230
+                implicitHeight: netQuickCol.implicitHeight + 24
+                color: "transparent"
+                visible: panelWindow.networkPopupOpen
+                onVisibleChanged: {
+                    if (visible) { netDetailsProc.output = ""; netDetailsProc.running = true }
+                    else panelWindow.networkPopupOpen = false
+                }
+                GlassSurface {
+                    theme: root.theme; strong: true; anchors.fill: parent
+                    radius: root.theme.radiusModal; clip: true
+
+                    scale:   panelWindow.networkPopupOpen ? 1.0 : 0.92
+                    opacity: panelWindow.networkPopupOpen ? 1.0 : 0.0
+                    Behavior on scale   { SpringAnimation { spring: 2.5; damping: 0.7 } }
+                    Behavior on opacity { NumberAnimation { duration: root.theme.motionBaseMs; easing.type: Easing.OutCubic } }
+
+                    Column {
+                        id: netQuickCol
+                        anchors { fill: parent; margins: 14 }
+                        spacing: 10
+
+                        Row {
+                            width: parent.width
+                            Text { text: "NETWORK"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+                            Item { width: parent.width - networkCloseBtn.width - 60; height: 1 }
+                            MouseArea {
+                                id: networkCloseBtn
+                                width: 18; height: 18; cursorShape: Qt.PointingHandCursor
+                                onClicked: panelWindow.networkPopupOpen = false
+                                Text { anchors.centerIn: parent; text: "✕"; color: root.theme.textMuted; font.pixelSize: 10; font.family: root.theme.fontFamily }
+                            }
+                        }
+
+                        // SSID + status
+                        Rectangle {
+                            width: parent.width; height: 36; radius: root.theme.radiusPill
+                            color: root.theme.bgBase; border.width: 1; border.color: root.theme.border
+                            Row {
+                                anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
+                                spacing: 8
+                                Image {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    source: root.phosphorDir + "/network.svg"
+                                    width: 14; height: 14; fillMode: Image.PreserveAspectFit; smooth: true
+                                }
+                                Column {
+                                    anchors.verticalCenter: parent.verticalCenter; spacing: 1
+                                    Text {
+                                        text: SystemInfo.networkInfo
+                                        color: SystemInfo.networkInfo === "Disconnected" ? root.theme.accentRed : root.theme.accentGreen
+                                        font.pixelSize: 11; font.family: root.theme.fontFamily; font.weight: Font.DemiBold
+                                    }
+                                    Text {
+                                        text: {
+                                            const parts = (netDetailsProc.output || "").split("\n---\n")
+                                            if (parts.length > 2) return (parts[2] || "").trim() || "—"
+                                            return "—"
+                                        }
+                                        color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily
+                                    }
+                                }
+                            }
+                        }
+
+                        // Quick actions
+                        Row {
+                            width: parent.width; spacing: 6
+                            Repeater {
+                                model: [
+                                    { label: "nmtui",        cmd: ["ghostty", "-e", "nmtui"] },
+                                    { label: "Toggle WiFi",  cmd: ["sh", "-c", "nmcli radio wifi | grep -q enabled && nmcli radio wifi off || nmcli radio wifi on"] },
+                                    { label: "Disconnect",   cmd: ["sh", "-c", "nmcli networking off; sleep 0.5; nmcli networking on"] }
+                                ]
+                                delegate: MouseArea {
+                                    required property var modelData
+                                    height: 28; width: (netQuickCol.width - 12) / 3
+                                    cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                    onClicked: { netLauncher.command = modelData.cmd; netLauncher.running = true; panelWindow.networkPopupOpen = false }
+                                    Rectangle { anchors.fill: parent; radius: root.theme.radiusPill; color: parent.containsMouse ? root.theme.accentDim2 : root.theme.bgBase; border.width: 1; border.color: root.theme.border; Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } } }
+                                    Text { anchors.centerIn: parent; text: modelData.label; color: root.theme.textPrimary; font.pixelSize: 9; font.family: root.theme.fontFamily }
+                                }
+                            }
+                        }
+                    }
+                }
+                Process { id: netLauncher; command: ["sh", "-c", "true"]; running: false }
             }
         }
     }
