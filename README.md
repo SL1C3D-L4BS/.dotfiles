@@ -76,11 +76,11 @@ Alias: `cm` = chezmoi (in `.zshrc`).
 ## Source layout
 
 ```
+README.md                    →  ~/README.md
 dot_zshrc, dot_gitconfig     →  ~/.zshrc, ~/.gitconfig
-dot_config/                  →  ~/.config/  (hypr, quickshell, starship, ghostty, fuzzel, mako, yazi, zellij, waypaper, nvim, git, chezmoi, …)
-scripts/                     →  ~/scripts/ (validate-configs.sh)
-assets/                      →  ~/assets/   (icons, wallpapers, firefox user.js template)
-run_once_*                   →  symlinks for ~/.config/SL1C3D-L4BS → ~/assets
+dot_config/                  →  ~/.config/  (hypr, quickshell, starship, ghostty, fuzzel, mako, yazi, zellij, waypaper, nvim, git, chezmoi, SL1C3D-L4BS/system-config, …)
+scripts/                     →  ~/scripts/  (validate-configs.sh)
+assets/                      →  ~/assets/   (icons, wallpapers)
 ```
 
 ---
