@@ -11,6 +11,8 @@ import Quickshell.Services.Pipewire
 Scope {
     id: root
     property var theme: BrandTheme {}
+    property string homeDir: (typeof Qt !== "undefined" && Qt.environment && typeof Qt.environment.value === "function" ? Qt.environment.value("HOME") : null) || "/home/the_architect"
+    property string phosphorDir: "file://" + homeDir + "/assets/icons/phosphor"
 
     property var activePlayer: {
         const players = Mpris.players.values
@@ -93,6 +95,7 @@ Scope {
 
             implicitHeight: 44
             color: "transparent"
+            surfaceFormat.opaque: false
 
             Item {
                 anchors.fill: parent
@@ -166,12 +169,28 @@ Scope {
                             anchors.centerIn: parent
                             spacing: 8
 
+                            Image {
+                                anchors.verticalCenter: parent.verticalCenter
+                                source: root.phosphorDir + "/clock.svg"
+                                width: 14
+                                height: 14
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                            }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: Time.timeString
                                 color: root.theme.accentPrimary
                                 font.pixelSize: 14
                                 font.family: "JetBrainsMono Nerd Font"
+                            }
+                            Image {
+                                anchors.verticalCenter: parent.verticalCenter
+                                source: root.phosphorDir + "/calendar-blank.svg"
+                                width: 14
+                                height: 14
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
@@ -259,12 +278,21 @@ Scope {
                             anchors.leftMargin: 8
                             spacing: 6
 
-                            Text {
+                            Image {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: root.activePlayer && root.activePlayer.playbackState === MprisPlaybackState.Playing ? "󰐊" : "󰏤"
-                                color: root.theme.accentPrimary
-                                font.pixelSize: 14
-                                font.family: "JetBrainsMono Nerd Font"
+                                source: root.phosphorDir + "/music-notes.svg"
+                                width: 14
+                                height: 14
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                            }
+                            Image {
+                                anchors.verticalCenter: parent.verticalCenter
+                                source: root.activePlayer && root.activePlayer.playbackState === MprisPlaybackState.Playing ? root.phosphorDir + "/pause.svg" : root.phosphorDir + "/play.svg"
+                                width: 14
+                                height: 14
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
@@ -396,12 +424,13 @@ Scope {
                             anchors.centerIn: parent
                             spacing: 6
 
-                            Text {
+                            Image {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: "󰃠"
-                                color: root.theme.accentOrange
-                                font.pixelSize: 14
-                                font.family: "JetBrainsMono Nerd Font"
+                                source: root.phosphorDir + "/sun-dim.svg"
+                                width: 14
+                                height: 14
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
@@ -446,12 +475,13 @@ Scope {
                                 id: netContent
                                 anchors.centerIn: parent
                                 spacing: 6
-                                Text {
+                                Image {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text: "󰛳"
-                                    color: root.theme.accentGreen
-                                    font.pixelSize: 14
-                                    font.family: "JetBrainsMono Nerd Font"
+                                    source: root.phosphorDir + "/wifi-high.svg"
+                                    width: 14
+                                    height: 14
+                                    fillMode: Image.PreserveAspectFit
+                                    smooth: true
                                 }
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
@@ -476,19 +506,19 @@ Scope {
                                 id: battContent
                                 anchors.centerIn: parent
                                 spacing: 6
-                                Text {
+                                Image {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    visible: SystemInfo.batteryCharging
-                                    text: "󱐋"
-                                    color: root.theme.accentGreen
-                                    font.pixelSize: 12
-                                    font.family: "JetBrainsMono Nerd Font"
+                                    source: SystemInfo.batteryCharging ? root.phosphorDir + "/battery-charging.svg" : (SystemInfo.batteryLevelRaw > 20 ? root.phosphorDir + "/battery-high.svg" : root.phosphorDir + "/battery-low.svg")
+                                    width: 14
+                                    height: 14
+                                    fillMode: Image.PreserveAspectFit
+                                    smooth: true
                                 }
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text: SystemInfo.batteryIcon
+                                    text: SystemInfo.batteryLevel
                                     color: sysInfo.batteryColor
-                                    font.pixelSize: 14
+                                    font.pixelSize: 11
                                     font.family: "JetBrainsMono Nerd Font"
                                 }
                                 Text {
@@ -662,12 +692,22 @@ Scope {
 
                         Item { height: 14 }
 
-                        Text {
-                            text: "DEVELOPER"
-                            color: root.theme.textMuted
-                            font.pixelSize: 9
-                            font.family: "JetBrainsMono Nerd Font"
-                            font.letterSpacing: 0.8
+                        Row {
+                            spacing: 6
+                            Image {
+                                source: root.phosphorDir + "/folder-open.svg"
+                                width: 12
+                                height: 12
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                            }
+                            Text {
+                                text: "DEVELOPER"
+                                color: root.theme.textMuted
+                                font.pixelSize: 9
+                                font.family: "JetBrainsMono Nerd Font"
+                                font.letterSpacing: 0.8
+                            }
                         }
                         Item { height: 6 }
 
@@ -695,23 +735,32 @@ Scope {
                                 Row {
                                     spacing: 12
                                     anchors.verticalCenter: parent.verticalCenter
-                                    Text {
-                                        text: "Yazi"
-                                        color: root.theme.accentPrimary
-                                        font.pixelSize: 10
-                                        font.family: "JetBrainsMono Nerd Font"
-                                        MouseArea {
+                                    Row {
+                                        spacing: 4
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        Image { source: root.phosphorDir + "/folder-open.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
+                                        Text {
+                                            text: "Yazi"
+                                            color: root.theme.accentPrimary
+                                            font.pixelSize: 10
+                                            font.family: "JetBrainsMono Nerd Font"
+                                            MouseArea {
                                             anchors.fill: parent
                                             anchors.margins: -4
                                             cursorShape: Qt.PointingHandCursor
                                             onClicked: {
-                                                hubLauncher.command = ["ghostty", "-e", "yazi", parent.parent.parent.path]
+                                                hubLauncher.command = ["ghostty", "-e", "yazi", parent.parent.parent.parent.path]
                                                 hubLauncher.running = true
                                                 panelWindow.hubOpen = false
                                             }
                                         }
+                                        }
                                     }
-                                    Text {
+                                    Row {
+                                        spacing: 4
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        Image { source: root.phosphorDir + "/terminal-window.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
+                                        Text {
                                         text: "Terminal"
                                         color: root.theme.accentPrimary
                                         font.pixelSize: 10
@@ -721,10 +770,11 @@ Scope {
                                             anchors.margins: -4
                                             cursorShape: Qt.PointingHandCursor
                                             onClicked: {
-                                                hubLauncher.command = ["ghostty", "-e", "bash", "-c", "cd " + parent.parent.parent.path + " && exec ~/.config/hypr/scripts/zellij-branded.sh"]
+                                                hubLauncher.command = ["ghostty", "-e", "bash", "-c", "cd " + parent.parent.parent.parent.path + " && exec ~/.config/hypr/scripts/zellij-branded.sh"]
                                                 hubLauncher.running = true
                                                 panelWindow.hubOpen = false
                                             }
+                                        }
                                         }
                                     }
                                 }
@@ -732,12 +782,22 @@ Scope {
                         }
 
                         Item { height: 16 }
-                        Text {
-                            text: "WALLPAPERS"
-                            color: root.theme.textMuted
-                            font.pixelSize: 9
-                            font.family: "JetBrainsMono Nerd Font"
-                            font.letterSpacing: 0.8
+                        Row {
+                            spacing: 6
+                            Image {
+                                source: root.phosphorDir + "/images-square.svg"
+                                width: 12
+                                height: 12
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                            }
+                            Text {
+                                text: "WALLPAPERS"
+                                color: root.theme.textMuted
+                                font.pixelSize: 9
+                                font.family: "JetBrainsMono Nerd Font"
+                                font.letterSpacing: 0.8
+                            }
                         }
                         Item { height: 6 }
 
@@ -819,12 +879,22 @@ Scope {
                         }
 
                         Item { height: 16 }
-                        Text {
-                            text: "SYSTEM"
-                            color: root.theme.textMuted
-                            font.pixelSize: 9
-                            font.family: "JetBrainsMono Nerd Font"
-                            font.letterSpacing: 0.8
+                        Row {
+                            spacing: 6
+                            Image {
+                                source: root.phosphorDir + "/gear.svg"
+                                width: 12
+                                height: 12
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                            }
+                            Text {
+                                text: "SYSTEM"
+                                color: root.theme.textMuted
+                                font.pixelSize: 9
+                                font.family: "JetBrainsMono Nerd Font"
+                                font.letterSpacing: 0.8
+                            }
                         }
                         Item { height: 6 }
 
@@ -832,7 +902,11 @@ Scope {
                             height: 26
                             spacing: 16
 
-                            Text {
+                            Row {
+                                spacing: 4
+                                anchors.verticalCenter: parent.verticalCenter
+                                Image { source: root.phosphorDir + "/magnifying-glass.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
+                                Text {
                                 text: "Fuzzel"
                                 color: root.theme.accentPrimary
                                 font.pixelSize: 10
@@ -847,8 +921,13 @@ Scope {
                                         panelWindow.hubOpen = false
                                     }
                                 }
+                                }
                             }
-                            Text {
+                            Row {
+                                spacing: 4
+                                anchors.verticalCenter: parent.verticalCenter
+                                Image { source: root.phosphorDir + "/file-code.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
+                                Text {
                                 text: "Hypr config"
                                 color: root.theme.accentPrimary
                                 font.pixelSize: 10
@@ -863,8 +942,13 @@ Scope {
                                         panelWindow.hubOpen = false
                                     }
                                 }
+                                }
                             }
-                            Text {
+                            Row {
+                                spacing: 4
+                                anchors.verticalCenter: parent.verticalCenter
+                                Image { source: root.phosphorDir + "/images-square.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
+                                Text {
                                 text: "Waypaper"
                                 color: root.theme.accentPrimary
                                 font.pixelSize: 10
@@ -878,6 +962,7 @@ Scope {
                                         hubLauncher.running = true
                                         panelWindow.hubOpen = false
                                     }
+                                }
                                 }
                             }
                         }

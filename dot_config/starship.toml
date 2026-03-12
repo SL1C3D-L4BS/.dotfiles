@@ -30,22 +30,22 @@ $character"""
 
 right_format = "$time"
 
-# ─── Character (prompt symbol) ──────────────────────────────────────────────
+# ─── Character (prompt symbol) — Nerd Font ───────────────────────────────────
 [character]
-success_symbol = "[❯](bold fg:accent)"
-error_symbol   = "[❯](bold fg:error)"
-vimcmd_symbol  = "[❮](bold fg:accent)"
+success_symbol = "[\uE0B0](bold fg:accent)"
+error_symbol   = "[\uE0B0](bold fg:error)"
+vimcmd_symbol  = "[\uE0B2](bold fg:accent)"
 
-# ─── Directory — segment pill (bg surface, fg fgdim) ─────────────────────────
+# ─── Directory — segment pill + folder icon (Nerd Font) ──────────────────────
 [directory]
 style = "bg:surface fg:fgdim bold"
 truncation_length = 3
 truncation_symbol = "…/"
-format = "[ $path ]($style)"
+format = "[\uF07B  $path ]($style)"
 
-# ─── Git branch — segment pill (bg accent, fg bg) ────────────────────────────
+# ─── Git branch — segment pill + branch icon (Nerd Font) ────────────────────
 [git_branch]
-symbol = ""
+symbol = "\uE0A0 "
 style = "bg:accent fg:bg bold"
 format = "[ $symbol$branch ]($style)"
 
@@ -54,43 +54,50 @@ format = "[ $symbol$branch ]($style)"
 style = "bg:border fg:muted"
 format = '[\[$all_status$ahead_behind\]]($style)'
 
-# ─── Time (right prompt) ─────────────────────────────────────────────────────
+# ─── Time (right prompt) — Nerd Font clock ───────────────────────────────────
 [time]
 style = "fg:muted"
-format = '[$time]($style) '
+format = '[\uF017 $time]($style) '
 time_format = "%I:%M %p"
 disabled = false
 
-# ─── Hostname (SSH) ────────────────────────────────────────────────────────
+# ─── Hostname (SSH) — Nerd Font globe ───────────────────────────────────────
 [hostname]
 ssh_only = true
+ssh_symbol = "\uF0AC "
 style = "fg:muted"
 format = "[$ssh_symbol$hostname]($style) in "
 
-# ─── Command duration ───────────────────────────────────────────────────────
+# ─── Command duration — Nerd Font timer ─────────────────────────────────────
 [cmd_duration]
 min_time = 2000
 style = "fg:muted"
-format = "took [$duration]($style) "
+format = " [\uF252 $duration]($style) "
 
-# ─── Lang/context (brand styles) ─────────────────────────────────────────────
+# ─── Lang/context — Nerd Font symbols + brand styles ────────────────────────
 [package]
 disabled = true
 
 [golang]
+symbol = "\uE626 "
 style = "fg:fgdim"
 
 [nodejs]
+symbol = "\uF898 "
 style = "fg:fgdim"
 
 [python]
+symbol = "\uE235 "
 style = "fg:fgdim"
 
 [rust]
+symbol = "\uE7A8 "
 style = "fg:fgdim"
 
 [conda]
+symbol = "\uE001 "
 style = "fg:fgdim"
 
 [docker_context]
+symbol = "\uF308 "
 style = "fg:muted"
