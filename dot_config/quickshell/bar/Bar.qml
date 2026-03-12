@@ -1708,7 +1708,8 @@ Scope {
                                                 width: parent.width; height: 44; radius: 10
                                                 color: root.theme.bgBase; border.width: 1; border.color: Qt.rgba(1,1,1,0.06)
                                                 Row {
-                                                    anchors { fill: parent; leftMargin: 12 }; spacing: 10
+                                                    anchors { fill: parent; leftMargin: 12 }
+                                                    spacing: 10
                                                     Text { anchors.verticalCenter: parent.verticalCenter; text: "ℹ"; font.pixelSize: 14; color: root.theme.accentPrimary }
                                                     Text { anchors.verticalCenter: parent.verticalCenter; text: "Open Spotify on your phone or desktop,\nselect \"SL1C3D-L4BS\" as the device."; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily }
                                                 }
