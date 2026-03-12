@@ -8,7 +8,10 @@ Singleton {
     id: root
 
     property string cpuUsage: "0%"
+    property real   cpuUsageNum: 0
     property string memoryUsage: "0%"
+    property real   ramUsageNum: 0
+    property real   diskUsageNum: 0
     property string networkInfo: "Disconnected"
     property int batteryLevelRaw: 0
     property string batteryLevel: "0%"
@@ -21,7 +24,11 @@ Singleton {
         command: ["sh", "-c", "top -bn1 2>/dev/null | grep 'Cpu(s)' | sed 's/.*, *\\([0-9.]*\\)%* id.*/\\1/' | awk '{print 100 - $1\"%\"}' || echo '0%'"]
         running: true
         stdout: StdioCollector {
-            onStreamFinished: function() { root.cpuUsage = (text && text.trim()) ? text.trim() : "0%" }
+            onStreamFinished: function() {
+                const s = (text && text.trim()) ? text.trim() : "0%"
+                root.cpuUsage = s
+                root.cpuUsageNum = parseFloat(s) || 0
+            }
         }
     }
 
@@ -30,7 +37,20 @@ Singleton {
         command: ["sh", "-c", "free 2>/dev/null | grep Mem | awk '{printf \"%.1f%%\", ($3/$2) * 100.0}' || echo '0%'"]
         running: true
         stdout: StdioCollector {
-            onStreamFinished: function() { root.memoryUsage = (text && text.trim()) ? text.trim() : "0%" }
+            onStreamFinished: function() {
+                const s = (text && text.trim()) ? text.trim() : "0%"
+                root.memoryUsage = s
+                root.ramUsageNum = parseFloat(s) || 0
+            }
+        }
+    }
+
+    Process {
+        id: diskProc
+        command: ["sh", "-c", "df / 2>/dev/null | tail -1 | awk '{print $5}' | tr -d '%' || echo '0'"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: function() { root.diskUsageNum = parseFloat(text.trim()) || 0 }
         }
     }
 
@@ -88,6 +108,7 @@ Singleton {
         onTriggered: function() {
             cpuProc.running = true
             memProc.running = true
+            diskProc.running = true
             netProc.running = true
             batteryProc.running = true
             tempProc.running = true

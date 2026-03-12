@@ -178,6 +178,7 @@ Scope {
             property bool calendarOpen: false
             property bool focusOpen: false
             property bool powerMenuOpen: false
+            property int  lastHubSection: 0
             property string calTab: "cal"  // "cal" | "notes"
             property string calSelectedDate: ""
             property string notesContent: ""
@@ -1039,27 +1040,18 @@ Scope {
 
             PopupWindow {
                 id: hubPopup
-                anchor.window: panelWindow
-                // SL1C3D HUB: two-column nav + card-based content (ML4W/Omarchy-style), thinner modal
-                implicitWidth: 440
-                implicitHeight: 580
+                // Anchor below the left logo pill using native item-relative positioning
+                anchor.item: leftSection
+                anchor.edges: Edges.Bottom | Edges.Left
+                anchor.gravity: Edges.Bottom | Edges.Right
+                anchor.adjustment: PopupAdjustment.Flip
+                anchor.margins.top: 8
+                implicitWidth: 500
+                implicitHeight: 620
                 visible: panelWindow.hubOpen
                 color: "transparent"
 
                 onVisibleChanged: if (!visible) panelWindow.hubOpen = false
-
-                anchor.onAnchoring: {
-                    if (anchor.window && leftSection) {
-                        var window = anchor.window
-                        var pillRect = window.contentItem.mapFromItem(
-                            leftSection, 0, leftSection.height,
-                            leftSection.width, leftSection.height
-                        )
-                        var x = pillRect.x
-                        var y = pillRect.y + 4
-                        anchor.rect = Qt.rect(x, y, implicitWidth, implicitHeight)
-                    }
-                }
 
                 GlassSurface {
                     id: hubCard
@@ -1069,23 +1061,56 @@ Scope {
                     radius: root.theme.radiusModal
                     clip: true
 
-                    scale: panelWindow.hubOpen ? 1 : 0.96
+                    scale: panelWindow.hubOpen ? 1 : 0.95
                     opacity: panelWindow.hubOpen ? 1 : 0
-                    Behavior on scale { NumberAnimation { duration: root.theme.motionBaseMs } }
+                    Behavior on scale   { NumberAnimation { duration: root.theme.motionBaseMs; easing.type: Easing.OutCubic } }
                     Behavior on opacity { NumberAnimation { duration: root.theme.motionBaseMs } }
 
-                    Process {
-                        id: hubLauncher
-                        running: false
-                    }
+                    Process { id: hubLauncher; running: false }
 
                     property string home: root.homeDir
-                    property int hubSection: 0  // 0 Overview, 1 Control, 2 Developer, 3 Wallpapers, 4 System
+                    // 0 Overview · 1 Media · 2 Developer · 3 Wallpapers · 4 Control · 5 System
+                    property int hubSection: panelWindow.lastHubSection
+                    onHubSectionChanged: panelWindow.lastHubSection = hubSection
 
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: { }
+                    property string selectedWallpaper: ""
+
+                    // ── MPRIS live data ───────────────────────────────────────
+                    property var mprisPlayer: MprisController.players.length > 0 ? MprisController.players[0] : null
+                    PwObjectTracker { id: pwTracker; objects: [Pipewire.defaultAudioSink] }
+                    property real audioVolume: Pipewire.defaultAudioSink?.audio?.volume ?? 1.0
+
+                    // Position ticker (drives progress bar while playing)
+                    Timer {
+                        id: mprisTicker
+                        interval: 1000; repeat: true
+                        running: hubCard.mprisPlayer !== null && hubCard.mprisPlayer.isPlaying && panelWindow.hubOpen
+                        onTriggered: if (hubCard.mprisPlayer) hubCard.mprisPlayer.positionChanged()
                     }
+
+                    // Chezmoi status process
+                    property string chezmoiStatus: "—"
+                    Process {
+                        id: chezmoiStatusProc
+                        running: false
+                        stdout: StdioCollector {
+                            onStreamFinished: {
+                                const lines = text.trim().split("\n").filter(l => l.length > 0)
+                                hubCard.chezmoiStatus = lines.length > 0 ? lines.length + " modified" : "clean"
+                            }
+                        }
+                    }
+                    Connections {
+                        target: panelWindow
+                        function onHubOpenChanged() {
+                            if (panelWindow.hubOpen && hubCard.hubSection === 2) {
+                                chezmoiStatusProc.command = ["sh", "-c", "chezmoi status 2>/dev/null"]
+                                chezmoiStatusProc.running = true
+                            }
+                        }
+                    }
+
+                    MouseArea { anchors.fill: parent; onClicked: { } }
 
                     Item {
                         anchors.fill: parent
@@ -1097,541 +1122,718 @@ Scope {
                             anchors.margins: root.theme.spacingLg
                             spacing: 0
 
-                            // ─── Header: logo + title + close ───
+                            // ─── Header ──────────────────────────────────────
                             Row {
-                                width: parent.width - 32
+                                width: parent.width
                                 height: 44
                                 spacing: 10
                                 Image {
-                                    source: "file:///home/the_architect/assets/icons/Logo-bar.svg"
-                                    width: 22
-                                    height: 22
+                                    source: "file://" + hubCard.home + "/assets/icons/Logo-bar.svg"
+                                    width: 22; height: 22
                                     anchors.verticalCenter: parent.verticalCenter
-                                    fillMode: Image.PreserveAspectFit
-                                    smooth: true
-                                    mipmap: true
+                                    fillMode: Image.PreserveAspectFit; smooth: true; mipmap: true
                                 }
                                 Text {
                                     text: "SL1C3D HUB"
                                     color: root.theme.logoPurple
-                                    font.pixelSize: 14
-                                    font.family: root.theme.fontFamily
-                                    font.weight: Font.DemiBold
+                                    font.pixelSize: 14; font.family: root.theme.fontFamily; font.weight: Font.DemiBold
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
-                                Item { width: parent.width - 22 - 80 - closeBtn.width - 20; height: 1 }
+                                Item { Layout.fillWidth: true; width: parent.width - 22 - 90 - 28 - 20; height: 1 }
                                 MouseArea {
-                                    id: closeBtn
-                                    width: 28
-                                    height: 28
+                                    id: closeBtn; width: 28; height: 28
                                     anchors.verticalCenter: parent.verticalCenter
                                     cursorShape: Qt.PointingHandCursor
+                                    hoverEnabled: true
                                     onClicked: panelWindow.hubOpen = false
                                     Rectangle {
-                                        anchors.fill: parent
-                                        radius: 6
-                                        color: parent.pressed ? root.theme.border : "transparent"
-                                        opacity: parent.containsMouse ? 0.6 : 0
-                                        Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
+                                        anchors.fill: parent; radius: 6
+                                        color: closeBtn.containsMouse ? root.theme.border : "transparent"
+                                        Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
                                     }
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "×"
-                                        color: root.theme.textMuted
-                                        font.pixelSize: 16
-                                        font.family: root.theme.fontFamily
-                                    }
+                                    Text { anchors.centerIn: parent; text: "×"; color: root.theme.textMuted; font.pixelSize: 18; font.family: root.theme.fontFamily }
                                 }
                             }
 
-                            Rectangle {
-                                width: parent.width - 32
-                                height: 1
-                                color: root.theme.border
-                                opacity: 0.5
-                            }
+                            Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.5 }
                             Item { height: 12 }
 
-                            // ─── Two-column: Nav rail | Content ───
+                            // ─── Two-column: Nav rail | Content ──────────────
                             Row {
-                                width: parent.width - 32
+                                width: parent.width
                                 height: parent.height - 44 - 1 - 12 - 12
-                                spacing: 16
+                                spacing: 14
 
-                                // Left: Nav rail (ML4W-style sidebar), narrower for thinner modal
+                                // ── Nav rail ─────────────────────────────────
                                 Column {
-                                    width: 108
-                                    height: parent.height
-                                    spacing: 2
+                                    width: 112; height: parent.height; spacing: 3
 
                                     Repeater {
                                         model: [
-                                            { id: 0, label: "Overview", icon: "folder-open" },
-                                            { id: 1, label: "Control Plane", icon: "gear" },
-                                            { id: 2, label: "Developer", icon: "folder-open" },
-                                            { id: 3, label: "Wallpapers", icon: "images-square" },
-                                            { id: 4, label: "System", icon: "gear" }
+                                            { id: 0, label: "Overview",   icon: "squares-four",    accent: root.theme.accentPrimary },
+                                            { id: 1, label: "Media",      icon: "music-notes",     accent: root.theme.logoPurple },
+                                            { id: 2, label: "Developer",  icon: "terminal-window", accent: root.theme.accentPrimary },
+                                            { id: 3, label: "Wallpapers", icon: "images-square",   accent: root.theme.accentOrange },
+                                            { id: 4, label: "Control",    icon: "gear",            accent: root.theme.logoPurple },
+                                            { id: 5, label: "System",     icon: "keyboard",        accent: root.theme.accentGreen }
                                         ]
                                         delegate: MouseArea {
                                             required property var modelData
-                                            width: 108
-                                            height: 36
-                                            cursorShape: Qt.PointingHandCursor
+                                            width: 112; height: 36
+                                            cursorShape: Qt.PointingHandCursor; hoverEnabled: true
                                             onClicked: hubCard.hubSection = modelData.id
-
                                             Rectangle {
-                                                anchors.fill: parent
-                                                anchors.margins: 2
+                                                anchors.fill: parent; anchors.margins: 2
                                                 radius: root.theme.radiusPill
-                                                color: hubCard.hubSection === modelData.id ? root.theme.accentDim2 : (navHover.containsMouse ? root.theme.border : "transparent")
-                                                opacity: hubCard.hubSection === modelData.id ? 1 : (navHover.containsMouse ? 0.5 : 0)
-                                                Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                color: hubCard.hubSection === modelData.id ? root.theme.accentDim2 : (parent.containsMouse ? root.theme.border : "transparent")
+                                                opacity: hubCard.hubSection === modelData.id ? 1 : (parent.containsMouse ? 0.4 : 0)
+                                                Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
+                                            }
+                                            // Active accent left-bar
+                                            Rectangle {
+                                                width: 3; height: 20
+                                                anchors.left: parent.left; anchors.leftMargin: 3
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                radius: 2
+                                                color: modelData.accent
+                                                opacity: hubCard.hubSection === modelData.id ? 1 : 0
+                                                Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
                                             }
                                             Row {
-                                                anchors.fill: parent
-                                                anchors.leftMargin: 10
-                                                anchors.rightMargin: 10
-                                                spacing: 6
+                                                anchors { left: parent.left; right: parent.right; leftMargin: 14; rightMargin: 8 }
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                spacing: 7
                                                 Image {
-                                                    width: 14
-                                                    height: 14
+                                                    width: 14; height: 14
                                                     source: root.phosphorDir + "/" + modelData.icon + ".svg"
                                                     fillMode: Image.PreserveAspectFit
                                                     anchors.verticalCenter: parent.verticalCenter
                                                 }
                                                 Text {
                                                     text: modelData.label
-                                                    color: hubCard.hubSection === modelData.id ? root.theme.accentPrimary : root.theme.textSecondary
-                                                    font.pixelSize: 10
-                                                    font.family: root.theme.fontFamily
+                                                    color: hubCard.hubSection === modelData.id ? modelData.accent : root.theme.textSecondary
+                                                    font.pixelSize: 10; font.family: root.theme.fontFamily
                                                     anchors.verticalCenter: parent.verticalCenter
                                                     elide: Text.ElideRight
-                                                    width: 108 - 10 - 10 - 14 - 6
+                                                    width: 112 - 14 - 14 - 7 - 8
+                                                    Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
                                                 }
                                             }
-                                            MouseArea {
-                                                id: navHover
-                                                anchors.fill: parent
-                                                hoverEnabled: true
-                                                propagateComposedEvents: true
-                                            }
                                         }
+                                    }
+
+                                    Item { height: 8 }
+                                    Rectangle { width: parent.width - 8; height: 1; anchors.horizontalCenter: parent.horizontalCenter; color: root.theme.border; opacity: 0.4 }
+                                    Item { height: 6 }
+                                    // Edition tag at bottom of nav
+                                    Text {
+                                        text: root.editionName
+                                        color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily
+                                        anchors.horizontalCenter: parent.horizontalCenter
                                     }
                                 }
 
-                                // Right: Content stack (card-based panels)
+                                // ── Content area (cross-fade panels) ─────────
                                 Item {
-                                    width: parent.width - 108 - 16
+                                    id: hubContentArea
+                                    width: parent.width - 112 - 14
                                     height: parent.height
                                     clip: true
 
-                                    StackLayout {
-                                        anchors.fill: parent
-                                        currentIndex: hubCard.hubSection
+                                    // ─── 0 · OVERVIEW ────────────────────────
+                                    Flickable {
+                                        anchors.fill: parent; contentHeight: ovCol.implicitHeight; clip: true
+                                        opacity: hubCard.hubSection === 0 ? 1 : 0
+                                        visible: opacity > 0
+                                        Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
 
-                                        // ─── Overview ───
-                                        Flickable {
-                                            id: contentOverviewFlick
-                                            contentWidth: contentOverview.width
-                                            contentHeight: contentOverview.height
-                                            clip: true
-                                            Column {
-                                                id: contentOverview
-                                                width: contentOverviewFlick.width
+                                        Column {
+                                            id: ovCol; width: parent.width; spacing: 14
+
+                                            // System health rings
+                                            Text { text: "SYSTEM HEALTH"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+                                            Row {
                                                 spacing: 12
-                                                Text {
-                                                    text: "Quick access"
-                                                    color: root.theme.textMuted
-                                                    font.pixelSize: 10
-                                                    font.family: root.theme.fontFamily
-                                                    font.letterSpacing: 0.8
-                                                }
-                                                Row {
-                                                    spacing: 8
-                                                    Repeater {
-                                                        model: [
-                                                            { label: "Validate configs", cmd: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/scripts/validate-configs.sh; echo; echo 'Press Enter to close'; read"] },
-                                                            { label: "Reload Hypr", cmd: ["sh", "-c", "hyprctl reload >/dev/null 2>&1 || true"] },
-                                                            { label: "Open AI", cmd: [hubCard.home + "/.config/hypr/scripts/openclaw-sidebar.sh"] }
-                                                        ]
-                                                        delegate: Rectangle {
-                                                            required property var modelData
-                                                            height: 32
-                                                            width: labelText.width + 20
-                                                            radius: root.theme.radiusPill
-                                                            color: overviewPill.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
-                                                            border.width: 1
-                                                            border.color: root.theme.border
-                                                            MouseArea {
-                                                                id: overviewPill
-                                                                anchors.fill: parent
-                                                                hoverEnabled: true
-                                                                cursorShape: Qt.PointingHandCursor
-                                                                onClicked: {
-                                                                    hubLauncher.command = modelData.cmd
-                                                                    hubLauncher.running = true
-                                                                    panelWindow.hubOpen = false
-                                                                }
-                                                            }
-                                                            Text {
-                                                                id: labelText
-                                                                anchors.centerIn: parent
-                                                                text: modelData.label
-                                                                color: root.theme.textPrimary
-                                                                font.pixelSize: 11
-                                                                font.family: root.theme.fontFamily
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                Item { height: 8 }
-                                                Text {
-                                                    text: "Edition: " + root.editionName
-                                                    color: root.theme.textMuted
-                                                    font.pixelSize: 10
-                                                    font.family: root.theme.fontFamily
-                                                }
-                                            }
-                                        }
-
-                                        // ─── Control Plane (2026-style: grouped sections, icons, hierarchy) ───
-                                        Flickable {
-                                            id: contentControlFlick
-                                            contentWidth: contentControl.width
-                                            contentHeight: contentControl.height
-                                            clip: true
-                                            Column {
-                                                id: contentControl
-                                                width: contentControlFlick.width
-                                                spacing: 16
-                                                property string phosphorDir: root.phosphorDir
-
-                                                Text {
-                                                    text: "Control Plane"
-                                                    color: root.theme.logoPurple
-                                                    font.pixelSize: 13
-                                                    font.family: root.theme.fontFamily
-                                                    font.weight: Font.DemiBold
-                                                }
-                                                Text {
-                                                    text: "Validate configs, reload Hyprland, restart services."
-                                                    color: root.theme.textMuted
-                                                    font.pixelSize: 10
-                                                    font.family: root.theme.fontFamily
-                                                    wrapMode: Text.WordWrap
-                                                    width: contentControl.width
-                                                }
-
-                                                Item { height: 4 }
-                                                Text {
-                                                    text: "VALIDATION & RELOAD"
-                                                    color: root.theme.textMuted
-                                                    font.pixelSize: 9
-                                                    font.family: root.theme.fontFamily
-                                                    font.letterSpacing: 0.8
-                                                }
                                                 Repeater {
                                                     model: [
-                                                        { label: "Validate configs", sub: "Run validation script", icon: "gear", cmd: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/scripts/validate-configs.sh; echo; echo 'Press Enter to close'; read"] },
-                                                        { label: "Reload Hypr", sub: "Apply config changes", icon: "gear", cmd: ["sh", "-c", "hyprctl reload >/dev/null 2>&1 || true"] }
-                                                    ]
-                                                    delegate: HubActionRow {
-                                                        width: contentControl.width
-                                                        theme: root.theme
-                                                        phosphorDir: contentControl.phosphorDir
-                                                        labelText: modelData.label
-                                                        subText: modelData.sub
-                                                        iconName: modelData.icon
-                                                        onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
-                                                    }
-                                                }
-
-                                                Item { height: 8 }
-                                                Text {
-                                                    text: "SERVICES"
-                                                    color: root.theme.textMuted
-                                                    font.pixelSize: 9
-                                                    font.family: root.theme.fontFamily
-                                                    font.letterSpacing: 0.8
-                                                }
-                                                Repeater {
-                                                    model: [
-                                                        { label: "AI Gateway (restart)", sub: "OpenClaw gateway", icon: "gear", cmd: ["sh", "-c", "systemctl --user restart openclaw-gateway.service >/dev/null 2>&1 || true"] },
-                                                        { label: "QuickSettings (AGS)", sub: "AGS doctor", icon: "gear", cmd: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/.config/SL1C3D-L4BS/bin/sl1c3d-ags doctor; read"] }
-                                                    ]
-                                                    delegate: HubActionRow {
-                                                        width: contentControl.width
-                                                        theme: root.theme
-                                                        phosphorDir: contentControl.phosphorDir
-                                                        labelText: modelData.label
-                                                        subText: modelData.sub
-                                                        iconName: modelData.icon
-                                                        onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        // ─── Developer (2026-style: card path rows, Yazi/Terminal pills) ───
-                                        Flickable {
-                                            id: contentDeveloperFlick
-                                            contentWidth: contentDeveloper.width
-                                            contentHeight: contentDeveloper.height
-                                            clip: true
-                                            Column {
-                                                id: contentDeveloper
-                                                width: contentDeveloperFlick.width
-                                                spacing: 16
-                                                property string phosphorDir: root.phosphorDir
-
-                                                Text {
-                                                    text: "Developer"
-                                                    color: root.theme.logoPurple
-                                                    font.pixelSize: 13
-                                                    font.family: root.theme.fontFamily
-                                                    font.weight: Font.DemiBold
-                                                }
-                                                Text {
-                                                    text: "Open workspace paths in Yazi or Zellij terminal."
-                                                    color: root.theme.textMuted
-                                                    font.pixelSize: 10
-                                                    font.family: root.theme.fontFamily
-                                                    wrapMode: Text.WordWrap
-                                                    width: contentDeveloper.width
-                                                }
-
-                                                Item { height: 4 }
-                                                Text {
-                                                    text: "WORKSPACE PATHS"
-                                                    color: root.theme.textMuted
-                                                    font.pixelSize: 9
-                                                    font.family: root.theme.fontFamily
-                                                    font.letterSpacing: 0.8
-                                                }
-                                                Repeater {
-                                                    model: [
-                                                        { path: "~/dev", label: "dev", icon: "folder-open" },
-                                                        { path: "~/.config", label: "config", icon: "gear" },
-                                                        { path: "~/assets", label: "assets", icon: "images-square" }
+                                                        { label: "CPU",  color: root.theme.accentPrimary },
+                                                        { label: "RAM",  color: root.theme.logoPurple    },
+                                                        { label: "Disk", color: root.theme.accentOrange  }
                                                     ]
                                                     delegate: Item {
                                                         required property var modelData
-                                                        width: contentDeveloper.width
-                                                        height: 44
-                                                        property string resolvedPath: modelData.path.replace("~", hubCard.home)
-                                                        Rectangle {
-                                                            anchors.fill: parent
-                                                            anchors.margins: 0
-                                                            radius: root.theme.radiusPill
-                                                            color: "transparent"
-                                                            border.width: 1
-                                                            border.color: root.theme.border
+                                                        required property int index
+                                                        width: 72; height: 72
+                                                        property real liveVal: index === 0 ? SystemInfo.cpuUsageNum
+                                                                             : index === 1 ? SystemInfo.ramUsageNum
+                                                                             : SystemInfo.diskUsageNum
+                                                        Canvas {
+                                                            id: statRing; anchors.fill: parent
+                                                            property real val: parent.liveVal / 100.0
+                                                            onValChanged: requestPaint()
+                                                            onPaint: {
+                                                                var ctx = getContext("2d")
+                                                                ctx.clearRect(0, 0, width, height)
+                                                                var cx = width/2, cy = height/2, r = 28
+                                                                ctx.lineWidth = 5
+                                                                ctx.strokeStyle = root.theme.border
+                                                                ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.stroke()
+                                                                var col = val > 0.8 ? root.theme.accentRed : val > 0.5 ? root.theme.accentOrange : modelData.color
+                                                                ctx.strokeStyle = col
+                                                                ctx.beginPath(); ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+2*Math.PI*val,false); ctx.stroke()
+                                                            }
                                                         }
-                                                        Row {
-                                                            anchors.fill: parent
-                                                            anchors.leftMargin: 12
-                                                            anchors.rightMargin: 12
-                                                            spacing: 10
-                                                            Image {
-                                                                width: 16
-                                                                height: 16
-                                                                source: contentDeveloper.phosphorDir + "/" + modelData.icon + ".svg"
-                                                                fillMode: Image.PreserveAspectFit
-                                                                anchors.verticalCenter: parent.verticalCenter
+                                                        Column {
+                                                            anchors.centerIn: parent; spacing: 0
+                                                            Text {
+                                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                                text: Math.round(parent.parent.liveVal) + "%"
+                                                                color: root.theme.textPrimary; font.pixelSize: 12; font.family: root.theme.fontFamily; font.weight: Font.DemiBold
                                                             }
                                                             Text {
-                                                                text: "~/" + modelData.label
-                                                                color: root.theme.textPrimary
-                                                                font.pixelSize: 11
-                                                                font.family: root.theme.fontFamily
-                                                                anchors.verticalCenter: parent.verticalCenter
-                                                                width: 70
-                                                            }
-                                                            Row {
-                                                                spacing: 6
-                                                                anchors.verticalCenter: parent.verticalCenter
-                                                                Rectangle {
-                                                                    width: 56
-                                                                    height: 26
-                                                                    radius: 6
-                                                                    color: devYaziMa.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
-                                                                    border.width: 1
-                                                                    border.color: root.theme.border
-                                                                    MouseArea {
-                                                                        id: devYaziMa
-                                                                        anchors.fill: parent
-                                                                        hoverEnabled: true
-                                                                        cursorShape: Qt.PointingHandCursor
-                                                                        onClicked: {
-                                                                            hubLauncher.command = ["ghostty", "-e", "yazi", parent.parent.parent.resolvedPath]
-                                                                            hubLauncher.running = true
-                                                                            panelWindow.hubOpen = false
-                                                                        }
-                                                                    }
-                                                                    Text {
-                                                                        anchors.centerIn: parent
-                                                                        text: "Yazi"
-                                                                        font.pixelSize: 10
-                                                                        font.family: root.theme.fontFamily
-                                                                        color: root.theme.textPrimary
-                                                                    }
-                                                                }
-                                                                Rectangle {
-                                                                    width: 64
-                                                                    height: 26
-                                                                    radius: 6
-                                                                    color: devTermMa.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
-                                                                    border.width: 1
-                                                                    border.color: root.theme.border
-                                                                    MouseArea {
-                                                                        id: devTermMa
-                                                                        anchors.fill: parent
-                                                                        hoverEnabled: true
-                                                                        cursorShape: Qt.PointingHandCursor
-                                                                        onClicked: {
-                                                                            hubLauncher.command = ["ghostty", "-e", "bash", "-c", "cd " + parent.parent.parent.resolvedPath + " && exec ~/.config/hypr/scripts/zellij-branded.sh"]
-                                                                            hubLauncher.running = true
-                                                                            panelWindow.hubOpen = false
-                                                                        }
-                                                                    }
-                                                                    Text {
-                                                                        anchors.centerIn: parent
-                                                                        text: "Terminal"
-                                                                        font.pixelSize: 10
-                                                                        font.family: root.theme.fontFamily
-                                                                        color: root.theme.textPrimary
-                                                                    }
-                                                                }
+                                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                                text: modelData.label
+                                                                color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily
                                                             }
                                                         }
                                                     }
                                                 }
+                                            }
 
-                                                Item { height: 8 }
-                                                Text {
-                                                    text: "CONFIG"
-                                                    color: root.theme.textMuted
-                                                    font.pixelSize: 9
-                                                    font.family: root.theme.fontFamily
-                                                    font.letterSpacing: 0.8
-                                                }
-                                                HubActionRow {
-                                                    width: contentDeveloper.width
-                                                    theme: root.theme
-                                                    phosphorDir: contentDeveloper.phosphorDir
-                                                    labelText: "Hypr config (nvim)"
-                                                    subText: "Edit Hyprland config"
-                                                    iconName: "file-code"
-                                                    onClicked: {
-                                                        hubLauncher.command = ["ghostty", "-e", "nvim", hubCard.home + "/.config/hypr"]
-                                                        hubLauncher.running = true
-                                                        panelWindow.hubOpen = false
+                                            // Mini MPRIS player
+                                            Rectangle {
+                                                width: parent.width; height: hubCard.mprisPlayer ? 56 : 0
+                                                visible: height > 0
+                                                radius: root.theme.radiusPill; color: root.theme.bgBase
+                                                border.width: 1; border.color: root.theme.border
+                                                Row {
+                                                    anchors { fill: parent; margins: 10 }; spacing: 10
+                                                    Image {
+                                                        width: 36; height: 36; radius: 6
+                                                        source: hubCard.mprisPlayer?.trackArtUrl ?? ""
+                                                        fillMode: Image.PreserveAspectCrop
+                                                        anchors.verticalCenter: parent.verticalCenter
+                                                    }
+                                                    Column {
+                                                        width: parent.width - 36 - 10 - 80; anchors.verticalCenter: parent.verticalCenter; spacing: 1
+                                                        Text { text: hubCard.mprisPlayer?.trackTitle || "—"; color: root.theme.textPrimary; font.pixelSize: 11; font.family: root.theme.fontFamily; font.weight: Font.Medium; elide: Text.ElideRight; width: parent.width }
+                                                        Text { text: hubCard.mprisPlayer?.trackArtist || ""; color: root.theme.textMuted; font.pixelSize: 10; font.family: root.theme.fontFamily; elide: Text.ElideRight; width: parent.width }
+                                                    }
+                                                    Row {
+                                                        spacing: 4; anchors.verticalCenter: parent.verticalCenter
+                                                        Repeater {
+                                                            model: ["⏮", hubCard.mprisPlayer?.isPlaying ? "⏸" : "▶", "⏭"]
+                                                            delegate: MouseArea {
+                                                                required property string modelData
+                                                                required property int index
+                                                                width: 26; height: 26; cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                                onClicked: {
+                                                                    var p = hubCard.mprisPlayer
+                                                                    if (!p) return
+                                                                    if      (index === 0 && p.canGoPrevious) p.previous()
+                                                                    else if (index === 1 && p.canTogglePlaying) p.togglePlaying()
+                                                                    else if (index === 2 && p.canGoNext)     p.next()
+                                                                }
+                                                                Rectangle { anchors.fill: parent; radius: 6; color: parent.containsMouse ? root.theme.accentDim2 : "transparent"; Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } } }
+                                                                Text { anchors.centerIn: parent; text: parent.modelData; color: root.theme.textPrimary; font.pixelSize: 12 }
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             }
-                                        }
 
-                                        // ─── Wallpapers ───
-                                        Flickable {
-                                            id: contentWallpapersFlick
-                                            contentWidth: contentWallpapers.width
-                                            contentHeight: contentWallpapers.height
-                                            clip: true
-                                            Column {
-                                                id: contentWallpapers
-                                                width: contentWallpapersFlick.width
-                                                spacing: 12
-                                                HubCard {
-                                                    width: contentWallpapers.width
-                                                    theme: root.theme
-                                                    phosphorDir: root.phosphorDir
-                                                    title: "Wallpapers"
-                                                    description: "Set wallpaper or open Waypaper."
-                                                    home: hubCard.home
-                                                    wallpaperNames: ["sl1c3d-l4bs-01.png","sl1c3d-l4bs-02.png","sl1c3d-l4bs-03.png","sl1c3d-l4bs-04.png","sl1c3d-l4bs-05.png","sl1c3d-l4bs-06.png","sl1c3d-l4bs-07.png","sl1c3d-l4bs-08.png","sl1c3d-l4bs-09.png","sl1c3d-l4bs-10.png","sl1c3d-l4bs-11.png","sl1c3d-l4bs-12.png","sl1c3d-l4bs-13.png","sl1c3d-l4bs-14.png","sl1c3d-l4bs-15.png"]
-                                                    onRun: function(cmd) { hubLauncher.command = cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
-                                                }
-                                            }
-                                        }
-
-                                        // ─── System (2026-style: Launch + Config & restore sections) ───
-                                        Flickable {
-                                            id: contentSystemFlick
-                                            contentWidth: contentSystem.width
-                                            contentHeight: contentSystem.height
-                                            clip: true
-                                            Column {
-                                                id: contentSystem
-                                                width: contentSystemFlick.width
-                                                spacing: 16
-                                                property string phosphorDir: root.phosphorDir
-
-                                                Text {
-                                                    text: "System"
-                                                    color: root.theme.logoPurple
-                                                    font.pixelSize: 13
-                                                    font.family: root.theme.fontFamily
-                                                    font.weight: Font.DemiBold
-                                                }
-                                                Text {
-                                                    text: "Launcher, AI assistant, config editor, wallpaper restore."
-                                                    color: root.theme.textMuted
-                                                    font.pixelSize: 10
-                                                    font.family: root.theme.fontFamily
-                                                    wrapMode: Text.WordWrap
-                                                    width: contentSystem.width
-                                                }
-
-                                                Item { height: 4 }
-                                                Text {
-                                                    text: "LAUNCH"
-                                                    color: root.theme.textMuted
-                                                    font.pixelSize: 9
-                                                    font.family: root.theme.fontFamily
-                                                    font.letterSpacing: 0.8
-                                                }
+                                            // Quick-action grid (2×3)
+                                            Text { text: "QUICK LAUNCH"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+                                            Flow {
+                                                width: parent.width; spacing: 8
                                                 Repeater {
                                                     model: [
-                                                        { label: "AI (OpenClaw)", sub: "Sidebar assistant", icon: "cursor", cmd: [hubCard.home + "/.config/hypr/scripts/openclaw-sidebar.sh"] },
-                                                        { label: "Fuzzel", sub: "App launcher", icon: "magnifying-glass", cmd: ["fuzzel"] }
+                                                        { label: "Terminal",  icon: "terminal-window", cmd: ["ghostty"] },
+                                                        { label: "Files",     icon: "folder-open",     cmd: ["ghostty", "-e", "yazi"] },
+                                                        { label: "Editor",    icon: "file-code",       cmd: ["ghostty", "-e", "nvim"] },
+                                                        { label: "Monitor",   icon: "cpu",             cmd: ["ghostty", "-e", "btop"] },
+                                                        { label: "Lazygit",   icon: "git-branch",      cmd: ["ghostty", "-e", "lazygit"] },
+                                                        { label: "AI",        icon: "cursor",          cmd: [hubCard.home + "/.config/hypr/scripts/openclaw-sidebar.sh"] }
                                                     ]
-                                                    delegate: HubActionRow {
-                                                        width: contentSystem.width
-                                                        theme: root.theme
-                                                        phosphorDir: contentSystem.phosphorDir
-                                                        labelText: modelData.label
-                                                        subText: modelData.sub
-                                                        iconName: modelData.icon
+                                                    delegate: MouseArea {
+                                                        required property var modelData
+                                                        width: 80; height: 64
+                                                        cursorShape: Qt.PointingHandCursor; hoverEnabled: true
                                                         onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                        Rectangle {
+                                                            anchors.fill: parent; radius: 10
+                                                            color: parent.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
+                                                            border.width: 1; border.color: parent.containsMouse ? root.theme.accentPrimary : root.theme.border
+                                                            Behavior on color       { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                            Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                            Column {
+                                                                anchors.centerIn: parent; spacing: 4
+                                                                Image { width: 22; height: 22; source: root.phosphorDir + "/" + parent.parent.parent.modelData.icon + ".svg"; fillMode: Image.PreserveAspectFit; anchors.horizontalCenter: parent.horizontalCenter }
+                                                                Text { text: parent.parent.parent.modelData.label; color: root.theme.textSecondary; font.pixelSize: 9; font.family: root.theme.fontFamily; anchors.horizontalCenter: parent.horizontalCenter }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            // Uptime strip
+                                            Text { text: "uptime  " + root.uptimeString; color: root.theme.textMuted; font.pixelSize: 10; font.family: root.theme.fontFamily }
+                                        }
+                                    }
+
+                                    // ─── 1 · MEDIA ───────────────────────────
+                                    Flickable {
+                                        anchors.fill: parent; contentHeight: mediaCol.implicitHeight; clip: true
+                                        opacity: hubCard.hubSection === 1 ? 1 : 0
+                                        visible: opacity > 0
+                                        Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+
+                                        Column {
+                                            id: mediaCol; width: parent.width; spacing: 14
+
+                                            Text { text: "MEDIA PLAYER"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+
+                                            // No-player state
+                                            Text {
+                                                visible: !hubCard.mprisPlayer
+                                                text: "No media player active"
+                                                color: root.theme.textMuted; font.pixelSize: 11; font.family: root.theme.fontFamily
+                                            }
+
+                                            // Full MPRIS panel
+                                            Column {
+                                                visible: hubCard.mprisPlayer !== null
+                                                width: parent.width; spacing: 12
+
+                                                // Album art + track info
+                                                Row {
+                                                    spacing: 14; width: parent.width
+                                                    Rectangle {
+                                                        width: 80; height: 80; radius: 10
+                                                        color: root.theme.bgBase; border.width: 1; border.color: root.theme.border
+                                                        Image {
+                                                            anchors.fill: parent; anchors.margins: 2
+                                                            source: hubCard.mprisPlayer?.trackArtUrl ?? ""
+                                                            fillMode: Image.PreserveAspectCrop
+                                                            smooth: true; mipmap: true
+                                                        }
+                                                    }
+                                                    Column {
+                                                        width: parent.width - 80 - 14
+                                                        anchors.verticalCenter: parent.verticalCenter
+                                                        spacing: 4
+                                                        Text { text: hubCard.mprisPlayer?.identity ?? "Player"; color: root.theme.logoPurple; font.pixelSize: 9; font.family: root.theme.fontFamily }
+                                                        Text { text: hubCard.mprisPlayer?.trackTitle || "No track"; color: root.theme.textPrimary; font.pixelSize: 13; font.family: root.theme.fontFamily; font.weight: Font.DemiBold; elide: Text.ElideRight; width: parent.width }
+                                                        Text { text: hubCard.mprisPlayer?.trackArtist || ""; color: root.theme.textSecondary; font.pixelSize: 11; font.family: root.theme.fontFamily; elide: Text.ElideRight; width: parent.width }
+                                                        Text { text: hubCard.mprisPlayer?.trackAlbum || ""; color: root.theme.textMuted; font.pixelSize: 10; font.family: root.theme.fontFamily; elide: Text.ElideRight; width: parent.width }
                                                     }
                                                 }
 
-                                                Item { height: 8 }
-                                                Text {
-                                                    text: "CONFIG & RESTORE"
-                                                    color: root.theme.textMuted
-                                                    font.pixelSize: 9
-                                                    font.family: root.theme.fontFamily
-                                                    font.letterSpacing: 0.8
+                                                // Progress bar
+                                                Item {
+                                                    width: parent.width; height: 24
+                                                    property real progress: {
+                                                        var p = hubCard.mprisPlayer
+                                                        if (!p || !p.lengthSupported || p.length <= 0) return 0
+                                                        return Math.min(1, p.position / p.length)
+                                                    }
+                                                    Rectangle {
+                                                        anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter }
+                                                        height: 4; radius: 2; color: root.theme.border
+                                                        Rectangle {
+                                                            width: parent.width * parent.parent.progress
+                                                            height: parent.height; radius: 2; color: root.theme.logoPurple
+                                                            Behavior on width { NumberAnimation { duration: 800 } }
+                                                        }
+                                                    }
+                                                    Row {
+                                                        anchors { bottom: parent.top; bottomMargin: 2; left: parent.left; right: parent.right }
+                                                        Text {
+                                                            property real s: hubCard.mprisPlayer?.position ?? 0
+                                                            text: Math.floor(s/60) + ":" + String(Math.floor(s%60)).padStart(2,"0")
+                                                            color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily
+                                                        }
+                                                        Item { width: parent.width - 60; height: 1 }
+                                                        Text {
+                                                            property real s: hubCard.mprisPlayer?.length ?? 0
+                                                            text: Math.floor(s/60) + ":" + String(Math.floor(s%60)).padStart(2,"0")
+                                                            color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily
+                                                        }
+                                                    }
                                                 }
+
+                                                // Controls: prev / play-pause / next + shuffle + loop
+                                                Row {
+                                                    anchors.horizontalCenter: parent.horizontalCenter
+                                                    spacing: 8
+                                                    Repeater {
+                                                        model: ["⏮", hubCard.mprisPlayer?.isPlaying ? "⏸" : "▶", "⏭"]
+                                                        delegate: MouseArea {
+                                                            required property string modelData
+                                                            required property int index
+                                                            width: index === 1 ? 44 : 36; height: index === 1 ? 44 : 36
+                                                            cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                            onClicked: {
+                                                                var p = hubCard.mprisPlayer
+                                                                if (!p) return
+                                                                if      (index === 0 && p.canGoPrevious)    p.previous()
+                                                                else if (index === 1 && p.canTogglePlaying) p.togglePlaying()
+                                                                else if (index === 2 && p.canGoNext)        p.next()
+                                                            }
+                                                            Rectangle {
+                                                                anchors.fill: parent; radius: index === 1 ? 22 : 10
+                                                                color: index === 1 ? (parent.containsMouse ? root.theme.logoPurple : root.theme.accentDim2)
+                                                                                  : (parent.containsMouse ? root.theme.accentDim2 : root.theme.bgBase)
+                                                                border.width: 1
+                                                                border.color: index === 1 ? root.theme.logoPurple : root.theme.border
+                                                                Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                            }
+                                                            Text { anchors.centerIn: parent; text: parent.modelData; color: root.theme.textPrimary; font.pixelSize: index === 1 ? 16 : 13 }
+                                                        }
+                                                    }
+                                                }
+
+                                                // Volume slider (Pipewire)
+                                                Text { text: "VOLUME"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+                                                Row {
+                                                    width: parent.width; spacing: 8
+                                                    Text { text: "🔈"; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
+                                                    Item {
+                                                        width: parent.width - 40 - 36; height: 20
+                                                        anchors.verticalCenter: parent.verticalCenter
+                                                        Rectangle {
+                                                            id: volTrack; anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter }
+                                                            height: 4; radius: 2; color: root.theme.border
+                                                            Rectangle {
+                                                                width: parent.width * Math.min(1, hubCard.audioVolume)
+                                                                height: parent.height; radius: 2; color: root.theme.accentPrimary
+                                                            }
+                                                        }
+                                                        MouseArea {
+                                                            anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                                            onClicked: function(e) {
+                                                                var newVol = Math.max(0, Math.min(1, e.x / width))
+                                                                var sink = Pipewire.defaultAudioSink
+                                                                if (sink && sink.audio) sink.audio.volume = newVol
+                                                            }
+                                                            onPositionChanged: function(e) {
+                                                                if (pressed) {
+                                                                    var newVol = Math.max(0, Math.min(1, e.x / width))
+                                                                    var sink = Pipewire.defaultAudioSink
+                                                                    if (sink && sink.audio) sink.audio.volume = newVol
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    Text {
+                                                        text: Math.round(hubCard.audioVolume * 100) + "%"
+                                                        color: root.theme.textMuted; font.pixelSize: 10; font.family: root.theme.fontFamily
+                                                        width: 32; anchors.verticalCenter: parent.verticalCenter
+                                                    }
+                                                    Text { text: "🔊"; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // ─── 2 · DEVELOPER ───────────────────────
+                                    Flickable {
+                                        anchors.fill: parent; contentHeight: devCol.implicitHeight; clip: true
+                                        opacity: hubCard.hubSection === 2 ? 1 : 0
+                                        visible: opacity > 0
+                                        Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+
+                                        Column {
+                                            id: devCol; width: parent.width; spacing: 12
+
+                                            // Chezmoi status
+                                            Row {
+                                                spacing: 6
+                                                Text { text: "dotfiles"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0; anchors.verticalCenter: parent.verticalCenter }
+                                                Rectangle {
+                                                    height: 16; width: statusTxt.width + 10; radius: 8
+                                                    color: hubCard.chezmoiStatus === "clean" ? "#1a3a1a" : "#3a1a10"
+                                                    border.width: 1; border.color: hubCard.chezmoiStatus === "clean" ? root.theme.accentGreen : root.theme.accentOrange
+                                                    Text { id: statusTxt; anchors.centerIn: parent; text: hubCard.chezmoiStatus; color: hubCard.chezmoiStatus === "clean" ? root.theme.accentGreen : root.theme.accentOrange; font.pixelSize: 9; font.family: root.theme.fontFamily }
+                                                }
+                                                MouseArea {
+                                                    width: 20; height: 20; cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                    onClicked: { chezmoiStatusProc.command = ["sh", "-c", "chezmoi status 2>/dev/null"]; chezmoiStatusProc.running = true }
+                                                    Text { anchors.centerIn: parent; text: "↻"; color: root.theme.textMuted; font.pixelSize: 13 }
+                                                }
+                                            }
+
+                                            Text { text: "WORKSPACE PATHS"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+
+                                            Repeater {
+                                                model: [
+                                                    { path: "~/dev",                      label: "~/dev",       icon: "folder-open",    git: true  },
+                                                    { path: "~/.config",                  label: "~/.config",   icon: "gear",           git: false },
+                                                    { path: "~/.local/share/chezmoi",     label: "dotfiles",    icon: "git-branch",     git: true  },
+                                                    { path: "~/scripts",                  label: "~/scripts",   icon: "terminal-window",git: false },
+                                                    { path: "~/assets",                   label: "~/assets",    icon: "images-square",  git: false }
+                                                ]
+                                                delegate: Rectangle {
+                                                    required property var modelData
+                                                    width: devCol.width; height: 42; radius: root.theme.radiusPill
+                                                    color: root.theme.bgBase; border.width: 1; border.color: root.theme.border
+                                                    property string rp: modelData.path.replace("~", hubCard.home)
+                                                    Row {
+                                                        anchors { fill: parent; leftMargin: 10; rightMargin: 10 }; spacing: 8
+                                                        Image { width: 14; height: 14; source: root.phosphorDir + "/" + modelData.icon + ".svg"; fillMode: Image.PreserveAspectFit; anchors.verticalCenter: parent.verticalCenter }
+                                                        Text { text: modelData.label; color: root.theme.textSecondary; font.pixelSize: 10; font.family: root.theme.fontFamily; anchors.verticalCenter: parent.verticalCenter; width: 80; elide: Text.ElideRight }
+                                                        Item { width: devCol.width - 10 - 14 - 8 - 80 - 8 - 52 - 6 - 60 - (modelData.git ? 6+52 : 0) - 10; height: 1 }
+                                                        // Yazi
+                                                        Rectangle {
+                                                            width: 52; height: 26; radius: 6
+                                                            color: yaziMa2.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
+                                                            border.width: 1; border.color: root.theme.border
+                                                            anchors.verticalCenter: parent.verticalCenter
+                                                            MouseArea { id: yaziMa2; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { hubLauncher.command = ["ghostty", "-e", "yazi", parent.parent.parent.rp]; hubLauncher.running = true; panelWindow.hubOpen = false } }
+                                                            Text { anchors.centerIn: parent; text: "Yazi"; font.pixelSize: 10; font.family: root.theme.fontFamily; color: root.theme.textPrimary }
+                                                        }
+                                                        // Term
+                                                        Rectangle {
+                                                            width: 60; height: 26; radius: 6
+                                                            color: termMa2.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
+                                                            border.width: 1; border.color: root.theme.border
+                                                            anchors.verticalCenter: parent.verticalCenter
+                                                            MouseArea { id: termMa2; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { hubLauncher.command = ["ghostty", "-e", "bash", "-c", "cd " + parent.parent.parent.rp + " && exec ~/.config/hypr/scripts/zellij-branded.sh"]; hubLauncher.running = true; panelWindow.hubOpen = false } }
+                                                            Text { anchors.centerIn: parent; text: "Term"; font.pixelSize: 10; font.family: root.theme.fontFamily; color: root.theme.textPrimary }
+                                                        }
+                                                        // Lazygit (git paths only)
+                                                        Rectangle {
+                                                            visible: modelData.git
+                                                            width: 52; height: 26; radius: 6
+                                                            color: gitMa2.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
+                                                            border.width: 1; border.color: root.theme.border
+                                                            anchors.verticalCenter: parent.verticalCenter
+                                                            MouseArea { id: gitMa2; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { hubLauncher.command = ["ghostty", "-e", "bash", "-c", "cd " + parent.parent.parent.rp + " && lazygit"]; hubLauncher.running = true; panelWindow.hubOpen = false } }
+                                                            Text { anchors.centerIn: parent; text: "Git"; font.pixelSize: 10; font.family: root.theme.fontFamily; color: root.theme.accentGreen }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            Text { text: "CONFIG EDITORS"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+                                            Repeater {
+                                                model: [
+                                                    { label: "Hyprland config", sub: "~/.config/hypr", icon: "gear",          cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/hypr"] },
+                                                    { label: "Quickshell bar",  sub: "bar/Bar.qml",    icon: "squares-four",  cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/quickshell/bar/Bar.qml"] },
+                                                    { label: "Zellij config",   sub: "config.kdl",     icon: "terminal-window",cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/zellij/config.kdl"] },
+                                                    { label: "Chezmoi apply",   sub: "Sync dotfiles",  icon: "arrow-clockwise",cmd: ["ghostty", "-e", "bash", "-lc", "chezmoi apply && echo done; read"] }
+                                                ]
+                                                delegate: HubActionRow {
+                                                    width: devCol.width; theme: root.theme; phosphorDir: root.phosphorDir
+                                                    labelText: modelData.label; subText: modelData.sub; iconName: modelData.icon
+                                                    onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // ─── 3 · WALLPAPERS ──────────────────────
+                                    Flickable {
+                                        anchors.fill: parent; contentHeight: wpCol.implicitHeight; clip: true
+                                        opacity: hubCard.hubSection === 3 ? 1 : 0
+                                        visible: opacity > 0
+                                        Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+
+                                        Column {
+                                            id: wpCol; width: parent.width; spacing: 12
+
+                                            Text { text: "WALLPAPERS"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+
+                                            // Thumbnail grid — 3 columns
+                                            Flow {
+                                                width: parent.width; spacing: 6
+                                                Repeater {
+                                                    model: ["sl1c3d-l4bs-01.png","sl1c3d-l4bs-02.png","sl1c3d-l4bs-03.png",
+                                                            "sl1c3d-l4bs-04.png","sl1c3d-l4bs-05.png","sl1c3d-l4bs-06.png",
+                                                            "sl1c3d-l4bs-07.png","sl1c3d-l4bs-08.png","sl1c3d-l4bs-09.png",
+                                                            "sl1c3d-l4bs-10.png","sl1c3d-l4bs-11.png","sl1c3d-l4bs-12.png",
+                                                            "sl1c3d-l4bs-13.png","sl1c3d-l4bs-14.png","sl1c3d-l4bs-15.png"]
+                                                    delegate: MouseArea {
+                                                        required property string modelData
+                                                        property bool isSelected: hubCard.selectedWallpaper === modelData
+                                                        width: (wpCol.width - 12) / 3
+                                                        height: width * 0.5625
+                                                        cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                        onClicked: {
+                                                            hubCard.selectedWallpaper = modelData
+                                                            hubLauncher.command = ["waypaper", "--wallpaper", hubCard.home + "/assets/wallpapers/" + modelData, "--fill", "fill", "--monitor", "All", "--backend", "swaybg"]
+                                                            hubLauncher.running = true
+                                                        }
+                                                        Rectangle {
+                                                            anchors.fill: parent; radius: 8
+                                                            color: root.theme.bgBase
+                                                            border.width: isSelected ? 2 : (parent.containsMouse ? 1 : 0)
+                                                            border.color: isSelected ? root.theme.accentPrimary : root.theme.accentDim
+                                                            Behavior on border.width { NumberAnimation { duration: root.theme.motionFastMs } }
+                                                            Image {
+                                                                anchors { fill: parent; margins: isSelected ? 3 : 2 }
+                                                                source: "file://" + hubCard.home + "/assets/wallpapers/" + modelData
+                                                                fillMode: Image.PreserveAspectCrop
+                                                                smooth: true; mipmap: true
+                                                                layer.enabled: true
+                                                                layer.effect: null
+                                                            }
+                                                            // Selected checkmark overlay
+                                                            Rectangle {
+                                                                visible: isSelected
+                                                                width: 18; height: 18; radius: 9
+                                                                color: root.theme.accentPrimary
+                                                                anchors { top: parent.top; right: parent.right; topMargin: 4; rightMargin: 4 }
+                                                                Text { anchors.centerIn: parent; text: "✓"; color: root.theme.textPrimary; font.pixelSize: 10; font.weight: Font.Bold }
+                                                            }
+                                                        }
+                                                        // Caption
+                                                        Text {
+                                                            anchors { bottom: parent.bottom; bottomMargin: 2; horizontalCenter: parent.horizontalCenter }
+                                                            text: modelData.replace("sl1c3d-l4bs-","").replace(".png","")
+                                                            color: root.theme.textMuted; font.pixelSize: 8; font.family: root.theme.fontFamily
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            Row {
+                                                spacing: 8
                                                 Repeater {
                                                     model: [
-                                                        { label: "Hypr config (nvim)", sub: "Edit Hyprland config", icon: "file-code", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/hypr"] },
-                                                        { label: "Waypaper restore", sub: "Restore saved wallpaper", icon: "images-square", cmd: ["waypaper", "--restore"] }
+                                                        { label: "Browse folder", cmd: ["ghostty", "-e", "yazi", hubCard.home + "/assets/wallpapers"] },
+                                                        { label: "Waypaper GUI",  cmd: ["waypaper"] },
+                                                        { label: "Restore last",  cmd: ["waypaper", "--restore"] }
                                                     ]
-                                                    delegate: HubActionRow {
-                                                        width: contentSystem.width
-                                                        theme: root.theme
-                                                        phosphorDir: contentSystem.phosphorDir
-                                                        labelText: modelData.label
-                                                        subText: modelData.sub
-                                                        iconName: modelData.icon
+                                                    delegate: MouseArea {
+                                                        required property var modelData
+                                                        width: btnTxt.width + 16; height: 26
+                                                        cursorShape: Qt.PointingHandCursor; hoverEnabled: true
                                                         onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                        Rectangle { anchors.fill: parent; radius: root.theme.radiusPill; color: parent.containsMouse ? root.theme.accentDim2 : root.theme.bgBase; border.width: 1; border.color: root.theme.border; Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } } }
+                                                        Text { id: btnTxt; anchors.centerIn: parent; text: modelData.label; color: root.theme.textPrimary; font.pixelSize: 10; font.family: root.theme.fontFamily }
                                                     }
                                                 }
                                             }
                                         }
                                     }
+
+                                    // ─── 4 · CONTROL PLANE ───────────────────
+                                    Flickable {
+                                        anchors.fill: parent; contentHeight: ctrlCol.implicitHeight; clip: true
+                                        opacity: hubCard.hubSection === 4 ? 1 : 0
+                                        visible: opacity > 0
+                                        Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+
+                                        Column {
+                                            id: ctrlCol; width: parent.width; spacing: 12
+
+                                            Text { text: "VALIDATION & RELOAD"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+                                            Repeater {
+                                                model: [
+                                                    { label: "Validate configs",    sub: "Run all 53 checks",        icon: "check-circle",    cmd: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/scripts/validate-configs.sh; echo; echo 'Press Enter'; read"] },
+                                                    { label: "Reload Hyprland",     sub: "Apply hypr config",        icon: "arrow-clockwise", cmd: ["sh", "-c", "hyprctl reload >/dev/null 2>&1 || true"] },
+                                                    { label: "Restart Quickshell",  sub: "Reload bar",               icon: "squares-four",    cmd: ["sh", "-c", "pkill quickshell; sleep 0.5; quickshell &"] }
+                                                ]
+                                                delegate: HubActionRow { width: ctrlCol.width; theme: root.theme; phosphorDir: root.phosphorDir; labelText: modelData.label; subText: modelData.sub; iconName: modelData.icon; onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false } }
+                                            }
+
+                                            Text { text: "DISPLAY & CAPTURE"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+                                            Repeater {
+                                                model: [
+                                                    { label: "Screenshot (region)", sub: "Copy region to clipboard", icon: "camera",  cmd: ["sh", "-c", "grimblast copy area"] },
+                                                    { label: "Screenshot (window)", sub: "Copy active window",       icon: "camera",  cmd: ["sh", "-c", "grimblast copy active"] },
+                                                    { label: "Color picker",        sub: "Pick & copy hex color",    icon: "palette", cmd: ["sh", "-c", "hyprpicker -a"] },
+                                                    { label: "Toggle DND",          sub: "Mako do-not-disturb",      icon: "bell",    cmd: ["sh", "-c", "makoctl mode -t do-not-disturb"] }
+                                                ]
+                                                delegate: HubActionRow { width: ctrlCol.width; theme: root.theme; phosphorDir: root.phosphorDir; labelText: modelData.label; subText: modelData.sub; iconName: modelData.icon; onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false } }
+                                            }
+
+                                            Text { text: "SERVICES"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+                                            Repeater {
+                                                model: [
+                                                    { label: "AI Gateway (restart)", sub: "OpenClaw gateway", icon: "arrow-clockwise", cmd: ["sh", "-c", "systemctl --user restart openclaw-gateway.service >/dev/null 2>&1 || true"] },
+                                                    { label: "AGS doctor",           sub: "Quick settings",  icon: "gear",            cmd: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/.config/SL1C3D-L4BS/bin/sl1c3d-ags doctor; read"] }
+                                                ]
+                                                delegate: HubActionRow { width: ctrlCol.width; theme: root.theme; phosphorDir: root.phosphorDir; labelText: modelData.label; subText: modelData.sub; iconName: modelData.icon; onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false } }
+                                            }
+                                        }
+                                    }
+
+                                    // ─── 5 · SYSTEM ──────────────────────────
+                                    Flickable {
+                                        anchors.fill: parent; contentHeight: sysCol.implicitHeight; clip: true
+                                        opacity: hubCard.hubSection === 5 ? 1 : 0
+                                        visible: opacity > 0
+                                        Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+
+                                        Column {
+                                            id: sysCol; width: parent.width; spacing: 12
+
+                                            Text { text: "KEYBINDS"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+                                            Repeater {
+                                                model: [
+                                                    { key: "Super + T",           desc: "Terminal (Ghostty)" },
+                                                    { key: "Super + B",           desc: "Browser" },
+                                                    { key: "Super + E",           desc: "File manager (Yazi)" },
+                                                    { key: "Super + R",           desc: "App launcher (Fuzzel)" },
+                                                    { key: "Super + Shift + B",   desc: "Btop monitor" },
+                                                    { key: "Super + Shift + G",   desc: "Lazygit" },
+                                                    { key: "Super + Shift + A",   desc: "AI (OpenClaw)" },
+                                                    { key: "Super + Shift + T",   desc: "Dev timer" },
+                                                    { key: "Super + L",           desc: "Lock screen" },
+                                                    { key: "Super + A",           desc: "Window overview" },
+                                                    { key: "Super + /",           desc: "Keybind help (Fuzzel)" },
+                                                    { key: "Super + Q",           desc: "Close window" },
+                                                    { key: "Super + F",           desc: "Fullscreen" },
+                                                    { key: "Super + V",           desc: "Float toggle" }
+                                                ]
+                                                delegate: Item {
+                                                    required property var modelData
+                                                    width: sysCol.width; height: 26
+                                                    Row {
+                                                        anchors { fill: parent; leftMargin: 4; rightMargin: 4 }; spacing: 0
+                                                        Rectangle {
+                                                            height: 20; width: kbdTxt.width + 12; radius: 5
+                                                            color: root.theme.bgBase; border.width: 1; border.color: root.theme.border
+                                                            anchors.verticalCenter: parent.verticalCenter
+                                                            Text { id: kbdTxt; anchors.centerIn: parent; text: modelData.key; color: root.theme.accentPrimary; font.pixelSize: 9; font.family: root.theme.fontFamily }
+                                                        }
+                                                        Item { width: 8; height: 1 }
+                                                        Text { text: modelData.desc; color: root.theme.textSecondary; font.pixelSize: 10; font.family: root.theme.fontFamily; anchors.verticalCenter: parent.verticalCenter }
+                                                    }
+                                                }
+                                            }
+
+                                            Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.4 }
+
+                                            Text { text: "LAUNCH"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+                                            Flow {
+                                                width: parent.width; spacing: 6
+                                                Repeater {
+                                                    model: [
+                                                        { label: "Ghostty",   cmd: ["ghostty"] },
+                                                        { label: "Fuzzel",    cmd: ["fuzzel"] },
+                                                        { label: "Waypaper",  cmd: ["waypaper"] },
+                                                        { label: "btop",      cmd: ["ghostty", "-e", "btop"] },
+                                                        { label: "lazygit",   cmd: ["ghostty", "-e", "lazygit"] },
+                                                        { label: "nmtui",     cmd: ["ghostty", "-e", "nmtui"] },
+                                                        { label: "Yazi",      cmd: ["ghostty", "-e", "yazi"] },
+                                                        { label: "Python",    cmd: ["ghostty", "-e", "python3"] }
+                                                    ]
+                                                    delegate: MouseArea {
+                                                        required property var modelData
+                                                        width: launchTxt.width + 16; height: 26
+                                                        cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                        onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                        Rectangle { anchors.fill: parent; radius: root.theme.radiusPill; color: parent.containsMouse ? root.theme.accentDim2 : root.theme.bgBase; border.width: 1; border.color: root.theme.border; Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } } }
+                                                        Text { id: launchTxt; anchors.centerIn: parent; text: modelData.label; color: root.theme.textPrimary; font.pixelSize: 10; font.family: root.theme.fontFamily }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
                                 }
                             }
                         }
