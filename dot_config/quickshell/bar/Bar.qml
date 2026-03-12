@@ -211,58 +211,75 @@ Scope {
                         }
                     }
 
-                    Rectangle {
-                        id: timeDatePill
+                    Row {
+                        id: timeDateSection
+                        spacing: 6
                         height: 24
-                        width: timeDate.width + 16
-                        radius: 8
-                        color: root.theme.surfaceGlassStrong
 
-                        Row {
-                            id: timeDate
-                            anchors.centerIn: parent
-                            spacing: 8
-
-                            Image {
-                                anchors.verticalCenter: parent.verticalCenter
-                                source: root.phosphorDir + "/clock.svg"
-                                width: 14
-                                height: 14
-                                fillMode: Image.PreserveAspectFit
-                                smooth: true
+                        Rectangle {
+                            id: timePill
+                            height: 24
+                            width: timePillRow.width + 14
+                            radius: root.theme.radiusPill
+                            color: root.theme.surfaceGlassStrong
+                            Row {
+                                id: timePillRow
+                                anchors.centerIn: parent
+                                spacing: 6
+                                Image {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    source: root.phosphorDir + "/clock.svg"
+                                    width: 12
+                                    height: 12
+                                    fillMode: Image.PreserveAspectFit
+                                    smooth: true
+                                }
+                                Text {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: root.barTimeString
+                                    color: root.theme.accentPrimary
+                                    font.pixelSize: 12
+                                    font.family: root.theme.fontFamily
+                                }
                             }
-                            Text {
-                                id: timeText
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: root.barTimeString
-                                color: "#5865F2"
-                                font.pixelSize: 14
-                                font.family: root.theme.fontFamily
-                                width: Math.max(implicitWidth, 48)
-                            }
-                            Image {
-                                anchors.verticalCenter: parent.verticalCenter
-                                source: root.phosphorDir + "/calendar-blank.svg"
-                                width: 14
-                                height: 14
-                                fillMode: Image.PreserveAspectFit
-                                smooth: true
-                            }
-                            Text {
-                                id: dateText
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: root.barDateString
-                                color: "#b366ff"
-                                font.pixelSize: 12
-                                font.family: root.theme.fontFamily
-                                width: Math.max(implicitWidth, 88)
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: panelWindow.calendarOpen = !panelWindow.calendarOpen
                             }
                         }
 
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: panelWindow.calendarOpen = !panelWindow.calendarOpen
+                        Rectangle {
+                            id: timeDatePill
+                            height: 24
+                            width: datePillRow.width + 14
+                            radius: root.theme.radiusPill
+                            color: root.theme.surfaceGlassStrong
+                            Row {
+                                id: datePillRow
+                                anchors.centerIn: parent
+                                spacing: 6
+                                Image {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    source: root.phosphorDir + "/calendar-blank.svg"
+                                    width: 12
+                                    height: 12
+                                    fillMode: Image.PreserveAspectFit
+                                    smooth: true
+                                }
+                                Text {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: root.barDateString
+                                    color: root.theme.logoPurple
+                                    font.pixelSize: 11
+                                    font.family: root.theme.fontFamily
+                                }
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: panelWindow.calendarOpen = !panelWindow.calendarOpen
+                            }
                         }
                     }
 
@@ -1259,30 +1276,30 @@ Scope {
                 anchor.window: panelWindow
                 anchor.rect.x: 0
                 anchor.rect.y: panelWindow.implicitHeight
-                anchor.rect.width: 280
-                anchor.rect.height: 320
-                implicitWidth: 280
-                implicitHeight: 320
+                anchor.rect.width: 260
+                anchor.rect.height: 340
+                implicitWidth: 260
+                implicitHeight: 340
                 visible: panelWindow.calendarOpen
                 color: "transparent"
 
                 onVisibleChanged: if (!visible) panelWindow.calendarOpen = false
                 anchor.onAnchoring: {
-                    if (timeDatePill && anchor.window) {
-                        const p = timeDatePill.mapToItem(anchor.window, 0, timeDatePill.height)
-                        anchor.rect = Qt.rect(p.x, p.y + 6, 280, 320)
+                    if (timeDateSection && anchor.window) {
+                        const p = timeDateSection.mapToItem(anchor.window, timeDateSection.width, timeDateSection.height)
+                        anchor.rect = Qt.rect(p.x, p.y + 6, 260, 340)
                     }
                 }
 
-                Rectangle {
+                GlassSurface {
                     id: calendarContent
+                    theme: root.theme
+                    strong: false
                     anchors.fill: parent
-                    radius: 12
-                    color: root.theme.bgSurface
-                    border.width: 1
-                    border.color: root.theme.border
-                    layer.enabled: true
-                    layer.effect: null
+                    radius: root.theme.radiusModal
+                    clip: true
+                    focus: panelWindow.calendarOpen
+                    Keys.onEscapePressed: panelWindow.calendarOpen = false
 
                     property int viewYear: new Date().getFullYear()
                     property int viewMonth: new Date().getMonth()
@@ -1301,11 +1318,74 @@ Scope {
 
                     Column {
                         anchors.fill: parent
-                        anchors.margins: 14
-                        spacing: 10
+                        anchors.margins: root.theme.spacingLg
+                        spacing: 0
 
+                        // ─── Header: title + close (SL1C3D HUB-style) ───
                         Row {
-                            width: parent.width
+                            width: parent.width - 32
+                            height: 40
+                            spacing: 8
+                            Image {
+                                source: root.phosphorDir + "/calendar-blank.svg"
+                                width: 18
+                                height: 18
+                                anchors.verticalCenter: parent.verticalCenter
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                            }
+                            Text {
+                                text: "Calendar"
+                                color: root.theme.logoPurple
+                                font.pixelSize: 13
+                                font.family: root.theme.fontFamily
+                                font.weight: Font.DemiBold
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                            Item { width: parent.width - 18 - 80 - calCloseBtn.width - 8; height: 1 }
+                            MouseArea {
+                                id: calCloseBtn
+                                width: 26
+                                height: 26
+                                anchors.verticalCenter: parent.verticalCenter
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: panelWindow.calendarOpen = false
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: 6
+                                    color: parent.pressed ? root.theme.border : "transparent"
+                                    opacity: parent.containsMouse ? 0.6 : 0
+                                    Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
+                                }
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "×"
+                                    color: root.theme.textMuted
+                                    font.pixelSize: 14
+                                    font.family: root.theme.fontFamily
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            width: parent.width - 32
+                            height: 1
+                            color: root.theme.border
+                            opacity: 0.5
+                        }
+                        Item { height: 10 }
+
+                        // ─── MONTH navigation ───
+                        Text {
+                            text: "MONTH"
+                            color: root.theme.textMuted
+                            font.pixelSize: 9
+                            font.family: root.theme.fontFamily
+                            font.letterSpacing: 0.8
+                        }
+                        Item { height: 4 }
+                        Row {
+                            width: parent.width - 32
                             height: 32
                             spacing: 0
 
@@ -1323,12 +1403,14 @@ Scope {
                                 Rectangle {
                                     anchors.fill: parent
                                     radius: 6
-                                    color: parent.pressed ? root.theme.bgBase : "transparent"
+                                    color: parent.pressed ? root.theme.bgBase : (parent.containsMouse ? root.theme.accentDim2 : "transparent")
+                                    opacity: parent.containsMouse && !parent.pressed ? 0.7 : 1
+                                    Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
                                     Text {
                                         anchors.centerIn: parent
                                         text: "‹"
                                         color: root.theme.logoPurple
-                                        font.pixelSize: 18
+                                        font.pixelSize: 16
                                         font.family: root.theme.fontFamily
                                     }
                                 }
@@ -1338,8 +1420,8 @@ Scope {
 
                             Text {
                                 text: calendarContent.monthNames[calendarContent.viewMonth] + " " + calendarContent.viewYear
-                                color: root.theme.logoPurple
-                                font.pixelSize: 14
+                                color: root.theme.textPrimary
+                                font.pixelSize: 12
                                 font.family: root.theme.fontFamily
                                 font.weight: Font.DemiBold
                                 anchors.verticalCenter: parent.verticalCenter
@@ -1363,29 +1445,40 @@ Scope {
                                 Rectangle {
                                     anchors.fill: parent
                                     radius: 6
-                                    color: parent.pressed ? root.theme.bgBase : "transparent"
+                                    color: parent.pressed ? root.theme.bgBase : (parent.containsMouse ? root.theme.accentDim2 : "transparent")
+                                    opacity: parent.containsMouse && !parent.pressed ? 0.7 : 1
+                                    Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
                                     Text {
                                         anchors.centerIn: parent
                                         text: "›"
                                         color: root.theme.logoPurple
-                                        font.pixelSize: 18
+                                        font.pixelSize: 16
                                         font.family: root.theme.fontFamily
                                     }
                                 }
                             }
                         }
 
+                        Item { height: 10 }
+                        Text {
+                            text: "WEEK"
+                            color: root.theme.textMuted
+                            font.pixelSize: 9
+                            font.family: root.theme.fontFamily
+                            font.letterSpacing: 0.8
+                        }
+                        Item { height: 4 }
                         Row {
                             spacing: 2
                             Repeater {
                                 model: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
                                 Text {
                                     required property string modelData
-                                    width: 34
+                                    width: 30
                                     horizontalAlignment: Text.AlignHCenter
                                     text: modelData
                                     color: root.theme.accentPrimary
-                                    font.pixelSize: 10
+                                    font.pixelSize: 9
                                     font.family: root.theme.fontFamily
                                 }
                             }
@@ -1394,9 +1487,9 @@ Scope {
                         Grid {
                             id: calendarGrid
                             columns: 7
-                            rowSpacing: 4
+                            rowSpacing: 3
                             columnSpacing: 2
-                            width: 7 * 34 + 6 * 2
+                            width: 7 * 30 + 6 * 2
                             property int year: calendarContent.viewYear
                             property int month: calendarContent.viewMonth
                             property int firstDay: { var d = new Date(calendarGrid.year, calendarGrid.month, 1); return (d.getDay() + 6) % 7 }
@@ -1406,8 +1499,8 @@ Scope {
                                 model: 42
                                 Rectangle {
                                     required property int index
-                                    width: 34
-                                    height: 28
+                                    width: 30
+                                    height: 24
                                     radius: 6
                                     color: {
                                         const blank = index < calendarGrid.firstDay || index >= calendarGrid.firstDay + calendarGrid.daysInMonth
@@ -1432,9 +1525,9 @@ Scope {
                                             const isToday = !blank && d === today.getDate() && calendarGrid.month === today.getMonth() && calendarGrid.year === today.getFullYear()
                                             if (blank) return "transparent"
                                             if (isToday) return root.theme.textPrimary
-                                            return root.theme.accentPrimary
+                                            return root.theme.textSecondary
                                         }
-                                        font.pixelSize: 12
+                                        font.pixelSize: 11
                                         font.family: root.theme.fontFamily
                                         font.weight: {
                                             var d = index - calendarGrid.firstDay + 1
@@ -1446,28 +1539,47 @@ Scope {
                             }
                         }
 
+                        Item { height: 12 }
                         Rectangle {
-                            width: parent.width - 28
+                            width: parent.width - 32
                             height: 1
                             color: root.theme.border
                             opacity: 0.5
                         }
+                        Item { height: 10 }
 
-                        Row {
-                            spacing: 12
-                            Text {
-                                text: root.barTimeString
-                                color: root.theme.logoPurple
-                                font.pixelSize: 20
-                                font.family: root.theme.fontFamily
-                                font.weight: Font.Bold
-                            }
-                            Text {
-                                text: root.barDateString
-                                color: root.theme.logoPurple
-                                font.pixelSize: 12
-                                font.family: root.theme.fontFamily
-                                anchors.verticalCenter: parent.verticalCenter
+                        Text {
+                            text: "CURRENT"
+                            color: root.theme.textMuted
+                            font.pixelSize: 9
+                            font.family: root.theme.fontFamily
+                            font.letterSpacing: 0.8
+                        }
+                        Item { height: 6 }
+                        Rectangle {
+                            width: parent.width - 32
+                            height: 44
+                            radius: root.theme.radiusPill
+                            color: root.theme.bgBase
+                            border.width: 1
+                            border.color: root.theme.border
+                            Row {
+                                anchors.centerIn: parent
+                                spacing: 16
+                                Text {
+                                    text: root.barTimeString
+                                    color: root.theme.logoPurple
+                                    font.pixelSize: 18
+                                    font.family: root.theme.fontFamily
+                                    font.weight: Font.Bold
+                                }
+                                Text {
+                                    text: root.barDateString
+                                    color: root.theme.textPrimary
+                                    font.pixelSize: 12
+                                    font.family: root.theme.fontFamily
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
                             }
                         }
                     }
