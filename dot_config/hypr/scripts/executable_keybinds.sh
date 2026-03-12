@@ -18,6 +18,7 @@ Scratchpad (toggle)	Super+S
 Scratchpad (move)	Super+Shift+S
 Focus left/right/up/down	Super+Arrow
 Lock screen	Super+L
+Window overview	Super+A
 Keybinds (this)	Super+/
 Dismiss notification	Super+N
 Dismiss all notifications	Super+Shift+N
