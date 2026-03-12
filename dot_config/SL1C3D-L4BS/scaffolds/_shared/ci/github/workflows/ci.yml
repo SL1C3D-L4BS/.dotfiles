@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Secret scanning (basic)
+        run: |
+          set -e
+          if rg -n -S '(BEGIN (OPENSSH|RSA|EC|PGP) PRIVATE KEY|Authorization:\\s*Bearer\\s+[A-Za-z0-9_\\-]+' .; then
+            echo "Potential secrets found"
+            exit 1
+          fi
+          echo "OK"

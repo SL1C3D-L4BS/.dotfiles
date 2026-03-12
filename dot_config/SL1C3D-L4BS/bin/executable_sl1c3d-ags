@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# SL1C3D-L4BS — AGS wrapper/doctor
+#
+# NOTE: Arch has a naming conflict: `ags` can refer to "Adventure Game Studio".
+# We require "Aylur's GTK Shell" (aylurs-gtk-shell).
+
+set -euo pipefail
+
+need_ags() {
+  if ! command -v ags >/dev/null 2>&1; then
+    echo "AGS not found. Install Aylur's GTK Shell (package: aylurs-gtk-shell)."
+    exit 2
+  fi
+}
+
+is_wrong_ags() {
+  # Adventure Game Studio prints "Adventure Game Studio" in --version.
+  local out
+  out="$(ags --version 2>/dev/null || true)"
+  echo "$out" | grep -qi 'Adventure Game Studio'
+}
+
+cmd="${1:-doctor}"
+shift || true
+
+case "$cmd" in
+  doctor)
+    need_ags
+    if is_wrong_ags; then
+      echo "Found wrong 'ags' binary (Adventure Game Studio)."
+      echo "To use Aylur's GTK Shell, uninstall/rename the conflicting package and install 'aylurs-gtk-shell'."
+      exit 1
+    fi
+    echo "AGS OK."
+    ;;
+  *)
+    need_ags
+    if is_wrong_ags; then
+      echo "Wrong 'ags' binary detected (Adventure Game Studio)."
+      exit 1
+    fi
+    exec ags "$cmd" "$@"
+    ;;
+esac
