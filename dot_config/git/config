@@ -9,6 +9,6 @@
 #   signingKey = KEY_ID
 #   gpgsign = true
 
-# Optional: use delta as pager (paru -S delta)
-# [include]
-#   path = ~/.config/git/delta.conf
+# Delta pager for diffs (git-delta)
+[include]
+  path = ~/.config/git/delta.conf

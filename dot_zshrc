@@ -61,11 +61,28 @@ if command -v fzf &>/dev/null; then
   fi
   export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border --color=fg:#f8f8f2,bg:#0d0d0d,hl:#5865F2,fg+:#f8f8f2,bg+:#1a1a1a,hl+:#5865F2,info:#909090,prompt:#5865F2,pointer:#5865F2,marker:#5865F2,spinner:#5865F2,header:#909090"
   export FZF_CTRL_R_OPTS="--border --header 'Ctrl+R: history'"
+  command -v fd &>/dev/null && export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+  command -v fd &>/dev/null && export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 fi
+
+# ─── Atuin: sync'd shell history (Ctrl+R = fuzzy history) ───────────────────
+[[ -n $(command -v atuin 2>/dev/null) ]] && eval "$(atuin init zsh)"
+
+# ─── Zoxide: smart cd (z <dir>) ────────────────────────────────────────────
+[[ -n $(command -v zoxide 2>/dev/null) ]] && eval "$(zoxide init zsh)"
+
+# ─── Modern CLI: eza (ls), bat (cat) ────────────────────────────────────────
+command -v eza &>/dev/null && alias ls='eza --icons --group-directories-first' && alias ll='eza -l --icons --group-directories-first' && alias la='eza -la --icons --group-directories-first'
+command -v bat &>/dev/null && alias cat='bat --paging=never' && alias batp='bat'
 
 # ─── Dotfiles: chezmoi (source ~/.local/share/chezmoi). Single source of truth. ─
 export PATH="$HOME/.local/bin:$PATH"
 alias cm=chezmoi
+
+# ─── Fastfetch: system info on new interactive shell (not over SSH) ─────────
+if [[ -o interactive ]] && [[ -z "$SSH_TTY" ]] && command -v fastfetch &>/dev/null; then
+  fastfetch
+fi
 
 # ─── Optional: compdump in background (freshen cache without blocking) ─────
 ( compdump 2>/dev/null & )
