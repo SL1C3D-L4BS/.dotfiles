@@ -69,7 +69,7 @@ Alias: `cm` = chezmoi (in `.zshrc`).
 | **Multiplexer** | Zellij | rounded panes, theme `brand` |
 | **Wallpaper** | Waypaper | `~/assets/wallpapers` |
 
-**Elite CLI (2026):** Atuin (history), Fastfetch (system info), Zoxide (`z`), eza/bat/fd/ripgrep, Delta (git pager), btop (Super+B), Lazygit (Super+G). Install: `~/.config/SL1C3D-L4BS/system-config/install-elite-stack.sh`.
+**Elite CLI (2026):** Atuin (history), **Fastfetch** (system info; logo from `assets/icons/Logo.svg` via chafa, full SL1C3D-L4BS colors in `~/.config/fastfetch/config.jsonc`; `run_gen-fastfetch-logo.sh` regenerates PNG on `chezmoi apply`), Zoxide (`z`), eza/bat/fd/ripgrep, Delta (git pager), btop (Super+B), Lazygit (Super+G). Install: `~/.config/SL1C3D-L4BS/system-config/install-elite-stack.sh`.
 
 **Cursor (powerhouse):** MCP (GitHub, filesystem, Brave Search) in `~/.cursor/mcp.json`; always-on rule in `~/.cursor/rules/sl1c3d-l4bs-stack.mdc`; `AGENTS.md` at project root; SL1C3D-L4BS theme in Cursor settings (workbench colors + JetBrains Mono Nerd Font). **Icons:** install extensions **Material Icon Theme** (PKief) and **Fluent Icons** (miguelsolorio.fluent-icons); settings preconfigure `workbench.iconTheme` / `workbench.productIconTheme` and Material folder color `#5865F2`. Export `GITHUB_PERSONAL_ACCESS_TOKEN` and `BRAVE_API_KEY` for MCP; restart Cursor after editing `mcp.json`.
 
@@ -82,7 +82,7 @@ Alias: `cm` = chezmoi (in `.zshrc`).
 ```
 README.md                    →  ~/README.md
 dot_zshrc, dot_gitconfig     →  ~/.zshrc, ~/.gitconfig
-dot_config/                  →  ~/.config/  (hypr, quickshell, starship, ghostty, fuzzel, mako, yazi, zellij, waypaper, nvim, git, chezmoi, SL1C3D-L4BS/system-config, …)
+dot_config/                  →  ~/.config/  (hypr, quickshell, starship, ghostty, fastfetch, fuzzel, mako, yazi, zellij, waypaper, nvim, git, chezmoi, SL1C3D-L4BS/system-config, …)
 scripts/                     →  ~/scripts/  (validate-configs.sh)
 assets/                      →  ~/assets/   (icons, wallpapers)
 ```
