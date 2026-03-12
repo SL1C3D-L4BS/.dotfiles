@@ -1742,19 +1742,18 @@ Scope {
                                         Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
 
                                         Column {
-                                            id: devCol; width: parent.width; spacing: 10
+                                            id: devCol; width: parent.width; spacing: 8
 
                                             // ── DOTFILES CARD ─────────────────────────────
                                             Rectangle {
                                                 width: devCol.width
-                                                height: dotfilesInner.implicitHeight + 22
+                                                height: dotfilesInner.implicitHeight + 24
                                                 radius: 10
                                                 color: root.theme.bgBase
                                                 border.width: 1
                                                 border.color: hubCard.cmChangedCount > 0 ? root.theme.accentOrange : root.theme.accentGreen
                                                 Behavior on border.color { ColorAnimation { duration: 400 } }
 
-                                                // Pulsing dirty border
                                                 SequentialAnimation on opacity {
                                                     loops: Animation.Infinite
                                                     running: hubCard.cmChangedCount > 0
@@ -1767,51 +1766,56 @@ Scope {
                                                     anchors { fill: parent; margins: 12 }
                                                     spacing: 8
 
-                                                    // Branch + status row
-                                                    Row {
-                                                        width: parent.width; spacing: 6
-                                                        Image {
-                                                            source: root.phosphorDir + "/git-branch.svg"
-                                                            width: 13; height: 13; fillMode: Image.PreserveAspectFit; smooth: true
+                                                    // Branch LEFT · status badge + refresh RIGHT
+                                                    Item {
+                                                        width: parent.width; height: 20
+                                                        Row {
+                                                            anchors.left: parent.left
                                                             anchors.verticalCenter: parent.verticalCenter
-                                                        }
-                                                        Text {
-                                                            text: hubCard.cmBranch
-                                                            color: root.theme.accentPrimary; font.pixelSize: 11; font.weight: Font.DemiBold; font.family: root.theme.fontFamily
-                                                            anchors.verticalCenter: parent.verticalCenter
-                                                        }
-                                                        Item { width: 1; height: 1; Layout.fillWidth: true
-                                                               // spacer trick: make it stretch
-                                                               Component.onCompleted: { }
-                                                        }
-                                                        // Status badge
-                                                        Rectangle {
-                                                            id: dfStatusBadge
-                                                            anchors.verticalCenter: parent.verticalCenter
-                                                            height: 18; width: dfStatusTxt.width + 12; radius: 9
-                                                            color: hubCard.cmChangedCount > 0 ? "#2a1200" : "#0d2210"
-                                                            border.width: 1
-                                                            border.color: hubCard.cmChangedCount > 0 ? root.theme.accentOrange : root.theme.accentGreen
+                                                            spacing: 6
+                                                            Image {
+                                                                source: root.phosphorDir + "/git-branch.svg"
+                                                                width: 13; height: 13
+                                                                fillMode: Image.PreserveAspectFit; smooth: true
+                                                                anchors.verticalCenter: parent.verticalCenter
+                                                            }
                                                             Text {
-                                                                id: dfStatusTxt; anchors.centerIn: parent
-                                                                text: hubCard.cmChangedCount > 0 ? ("⚡ " + hubCard.cmChangedCount + " pending") : "✓ clean"
-                                                                color: hubCard.cmChangedCount > 0 ? root.theme.accentOrange : root.theme.accentGreen
-                                                                font.pixelSize: 9; font.family: root.theme.fontFamily
+                                                                text: hubCard.cmBranch
+                                                                color: root.theme.accentPrimary
+                                                                font.pixelSize: 11; font.weight: Font.DemiBold; font.family: root.theme.fontFamily
+                                                                anchors.verticalCenter: parent.verticalCenter
                                                             }
                                                         }
-                                                        // Refresh button
-                                                        MouseArea {
-                                                            id: dfRefreshBtn; width: 22; height: 22
-                                                            cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                        Row {
+                                                            anchors.right: parent.right
                                                             anchors.verticalCenter: parent.verticalCenter
-                                                            onClicked: hubCard.refreshDevTab()
-                                                            scale: containsMouse ? (pressed ? 0.88 : 1.12) : 1.0
-                                                            Behavior on scale { SpringAnimation { spring: 3.0; damping: 0.6 } }
-                                                            Text {
-                                                                anchors.centerIn: parent; text: "↻"
-                                                                color: dfRefreshBtn.containsMouse ? root.theme.accentPrimary : root.theme.textMuted
-                                                                font.pixelSize: 14
-                                                                Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                            spacing: 6
+                                                            Rectangle {
+                                                                height: 18; width: dfStatusTxt.width + 12; radius: 9
+                                                                color: hubCard.cmChangedCount > 0 ? "#2a1200" : "#0d2210"
+                                                                border.width: 1
+                                                                border.color: hubCard.cmChangedCount > 0 ? root.theme.accentOrange : root.theme.accentGreen
+                                                                anchors.verticalCenter: parent.verticalCenter
+                                                                Text {
+                                                                    id: dfStatusTxt; anchors.centerIn: parent
+                                                                    text: hubCard.cmChangedCount > 0 ? ("⚡ " + hubCard.cmChangedCount + " pending") : "✓ clean"
+                                                                    color: hubCard.cmChangedCount > 0 ? root.theme.accentOrange : root.theme.accentGreen
+                                                                    font.pixelSize: 9; font.family: root.theme.fontFamily
+                                                                }
+                                                            }
+                                                            MouseArea {
+                                                                id: dfRefreshBtn; width: 20; height: 20
+                                                                cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                                anchors.verticalCenter: parent.verticalCenter
+                                                                onClicked: hubCard.refreshDevTab()
+                                                                scale: containsMouse ? (pressed ? 0.88 : 1.14) : 1.0
+                                                                Behavior on scale { SpringAnimation { spring: 3.0; damping: 0.6 } }
+                                                                Text {
+                                                                    anchors.centerIn: parent; text: "↻"
+                                                                    color: dfRefreshBtn.containsMouse ? root.theme.accentPrimary : root.theme.textMuted
+                                                                    font.pixelSize: 14
+                                                                    Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -1820,33 +1824,37 @@ Scope {
                                                     Text {
                                                         width: parent.width
                                                         text: hubCard.cmLastCommit
-                                                        color: root.theme.textMuted; font.pixelSize: 9
-                                                        font.family: root.theme.fontFamily
+                                                        color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily
                                                         elide: Text.ElideRight
                                                     }
 
-                                                    // Action pills
+                                                    // Separator
+                                                    Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.5 }
+
+                                                    // Action pills — equal width, fill card
                                                     Row {
-                                                        spacing: 6
+                                                        width: parent.width; spacing: 6
                                                         Repeater {
                                                             model: [
                                                                 { label: "Apply",  accent: root.theme.accentPrimary, cmd: ["ghostty", "-e", "bash", "-lc", "chezmoi apply && echo '\\n✓ applied'; read"] },
-                                                                { label: "Push",   accent: root.theme.accentGreen,   cmd: ["sh", "-c", "cd $(chezmoi source-path 2>/dev/null) && git add -A && git commit -m 'chore: sync' --allow-empty 2>/dev/null; git push 2>&1 | head -4 | notify-send -u low 'Dotfiles' 'Pushed to remote'"] },
+                                                                { label: "Push",   accent: root.theme.accentGreen,   cmd: ["sh", "-c", "cd $(chezmoi source-path 2>/dev/null) && git add -A && git commit -m 'chore: sync' --allow-empty 2>/dev/null; git push 2>&1 | head -4 | notify-send -u low 'Dotfiles' 'Pushed'"] },
                                                                 { label: "Status", accent: root.theme.accentOrange,  cmd: ["ghostty", "-e", "bash", "-lc", "chezmoi status; echo; read"] }
                                                             ]
                                                             delegate: MouseArea {
                                                                 required property var modelData
-                                                                width: 64; height: 26
+                                                                required property int index
+                                                                width: (dotfilesInner.width - 12) / 3; height: 28
                                                                 cursorShape: Qt.PointingHandCursor; hoverEnabled: true
-                                                                scale: containsMouse ? (pressed ? 0.92 : 1.05) : 1.0
+                                                                scale: containsMouse ? (pressed ? 0.92 : 1.04) : 1.0
                                                                 Behavior on scale { SpringAnimation { spring: 2.8; damping: 0.65 } }
                                                                 onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
                                                                 Rectangle {
-                                                                    anchors.fill: parent; radius: root.theme.radiusPill
-                                                                    color: parent.containsMouse ? Qt.rgba(0,0,0,0.4) : root.theme.bgBase
+                                                                    anchors.fill: parent; radius: 8
+                                                                    color: parent.containsMouse ? Qt.rgba(0.04,0.04,0.1,1) : "transparent"
                                                                     border.width: 1
-                                                                    border.color: parent.containsMouse ? modelData.accent : root.theme.border
+                                                                    border.color: parent.containsMouse ? modelData.accent : Qt.rgba(1,1,1,0.10)
                                                                     Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                                    Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
                                                                 }
                                                                 Text {
                                                                     anchors.centerIn: parent; text: modelData.label
@@ -1862,57 +1870,60 @@ Scope {
 
                                             // ── DEV TIMER CARD (conditional) ──────────────
                                             Rectangle {
-                                                width: devCol.width; height: visible ? 44 : 0
+                                                width: devCol.width; height: visible ? 46 : 0
                                                 visible: root.devTimerSecsLeft > 0
                                                 radius: 10; color: root.theme.bgBase
                                                 border.width: 1; border.color: root.theme.accentPrimary
+                                                clip: true
                                                 Behavior on height { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
 
-                                                Row {
+                                                Item {
                                                     anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-                                                    spacing: 10
 
-                                                    // Timer icon (pulsing)
-                                                    Text {
+                                                    // Left: icon + text
+                                                    Row {
+                                                        anchors.left: parent.left
                                                         anchors.verticalCenter: parent.verticalCenter
-                                                        text: "⏱"; font.pixelSize: 14
-                                                        SequentialAnimation on opacity {
-                                                            loops: Animation.Infinite
-                                                            running: root.devTimerSecsLeft > 0
-                                                            NumberAnimation { to: 0.4; duration: 800 }
-                                                            NumberAnimation { to: 1.0; duration: 800 }
-                                                        }
-                                                    }
-
-                                                    Column {
-                                                        anchors.verticalCenter: parent.verticalCenter; spacing: 1
+                                                        spacing: 8
                                                         Text {
-                                                            text: root.devTimerLabel || "Dev Timer"
-                                                            color: root.theme.textPrimary; font.pixelSize: 10; font.weight: Font.DemiBold; font.family: root.theme.fontFamily
-                                                        }
-                                                        Text {
-                                                            text: {
-                                                                const s = root.devTimerSecsLeft
-                                                                if (s <= 0) return "—"
-                                                                const h = Math.floor(s / 3600)
-                                                                const m = Math.floor((s % 3600) / 60)
-                                                                const sec = s % 60
-                                                                return (h > 0 ? h + "h " : "") + String(m).padStart(2,"0") + "m " + String(sec).padStart(2,"0") + "s"
+                                                            text: "⏱"; font.pixelSize: 14
+                                                            anchors.verticalCenter: parent.verticalCenter
+                                                            SequentialAnimation on opacity {
+                                                                loops: Animation.Infinite; running: root.devTimerSecsLeft > 0
+                                                                NumberAnimation { to: 0.3; duration: 900 }
+                                                                NumberAnimation { to: 1.0; duration: 900 }
                                                             }
-                                                            color: root.devTimerSecsLeft < 300 ? root.theme.accentRed : root.theme.accentPrimary
-                                                            font.pixelSize: 10; font.family: root.theme.fontFamily
-                                                            Behavior on color { ColorAnimation { duration: 500 } }
+                                                        }
+                                                        Column {
+                                                            anchors.verticalCenter: parent.verticalCenter; spacing: 1
+                                                            Text {
+                                                                text: root.devTimerLabel || "Dev Timer"
+                                                                color: root.theme.textPrimary; font.pixelSize: 10; font.weight: Font.DemiBold; font.family: root.theme.fontFamily
+                                                            }
+                                                            Text {
+                                                                text: {
+                                                                    const s = root.devTimerSecsLeft
+                                                                    if (s <= 0) return "—"
+                                                                    const h = Math.floor(s / 3600)
+                                                                    const m = Math.floor((s % 3600) / 60)
+                                                                    const sec = s % 60
+                                                                    return (h > 0 ? h + "h " : "") + String(m).padStart(2,"0") + "m " + String(sec).padStart(2,"0") + "s"
+                                                                }
+                                                                color: root.devTimerSecsLeft < 300 ? root.theme.accentRed : root.theme.accentPrimary
+                                                                font.pixelSize: 10; font.family: root.theme.fontFamily
+                                                                Behavior on color { ColorAnimation { duration: 500 } }
+                                                            }
                                                         }
                                                     }
 
-                                                    Item { width: parent.width - 14 - 10 - 120 - 10 - 60; height: 1 }
-
-                                                    // Progress bar
+                                                    // Right: progress bar
                                                     Item {
-                                                        width: 60; height: 4; anchors.verticalCenter: parent.verticalCenter
-                                                        Rectangle { anchors.fill: parent; radius: 2; color: root.theme.border }
+                                                        width: 72; height: 5
+                                                        anchors.right: parent.right
+                                                        anchors.verticalCenter: parent.verticalCenter
+                                                        Rectangle { anchors.fill: parent; radius: 3; color: root.theme.border }
                                                         Rectangle {
-                                                            height: parent.height; radius: 2
+                                                            height: parent.height; radius: 3
                                                             width: root.devTimerTotal > 0 ? parent.width * (root.devTimerSecsLeft / root.devTimerTotal) : 0
                                                             color: root.devTimerSecsLeft < 300 ? root.theme.accentRed : root.theme.accentPrimary
                                                             Behavior on width { NumberAnimation { duration: 1000 } }
@@ -1922,9 +1933,10 @@ Scope {
                                             }
 
                                             // ── ENVIRONMENT ───────────────────────────────
-                                            Row {
-                                                width: parent.width; height: 20
-                                                Text { text: "ENVIRONMENT"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0; anchors.verticalCenter: parent.verticalCenter }
+                                            Item { height: 4 }
+                                            Item {
+                                                width: parent.width; height: 16
+                                                Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: "ENVIRONMENT"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.2 }
                                             }
                                             Flow {
                                                 width: parent.width; spacing: 5
@@ -1932,7 +1944,7 @@ Scope {
                                                     model: hubCard.runtimePills
                                                     delegate: Rectangle {
                                                         required property var modelData
-                                                        height: 20; radius: 10; width: rtTxt.width + 16
+                                                        height: 22; radius: 11; width: rtTxt.width + 18
                                                         color: modelData.bg || root.theme.bgBase
                                                         border.width: 1; border.color: modelData.border || root.theme.border
                                                         Text {
@@ -1951,89 +1963,82 @@ Scope {
                                             }
 
                                             // ── WORKSPACES ────────────────────────────────
-                                            Row {
-                                                width: parent.width; height: 20
-                                                Text { text: "WORKSPACES"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0; anchors.verticalCenter: parent.verticalCenter }
+                                            Item { height: 4 }
+                                            Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.3 }
+                                            Item { height: 2 }
+                                            Item {
+                                                width: parent.width; height: 16
+                                                Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: "WORKSPACES"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.2 }
                                             }
                                             Repeater {
                                                 model: [
-                                                    { path: "~/dev",                  label: "dev",       sub: "~/dev",                  icon: "folder-open",     git: true,  iconBg: "#0f1135", accent: "#5865F2" },
-                                                    { path: "~/.config",              label: ".config",   sub: "~/.config",              icon: "gear",            git: false, iconBg: "#251a00", accent: "#ffb86c" },
-                                                    { path: "~/.local/share/chezmoi", label: "dotfiles",  sub: "chezmoi source",         icon: "git-branch",      git: true,  iconBg: "#0d2210", accent: "#50fa7b" },
-                                                    { path: "~/scripts",              label: "scripts",   sub: "~/scripts",              icon: "terminal-window", git: false, iconBg: "#1a0820", accent: "#b366ff" },
-                                                    { path: "~/assets",               label: "assets",    sub: "~/assets",               icon: "images-square",   git: false, iconBg: "#1a1015", accent: "#ff79c6" }
+                                                    { path: "~/dev",                  label: "dev",       sub: "~/dev",          icon: "folder-open",     git: true,  iconBg: "#0f1135", accent: "#5865F2" },
+                                                    { path: "~/.config",              label: ".config",   sub: "~/.config",      icon: "gear",            git: false, iconBg: "#251a00", accent: "#ffb86c" },
+                                                    { path: "~/.local/share/chezmoi", label: "dotfiles",  sub: "chezmoi source", icon: "git-branch",      git: true,  iconBg: "#0d2210", accent: "#50fa7b" },
+                                                    { path: "~/scripts",              label: "scripts",   sub: "~/scripts",      icon: "terminal-window", git: false, iconBg: "#1a0820", accent: "#b366ff" },
+                                                    { path: "~/assets",               label: "assets",    sub: "~/assets",       icon: "images-square",   git: false, iconBg: "#1a1015", accent: "#ff79c6" }
                                                 ]
                                                 delegate: Rectangle {
                                                     id: wsDelegate
                                                     required property var modelData
                                                     required property int index
-                                                    width: devCol.width; height: 54; radius: 10
+                                                    width: devCol.width; height: 52; radius: 10
                                                     property string rp: wsDelegate.modelData.path.replace("~", hubCard.home)
-                                                    color: wsMa.containsMouse ? Qt.rgba(0.05,0.05,0.08,1.0) : root.theme.bgBase
+                                                    color: wsMa.containsMouse ? Qt.rgba(0.04,0.04,0.09,1.0) : root.theme.bgBase
                                                     border.width: 1
-                                                    border.color: wsMa.containsMouse ? wsDelegate.modelData.accent : root.theme.border
-                                                    scale: wsMa.containsMouse ? 1.008 : 1.0
+                                                    border.color: wsMa.containsMouse ? wsDelegate.modelData.accent : Qt.rgba(1,1,1,0.07)
+                                                    scale: wsMa.containsMouse ? 1.007 : 1.0
                                                     Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
                                                     Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
                                                     Behavior on scale        { SpringAnimation { spring: 3.0; damping: 0.7 } }
 
-                                                    // Entry fade-in with stagger
-                                                    opacity: 0
-                                                    y: 8
-                                                    NumberAnimation on opacity {
-                                                        from: 0; to: 1; duration: 220 + wsDelegate.index * 45
-                                                        easing.type: Easing.OutCubic; running: devFlickable.visible
-                                                    }
-                                                    NumberAnimation on y {
-                                                        from: 8; to: 0; duration: 220 + wsDelegate.index * 45
-                                                        easing.type: Easing.OutCubic; running: devFlickable.visible
-                                                    }
+                                                    opacity: 0; y: 6
+                                                    NumberAnimation on opacity { from: 0; to: 1; duration: 200 + wsDelegate.index * 40; easing.type: Easing.OutCubic; running: devFlickable.visible }
+                                                    NumberAnimation on y      { from: 6; to: 0; duration: 200 + wsDelegate.index * 40; easing.type: Easing.OutCubic; running: devFlickable.visible }
 
-                                                    Row {
-                                                        anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
-                                                        spacing: 10
+                                                    Item {
+                                                        anchors { fill: parent; leftMargin: 12; rightMargin: 10 }
 
-                                                        // Icon backdrop
+                                                        // Icon backdrop — left-anchored
                                                         Rectangle {
-                                                            width: 34; height: 34; radius: 8
-                                                            color: wsDelegate.modelData.iconBg
-                                                            border.width: 1; border.color: Qt.rgba(1,1,1,0.06)
+                                                            id: wsIcon
+                                                            width: 32; height: 32; radius: 8
+                                                            anchors.left: parent.left
                                                             anchors.verticalCenter: parent.verticalCenter
+                                                            color: wsDelegate.modelData.iconBg
+                                                            border.width: 1; border.color: Qt.rgba(1,1,1,0.07)
                                                             Image {
                                                                 anchors.centerIn: parent
                                                                 source: root.phosphorDir + "/" + wsDelegate.modelData.icon + ".svg"
-                                                                width: 16; height: 16; fillMode: Image.PreserveAspectFit; smooth: true
+                                                                width: 15; height: 15; fillMode: Image.PreserveAspectFit; smooth: true
                                                             }
                                                         }
 
-                                                        // Label + subpath
-                                                        Column {
-                                                            anchors.verticalCenter: parent.verticalCenter; spacing: 2
-                                                            width: devCol.width - 10 - 34 - 10 - (wsDelegate.modelData.git ? 3*28+2*5 : 2*28+5) - 10
-                                                            Text { text: wsDelegate.modelData.label; color: root.theme.textPrimary; font.pixelSize: 11; font.weight: Font.DemiBold; font.family: root.theme.fontFamily; elide: Text.ElideRight; width: parent.width }
-                                                            Text { text: wsDelegate.modelData.sub;   color: root.theme.textMuted;  font.pixelSize: 9;  font.family: root.theme.fontFamily;  elide: Text.ElideRight; width: parent.width }
-                                                        }
-
-                                                        // Action icon buttons
+                                                        // Action buttons — right-anchored
                                                         Row {
-                                                            spacing: 5; anchors.verticalCenter: parent.verticalCenter
+                                                            id: wsActions
+                                                            spacing: 4
+                                                            anchors.right: parent.right
+                                                            anchors.verticalCenter: parent.verticalCenter
                                                             Repeater {
                                                                 model: wsDelegate.modelData.git
-                                                                    ? [ { i: "folder-open",     c: ["ghostty", "-e", "yazi",    wsDelegate.rp] },
+                                                                    ? [ { i: "folder-open",     c: ["ghostty", "-e", "yazi", wsDelegate.rp] },
                                                                         { i: "terminal-window", c: ["ghostty", "-e", "bash", "-c", "cd " + wsDelegate.rp + " && exec ~/.config/hypr/scripts/zellij-branded.sh 2>/dev/null || exec zsh"] },
                                                                         { i: "git-branch",      c: ["ghostty", "-e", "bash", "-c", "cd " + wsDelegate.rp + " && lazygit"] } ]
-                                                                    : [ { i: "folder-open",     c: ["ghostty", "-e", "yazi",    wsDelegate.rp] },
+                                                                    : [ { i: "folder-open",     c: ["ghostty", "-e", "yazi", wsDelegate.rp] },
                                                                         { i: "terminal-window", c: ["ghostty", "-e", "bash", "-c", "cd " + wsDelegate.rp + " && exec ~/.config/hypr/scripts/zellij-branded.sh 2>/dev/null || exec zsh"] } ]
                                                                 delegate: MouseArea {
                                                                     required property var modelData
-                                                                    width: 28; height: 28; cursorShape: Qt.PointingHandCursor; hoverEnabled: true
-                                                                    scale: containsMouse ? (pressed ? 0.85 : 1.1) : 1.0
+                                                                    width: 26; height: 26
+                                                                    cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                                    scale: containsMouse ? (pressed ? 0.84 : 1.1) : 1.0
                                                                     Behavior on scale { SpringAnimation { spring: 3.2; damping: 0.6 } }
                                                                     onClicked: { hubLauncher.command = modelData.c; hubLauncher.running = true; panelWindow.hubOpen = false }
                                                                     Rectangle {
                                                                         anchors.fill: parent; radius: 7
-                                                                        color: parent.containsMouse ? root.theme.accentDim2 : "#00000000"
-                                                                        border.width: 1; border.color: parent.containsMouse ? wsDelegate.modelData.accent : root.theme.border
+                                                                        color: parent.containsMouse ? root.theme.accentDim2 : "transparent"
+                                                                        border.width: 1
+                                                                        border.color: parent.containsMouse ? wsDelegate.modelData.accent : Qt.rgba(1,1,1,0.10)
                                                                         Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
                                                                         Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
                                                                     }
@@ -2045,76 +2050,104 @@ Scope {
                                                                 }
                                                             }
                                                         }
+
+                                                        // Label + subpath — fills between icon and actions
+                                                        Column {
+                                                            anchors.left: wsIcon.right; anchors.leftMargin: 10
+                                                            anchors.right: wsActions.left; anchors.rightMargin: 8
+                                                            anchors.verticalCenter: parent.verticalCenter
+                                                            spacing: 2
+                                                            Text { text: wsDelegate.modelData.label; color: root.theme.textPrimary; font.pixelSize: 11; font.weight: Font.DemiBold; font.family: root.theme.fontFamily; elide: Text.ElideRight; width: parent.width }
+                                                            Text { text: wsDelegate.modelData.sub;   color: root.theme.textMuted;  font.pixelSize: 9;  font.family: root.theme.fontFamily;  elide: Text.ElideRight; width: parent.width }
+                                                        }
                                                     }
                                                     MouseArea { id: wsMa; anchors.fill: parent; hoverEnabled: true; acceptedButtons: Qt.NoButton }
                                                 }
                                             }
 
                                             // ── CONFIG EDITORS ────────────────────────────
-                                            Row {
-                                                width: parent.width; height: 20
-                                                Text { text: "CONFIG EDITORS"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0; anchors.verticalCenter: parent.verticalCenter }
+                                            Item { height: 4 }
+                                            Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.3 }
+                                            Item { height: 2 }
+                                            Item {
+                                                width: parent.width; height: 16
+                                                Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: "CONFIG EDITORS"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.2 }
                                             }
                                             Repeater {
                                                 model: [
-                                                    { label: "Zsh",              sub: "~/.zshrc",                      icon: "terminal-window", accent: "#b366ff", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.zshrc"] },
-                                                    { label: "Hyprland",         sub: "~/.config/hypr/",               icon: "gear",            accent: "#5865F2", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/hypr"] },
-                                                    { label: "Quickshell",       sub: "bar/Bar.qml",                   icon: "squares-four",    accent: "#5865F2", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/quickshell/bar/Bar.qml"] },
-                                                    { label: "Zellij",           sub: "config.kdl",                    icon: "terminal-window", accent: "#ffb86c", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/zellij/config.kdl"] },
-                                                    { label: "Starship",         sub: "starship.toml",                 icon: "sparkle",         accent: "#ff79c6", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/starship.toml"] },
-                                                    { label: "Neovim",           sub: "~/.config/nvim/",               icon: "file-code",       accent: "#50fa7b", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/nvim"] },
-                                                    { label: "Chezmoi apply",    sub: "Sync & apply dotfiles",         icon: "arrow-clockwise", accent: "#5865F2", cmd: ["ghostty", "-e", "bash", "-lc", "chezmoi apply && echo '\\n✓ Done'; read"] }
+                                                    { label: "Zsh",           sub: "~/.zshrc",              icon: "terminal-window", accent: "#b366ff", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.zshrc"] },
+                                                    { label: "Hyprland",      sub: "~/.config/hypr/",       icon: "gear",            accent: "#5865F2", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/hypr"] },
+                                                    { label: "Quickshell",    sub: "bar/Bar.qml",           icon: "squares-four",    accent: "#5865F2", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/quickshell/bar/Bar.qml"] },
+                                                    { label: "Zellij",        sub: "config.kdl",            icon: "terminal-window", accent: "#ffb86c", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/zellij/config.kdl"] },
+                                                    { label: "Starship",      sub: "starship.toml",         icon: "sparkle",         accent: "#ff79c6", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/starship.toml"] },
+                                                    { label: "Neovim",        sub: "~/.config/nvim/",       icon: "file-code",       accent: "#50fa7b", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/nvim"] },
+                                                    { label: "Chezmoi apply", sub: "Sync & apply dotfiles", icon: "arrow-clockwise", accent: "#5865F2", cmd: ["ghostty", "-e", "bash", "-lc", "chezmoi apply && echo '\\n✓ Done'; read"] }
                                                 ]
                                                 delegate: MouseArea {
                                                     id: cfgDelegate
                                                     required property var modelData
                                                     required property int index
-                                                    width: devCol.width; height: 44
+                                                    width: devCol.width; height: 42
                                                     cursorShape: Qt.PointingHandCursor; hoverEnabled: true
-                                                    scale: containsMouse ? (pressed ? 0.98 : 1.005) : 1.0
+                                                    scale: containsMouse ? (pressed ? 0.98 : 1.004) : 1.0
                                                     Behavior on scale { SpringAnimation { spring: 3.0; damping: 0.7 } }
                                                     onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
 
-                                                    // Staggered fade-in
                                                     opacity: 0
                                                     NumberAnimation on opacity {
-                                                        from: 0; to: 1; duration: 250 + cfgDelegate.index * 40
+                                                        from: 0; to: 1; duration: 220 + cfgDelegate.index * 35
                                                         easing.type: Easing.OutCubic; running: devFlickable.visible
                                                     }
 
                                                     Rectangle {
-                                                        anchors.fill: parent; radius: 10
-                                                        color: cfgDelegate.containsMouse ? Qt.rgba(0.05,0.05,0.1,1) : root.theme.bgBase
+                                                        anchors.fill: parent; radius: 9
+                                                        color: cfgDelegate.containsMouse ? Qt.rgba(0.04,0.04,0.1,1) : "transparent"
                                                         border.width: 1
-                                                        border.color: cfgDelegate.containsMouse ? cfgDelegate.modelData.accent : root.theme.border
+                                                        border.color: cfgDelegate.containsMouse ? cfgDelegate.modelData.accent : "transparent"
                                                         Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
                                                         Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
 
-                                                        Row {
-                                                            anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
-                                                            spacing: 10
+                                                        Item {
+                                                            anchors { fill: parent; leftMargin: 8; rightMargin: 10 }
 
-                                                            // Colored icon pill
+                                                            // Icon — left
                                                             Rectangle {
-                                                                width: 28; height: 28; radius: 7; anchors.verticalCenter: parent.verticalCenter
-                                                                color: Qt.rgba(0.08, 0.08, 0.15, 1)
-                                                                border.width: 1; border.color: cfgDelegate.containsMouse ? cfgDelegate.modelData.accent : Qt.rgba(1,1,1,0.08)
+                                                                id: cfgIcon
+                                                                width: 26; height: 26; radius: 7
+                                                                anchors.left: parent.left
+                                                                anchors.verticalCenter: parent.verticalCenter
+                                                                color: Qt.rgba(0.07, 0.07, 0.14, 1)
+                                                                border.width: 1
+                                                                border.color: cfgDelegate.containsMouse ? cfgDelegate.modelData.accent : Qt.rgba(1,1,1,0.07)
                                                                 Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
                                                                 Image {
                                                                     anchors.centerIn: parent
                                                                     source: root.phosphorDir + "/" + cfgDelegate.modelData.icon + ".svg"
-                                                                    width: 13; height: 13; fillMode: Image.PreserveAspectFit; smooth: true
+                                                                    width: 12; height: 12; fillMode: Image.PreserveAspectFit; smooth: true
                                                                 }
                                                             }
 
-                                                            // Label + sub
+                                                            // Chevron — right
+                                                            Text {
+                                                                id: cfgChevron
+                                                                anchors.right: parent.right
+                                                                anchors.verticalCenter: parent.verticalCenter
+                                                                text: "›"; font.pixelSize: 16; font.family: root.theme.fontFamily
+                                                                color: cfgDelegate.containsMouse ? cfgDelegate.modelData.accent : root.theme.textMuted
+                                                                Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                            }
+
+                                                            // Label + sub — fills between icon and chevron
                                                             Column {
-                                                                anchors.verticalCenter: parent.verticalCenter; spacing: 1
-                                                                width: devCol.width - 10 - 28 - 10 - 16 - 10 - 10
+                                                                anchors.left: cfgIcon.right; anchors.leftMargin: 10
+                                                                anchors.right: cfgChevron.left; anchors.rightMargin: 6
+                                                                anchors.verticalCenter: parent.verticalCenter
+                                                                spacing: 1
                                                                 Text {
                                                                     text: cfgDelegate.modelData.label
                                                                     color: cfgDelegate.containsMouse ? cfgDelegate.modelData.accent : root.theme.textPrimary
                                                                     font.pixelSize: 11; font.weight: Font.DemiBold; font.family: root.theme.fontFamily
+                                                                    elide: Text.ElideRight; width: parent.width
                                                                     Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
                                                                 }
                                                                 Text {
@@ -2123,19 +2156,11 @@ Scope {
                                                                     elide: Text.ElideRight; width: parent.width
                                                                 }
                                                             }
-
-                                                            // Arrow chevron
-                                                            Text {
-                                                                anchors.verticalCenter: parent.verticalCenter
-                                                                text: "›"; font.pixelSize: 18; font.family: root.theme.fontFamily
-                                                                color: cfgDelegate.containsMouse ? cfgDelegate.modelData.accent : root.theme.textMuted
-                                                                Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
-                                                            }
                                                         }
                                                     }
                                                 }
                                             }
-                                            Item { height: 4 }
+                                            Item { height: 6 }
                                         }
                                     }
 
