@@ -37,12 +37,54 @@ keybinds clear-defaults=false {
         bind "Ctrl o" { SwitchToMode "Session"; }
         bind "Ctrl n" { SwitchToMode "Resize"; }
         bind "Ctrl h" { SwitchToMode "Move"; }
+
+        // Pane management
         bind "Alt n"  { NewPane; }
         bind "Alt q"  { CloseFocus; }
         bind "Alt +"  { Resize "Increase"; }
         bind "Alt -"  { Resize "Decrease"; }
         bind "Alt ["  { PreviousSwapLayout; }
         bind "Alt ]"  { NextSwapLayout; }
+
+        // Floating pane pills
+        bind "Alt f"        { ToggleFloatingPanes; }
+        bind "Alt Shift f"  { TogglePaneEmbedOrFloating; }
+
+        // Navigation (Vim-style)
+        bind "Alt h"  { MoveFocus "Left"; }
+        bind "Alt l"  { MoveFocus "Right"; }
+        bind "Alt j"  { MoveFocus "Down"; }
+        bind "Alt k"  { MoveFocus "Up"; }
+
+        // Tab navigation
+        bind "Alt 1"  { GoToTab 1; }
+        bind "Alt 2"  { GoToTab 2; }
+        bind "Alt 3"  { GoToTab 3; }
+        bind "Alt 4"  { GoToTab 4; }
+        bind "Alt 5"  { GoToTab 5; }
+        bind "Ctrl Left"  { GoToPreviousTab; }
+        bind "Ctrl Right" { GoToNextTab; }
+
+        // Fullscreen toggle
+        bind "Alt m"  { ToggleFocusFullscreen; }
+
+        // Detach session
+        bind "Ctrl d"  { Detach; }
+    }
+
+    pane {
+        bind "Escape" { SwitchToMode "Normal"; }
+        bind "h" "Left"   { MoveFocus "Left";  SwitchToMode "Normal"; }
+        bind "l" "Right"  { MoveFocus "Right"; SwitchToMode "Normal"; }
+        bind "j" "Down"   { MoveFocus "Down";  SwitchToMode "Normal"; }
+        bind "k" "Up"     { MoveFocus "Up";    SwitchToMode "Normal"; }
+        bind "n"          { NewPane; SwitchToMode "Normal"; }
+        bind "d"          { NewPane "down"; SwitchToMode "Normal"; }
+        bind "r"          { NewPane "right"; SwitchToMode "Normal"; }
+        bind "f"          { TogglePaneEmbedOrFloating; SwitchToMode "Normal"; }
+        bind "q"          { CloseFocus; SwitchToMode "Normal"; }
+        bind "z"          { ToggleFocusFullscreen; SwitchToMode "Normal"; }
+        bind "e"          { TogglePaneEmbedOrFloating; SwitchToMode "Normal"; }
     }
 }
 

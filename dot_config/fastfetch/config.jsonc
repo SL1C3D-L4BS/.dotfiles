@@ -8,9 +8,9 @@
       "2": "35"
     },
     "padding": {
-      "top": 1,
+      "top": 4,
       "left": 2,
-      "right": 2
+      "right": 3
     }
   },
 
@@ -19,6 +19,9 @@
     "color": {
       "keys": "34",
       "title": "35"
+    },
+    "key": {
+      "width": 12
     },
     "size": {
       "binaryPrefix": "si",
@@ -36,13 +39,12 @@
       "type": "os",
       "key": "  OS",
       "keyColor": "34",
-      "format": "{name} {version-id}"
+      "format": "{pretty-name} {version-id}"
     },
     {
       "type": "kernel",
       "key": "  Kernel",
-      "keyColor": "34",
-      "format": "{version}"
+      "keyColor": "34"
     },
     {
       "type": "uptime",
@@ -52,32 +54,29 @@
     {
       "type": "shell",
       "key": "  Shell",
-      "keyColor": "34",
-      "format": "{name} {version}"
+      "keyColor": "34"
     },
     {
       "type": "wm",
       "key": "  WM",
-      "keyColor": "34",
-      "format": "{name} {version}"
+      "keyColor": "34"
     },
     {
       "type": "terminal",
       "key": "  Terminal",
       "keyColor": "34",
-      "format": "{name} {version}"
+      "format": "{pretty-name} {version}"
     },
     {
       "type": "font",
       "key": "  Font",
-      "keyColor": "34",
-      "format": "{name} {size}"
+      "keyColor": "34"
     },
     {
       "type": "cpu",
       "key": "  CPU",
       "keyColor": "34",
-      "format": "{name} ({core-count}c) @ {freq-max}GHz"
+      "format": "{name} ({cores-logical}c) @ {freq-max}"
     },
     {
       "type": "gpu",
@@ -88,15 +87,13 @@
     {
       "type": "memory",
       "key": "  Memory",
-      "keyColor": "34",
-      "format": "{used} / {total} ({percentage}%)"
+      "keyColor": "34"
     },
     {
       "type": "disk",
       "key": "  Disk",
       "keyColor": "34",
-      "folders": "/",
-      "format": "{used} / {total} ({percentage}%)"
+      "folders": "/"
     },
     {
       "type": "localip",

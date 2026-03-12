@@ -53,16 +53,16 @@ CDPATH=.:~:~/src:~/projects:~/dev
 eval "$(starship init zsh)"
 
 # ─── Zinit (turbo) + plugins ─────────────────────────────────────────────────
+# LOAD ORDER MATTERS: FSH must be LAST so it wraps all ZLE widgets correctly.
+# zsh-completions → HSS → autosuggestions → fzf-tab → fast-syntax-highlighting
 if [[ -f ${ZDOTDIR:-$HOME}/.local/share/zinit/zinit.git/zinit.zsh ]]; then
   source "${ZDOTDIR:-$HOME}/.local/share/zinit/zinit.git/zinit.zsh"
 
-  zinit ice wait lucid atload"zicompinit; zicdreplay"
-  zinit light zdharma-continuum/fast-syntax-highlighting
+  # 1. Completions (no order dep)
+  zinit ice wait lucid
+  zinit light zsh-users/zsh-completions
 
-  zinit ice wait lucid atload"_zsh_autosuggest_start"
-  zinit light zsh-users/zsh-autosuggestions
-
-  # Bind Up/Down inside atload so widgets exist before fast-syntax-highlighting wraps them
+  # 2. History substring search — bindkeys wired in atload so widgets exist first
   zinit ice wait lucid atload"
     bindkey '^[[A' history-substring-search-up
     bindkey '^[[B' history-substring-search-down
@@ -71,15 +71,23 @@ if [[ -f ${ZDOTDIR:-$HOME}/.local/share/zinit/zinit.git/zinit.zsh ]]; then
   "
   zinit light zsh-users/zsh-history-substring-search
 
+  # 3. Autosuggestions
+  zinit ice wait lucid atload"_zsh_autosuggest_start"
+  zinit light zsh-users/zsh-autosuggestions
+
+  # 4. fzf-tab: replaces tab completion with a full fzf popup pill
   zinit ice wait lucid
-  zinit light zsh-users/zsh-completions
+  zinit light Aloxaf/fzf-tab
+
+  # 5. FSH LAST — wraps all existing ZLE widgets (including HSS) correctly
+  zinit ice wait lucid atload"zicompinit; zicdreplay"
+  zinit light zdharma-continuum/fast-syntax-highlighting
 else
   # Fallback: Arch /usr/share plugins
   [[ -f /usr/share/zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh ]] \
     && source /usr/share/zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
   [[ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]] \
     && source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-  # Fallback bindkeys for non-zinit path
   bindkey '^[[A' history-substring-search-up   2>/dev/null || true
   bindkey '^[[B' history-substring-search-down 2>/dev/null || true
   bindkey '^P'   history-substring-search-up   2>/dev/null || true
@@ -89,6 +97,98 @@ fi
 # ─── Autosuggestions: brand muted grey (#909090) ─────────────────────────────
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#909090'
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+
+# ─── fzf-tab: brand-styled completion popup pills ────────────────────────────
+zstyle ':fzf-tab:complete:cd:*'       fzf-preview 'eza --icons --color=always $realpath 2>/dev/null'
+zstyle ':fzf-tab:complete:ls:*'       fzf-preview 'eza --icons --color=always $realpath 2>/dev/null'
+zstyle ':fzf-tab:complete:*:*'        fzf-preview \
+  'bat --style=numbers --color=always --line-range :50 $realpath 2>/dev/null \
+   || eza --icons --color=always $realpath 2>/dev/null \
+   || echo $realpath'
+zstyle ':fzf-tab:*' fzf-flags \
+  '--border=rounded' '--height=50%' '--layout=reverse' \
+  '--color=bg:#0d0d0d,fg:#f8f8f2,hl:#5865F2' \
+  '--color=bg+:#1a1a1a,fg+:#f8f8f2,hl+:#b366ff' \
+  '--color=info:#909090,prompt:#5865F2,pointer:#b366ff' \
+  '--color=border:#2d2d2d,label:#5865F2'
+zstyle ':fzf-tab:*' switch-group '<' '>'
+zstyle ':fzf-tab:*' fzf-min-height 15
+
+# ─── Elite fzf ZLE widgets ───────────────────────────────────────────────────
+# Ctrl+F  — fuzzy file picker → inserts path at cursor
+fzf-file-widget() {
+  local file
+  file=$(fd --type f --hidden --follow --exclude .git 2>/dev/null \
+    | fzf --preview 'bat --style=numbers --color=always --line-range :80 {} 2>/dev/null || cat {}' \
+          --preview-window=right:55%:wrap \
+          --header='  Insert file path' \
+          --bind 'ctrl-/:toggle-preview')
+  [[ -n "$file" ]] && LBUFFER+="${(q)file}"
+  zle reset-prompt
+}
+zle -N fzf-file-widget
+bindkey '^F' fzf-file-widget
+
+# Alt+K — fuzzy process killer (multi-select with Tab)
+fzf-kill-widget() {
+  local pids
+  pids=$(ps -u "$USER" -o pid,pcpu,pmem,comm --no-headers 2>/dev/null \
+    | fzf --multi \
+          --header='  Kill process(es) — Tab=multi, Enter=kill' \
+          --preview-window=down:2:wrap \
+    | awk '{print $1}')
+  [[ -n "$pids" ]] && echo "$pids" | xargs kill -9 2>/dev/null && \
+    print -P "\n%F{#5865F2}killed: %f${pids//$'\n'/, }"
+  zle reset-prompt
+}
+zle -N fzf-kill-widget
+bindkey '^[k' fzf-kill-widget
+
+# Alt+G — git fuzzy branch switcher with log preview
+fzf-git-branch-widget() {
+  git rev-parse --git-dir &>/dev/null || { zle reset-prompt; return; }
+  local branch
+  branch=$(git branch --all --color=always 2>/dev/null \
+    | grep -v HEAD \
+    | fzf --ansi --height=50% \
+          --header='  Git branch checkout' \
+          --preview 'git log --oneline --color=always --decorate {1} 2>/dev/null | head -25' \
+          --preview-window=right:55%:wrap \
+          --bind 'ctrl-/:toggle-preview' \
+    | sed 's|remotes/[^/]*/||' | tr -d '* ')
+  [[ -n "$branch" ]] && git checkout "${branch// /}" && \
+    print -P "\n%F{#5865F2}branch: %f${branch}"
+  zle reset-prompt
+}
+zle -N fzf-git-branch-widget
+bindkey '^[g' fzf-git-branch-widget
+
+# Alt+E — fuzzy file opener in $EDITOR
+fzf-edit-widget() {
+  local file
+  file=$(fd --type f --hidden --follow --exclude .git 2>/dev/null \
+    | fzf --preview 'bat --style=numbers --color=always --line-range :80 {} 2>/dev/null || cat {}' \
+          --preview-window=right:55%:wrap \
+          --header="  Open in $EDITOR" \
+          --bind 'ctrl-/:toggle-preview')
+  [[ -n "$file" ]] && ${EDITOR:-nvim} "$file"
+  zle reset-prompt
+}
+zle -N fzf-edit-widget
+bindkey '^[e' fzf-edit-widget
+
+# Alt+Z — zoxide interactive directory jump (replaces zi)
+fzf-zoxide-widget() {
+  local dir
+  dir=$(zoxide query --list 2>/dev/null \
+    | fzf --height=40% \
+          --header='  Jump to directory' \
+          --preview 'eza --icons --color=always {} 2>/dev/null' \
+          --preview-window=right:45%)
+  [[ -n "$dir" ]] && builtin cd "$dir" && zle reset-prompt
+}
+zle -N fzf-zoxide-widget
+bindkey '^[z' fzf-zoxide-widget
 
 # ─── fzf: keybindings + brand colors ─────────────────────────────────────────
 if command -v fzf &>/dev/null; then
@@ -172,6 +272,32 @@ alias gl='git log --oneline --graph --decorate'
 alias gco='git checkout'
 alias gb='git branch'
 alias gst='git stash'
+
+# ─── Zellij floating pane launchers ("pills") ───────────────────────────────
+# Opens a named tool as a floating pill inside the current Zellij session.
+# Outside Zellij, runs the command directly.
+_zj_float() {
+  local cmd="$1" w="${2:-72%}" h="${3:-70%}" x="${4:-14%}" y="${5:-12%}"
+  if [[ -n "$ZELLIJ" ]]; then
+    zellij action new-pane \
+      --floating \
+      --width  "$w" \
+      --height "$h" \
+      --x      "$x" \
+      --y      "$y" \
+      -- zsh -ic "$cmd"
+  else
+    ${=cmd}
+  fi
+}
+
+alias zjlg='_zj_float lazygit'                          # Alt+L  → lazygit pill
+alias zjbt='_zj_float btop'                             # Alt+B  → btop system pill
+alias zjyz='_zj_float yazi'                             # Alt+Y  → yazi file manager pill
+alias zjpy='_zj_float "python3" 55% 45% 23% 25%'       # quick python REPL pill
+alias zjnm='_zj_float nmtui 58% 48% 21% 22%'           # network manager pill
+alias zjsc='_zj_float "nvim ~/scratch.md" 70% 65% 15% 16%'  # scratch notes pill
+alias zjht='_zj_float "htop" 70% 65% 15% 16%'          # htop fallback pill
 
 # ─── Dotfiles: chezmoi + PATH ────────────────────────────────────────────────
 export PATH="$HOME/.local/bin:$HOME/.config/SL1C3D-L4BS/bin:$PATH"

@@ -1,0 +1,50 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// SL1C3D-L4BS dev layout — main editor + terminal split + floating pills
+// Usage: zellij --layout dev
+// ─────────────────────────────────────────────────────────────────────────────
+
+layout {
+    default_tab_template {
+        children
+        pane size=1 borderless=true {
+            plugin location="zellij:compact-bar"
+        }
+    }
+
+    // Main coding tab: editor left, terminal right
+    tab name="code" focus=true {
+        pane split_direction="vertical" {
+            pane size="65%" name="editor" {
+                command "nvim"
+            }
+            pane split_direction="horizontal" {
+                pane name="shell"
+                pane size="30%" name="run" command "zsh"
+            }
+        }
+    }
+
+    // Git tab
+    tab name="git" {
+        pane name="lazygit" {
+            command "lazygit"
+        }
+    }
+
+    // Monitor tab
+    tab name="sys" {
+        pane name="btop" {
+            command "btop"
+        }
+    }
+
+    // Floating pills — always available via Alt+F
+    floating_panes {
+        pane name="scratch" {
+            x "15%"
+            y "12%"
+            width "70%"
+            height "70%"
+        }
+    }
+}
