@@ -57,7 +57,7 @@ format = '[\[$all_status$ahead_behind\]]($style)'
 # ─── Time (right prompt) — Nerd Font clock ───────────────────────────────────
 [time]
 style = "fg:muted"
-format = '[\uF017 $time]($style) '
+format = "[\uF017 $time]($style) "
 time_format = "%I:%M %p"
 disabled = false
 
