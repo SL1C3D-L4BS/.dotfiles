@@ -782,7 +782,7 @@ Scope {
 
                                     Repeater {
                                         model: [
-                                            { id: 0, label: "Overview", icon: "house" },
+                                            { id: 0, label: "Overview", icon: "folder-open" },
                                             { id: 1, label: "Control Plane", icon: "gear" },
                                             { id: 2, label: "Developer", icon: "folder-open" },
                                             { id: 3, label: "Wallpapers", icon: "images-square" },
@@ -908,7 +908,7 @@ Scope {
                                             }
                                         }
 
-                                        // ─── Control Plane ───
+                                        // ─── Control Plane (2026-style: grouped sections, icons, hierarchy) ───
                                         Flickable {
                                             id: contentControlFlick
                                             contentWidth: contentControl.width
@@ -917,25 +917,74 @@ Scope {
                                             Column {
                                                 id: contentControl
                                                 width: contentControlFlick.width
-                                                spacing: 12
-                                                HubCard {
-                                                    theme: root.theme
-                                                    phosphorDir: root.phosphorDir
-                                                    title: "Control Plane"
-                                                    description: "Validate configs, reload Hyprland, restart services."
-                                                    actions: [
-                                                        { label: "Validate configs", icon: "gear", command: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/scripts/validate-configs.sh; echo; echo 'Press Enter to close'; read"] },
-                                                        { label: "Reload Hypr", icon: "gear", command: ["sh", "-c", "hyprctl reload >/dev/null 2>&1 || true"] },
-                                                        { label: "AI Gateway (restart)", icon: "gear", command: ["sh", "-c", "systemctl --user restart openclaw-gateway.service >/dev/null 2>&1 || true"] },
-                                                        { label: "QuickSettings (AGS)", icon: "gear", command: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/.config/SL1C3D-L4BS/bin/sl1c3d-ags doctor; read"] }
+                                                spacing: 16
+                                                property string phosphorDir: root.phosphorDir
+
+                                                Text {
+                                                    text: "Control Plane"
+                                                    color: root.theme.logoPurple
+                                                    font.pixelSize: 13
+                                                    font.family: root.theme.fontFamily
+                                                    font.weight: Font.DemiBold
+                                                }
+                                                Text {
+                                                    text: "Validate configs, reload Hyprland, restart services."
+                                                    color: root.theme.textMuted
+                                                    font.pixelSize: 10
+                                                    font.family: root.theme.fontFamily
+                                                    wrapMode: Text.WordWrap
+                                                    width: contentControl.width
+                                                }
+
+                                                Item { height: 4 }
+                                                Text {
+                                                    text: "VALIDATION & RELOAD"
+                                                    color: root.theme.textMuted
+                                                    font.pixelSize: 9
+                                                    font.family: root.theme.fontFamily
+                                                    font.letterSpacing: 0.8
+                                                }
+                                                Repeater {
+                                                    model: [
+                                                        { label: "Validate configs", sub: "Run validation script", icon: "gear", cmd: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/scripts/validate-configs.sh; echo; echo 'Press Enter to close'; read"] },
+                                                        { label: "Reload Hypr", sub: "Apply config changes", icon: "gear", cmd: ["sh", "-c", "hyprctl reload >/dev/null 2>&1 || true"] }
                                                     ]
-                                                    launcher: hubLauncher
-                                                    onRun: { hubLauncher.command = cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                    delegate: HubActionRow {
+                                                        theme: root.theme
+                                                        phosphorDir: contentControl.phosphorDir
+                                                        labelText: modelData.label
+                                                        subText: modelData.sub
+                                                        iconName: modelData.icon
+                                                        onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                    }
+                                                }
+
+                                                Item { height: 8 }
+                                                Text {
+                                                    text: "SERVICES"
+                                                    color: root.theme.textMuted
+                                                    font.pixelSize: 9
+                                                    font.family: root.theme.fontFamily
+                                                    font.letterSpacing: 0.8
+                                                }
+                                                Repeater {
+                                                    model: [
+                                                        { label: "AI Gateway (restart)", sub: "OpenClaw gateway", icon: "gear", cmd: ["sh", "-c", "systemctl --user restart openclaw-gateway.service >/dev/null 2>&1 || true"] },
+                                                        { label: "QuickSettings (AGS)", sub: "AGS doctor", icon: "gear", cmd: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/.config/SL1C3D-L4BS/bin/sl1c3d-ags doctor; read"] }
+                                                    ]
+                                                    delegate: HubActionRow {
+                                                        theme: root.theme
+                                                        phosphorDir: contentControl.phosphorDir
+                                                        labelText: modelData.label
+                                                        subText: modelData.sub
+                                                        iconName: modelData.icon
+                                                        onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                    }
                                                 }
                                             }
                                         }
 
-                                        // ─── Developer ───
+                                        // ─── Developer (2026-style: card path rows, Yazi/Terminal pills) ───
                                         Flickable {
                                             id: contentDeveloperFlick
                                             contentWidth: contentDeveloper.width
@@ -944,20 +993,152 @@ Scope {
                                             Column {
                                                 id: contentDeveloper
                                                 width: contentDeveloperFlick.width
-                                                spacing: 12
-                                                HubCard {
-                                                    theme: root.theme
-                                                    phosphorDir: root.phosphorDir
-                                                    title: "Developer"
-                                                    description: "Open paths in Yazi or terminal (Zellij)."
-                                                    pathRows: [
-                                                        { path: "~/dev", label: "dev" },
-                                                        { path: "~/.config", label: "config" },
-                                                        { path: "~/assets", label: "assets" }
+                                                spacing: 16
+                                                property string phosphorDir: root.phosphorDir
+
+                                                Text {
+                                                    text: "Developer"
+                                                    color: root.theme.logoPurple
+                                                    font.pixelSize: 13
+                                                    font.family: root.theme.fontFamily
+                                                    font.weight: Font.DemiBold
+                                                }
+                                                Text {
+                                                    text: "Open workspace paths in Yazi or Zellij terminal."
+                                                    color: root.theme.textMuted
+                                                    font.pixelSize: 10
+                                                    font.family: root.theme.fontFamily
+                                                    wrapMode: Text.WordWrap
+                                                    width: contentDeveloper.width
+                                                }
+
+                                                Item { height: 4 }
+                                                Text {
+                                                    text: "WORKSPACE PATHS"
+                                                    color: root.theme.textMuted
+                                                    font.pixelSize: 9
+                                                    font.family: root.theme.fontFamily
+                                                    font.letterSpacing: 0.8
+                                                }
+                                                Repeater {
+                                                    model: [
+                                                        { path: "~/dev", label: "dev", icon: "folder-open" },
+                                                        { path: "~/.config", label: "config", icon: "gear" },
+                                                        { path: "~/assets", label: "assets", icon: "images-square" }
                                                     ]
-                                                    home: hubCard.home
-                                                    launcher: hubLauncher
-                                                    onRun: { hubLauncher.command = cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                    delegate: Item {
+                                                        required property var modelData
+                                                        width: contentDeveloper.width
+                                                        height: 44
+                                                        property string resolvedPath: modelData.path.replace("~", hubCard.home)
+                                                        Rectangle {
+                                                            anchors.fill: parent
+                                                            anchors.margins: 0
+                                                            radius: root.theme.radiusPill
+                                                            color: "transparent"
+                                                            border.width: 1
+                                                            border.color: root.theme.border
+                                                        }
+                                                        Row {
+                                                            anchors.fill: parent
+                                                            anchors.leftMargin: 12
+                                                            anchors.rightMargin: 12
+                                                            spacing: 10
+                                                            Image {
+                                                                width: 16
+                                                                height: 16
+                                                                source: contentDeveloper.phosphorDir + "/" + modelData.icon + ".svg"
+                                                                fillMode: Image.PreserveAspectFit
+                                                                anchors.verticalCenter: parent.verticalCenter
+                                                            }
+                                                            Text {
+                                                                text: "~/" + modelData.label
+                                                                color: root.theme.textPrimary
+                                                                font.pixelSize: 11
+                                                                font.family: root.theme.fontFamily
+                                                                anchors.verticalCenter: parent.verticalCenter
+                                                                width: 70
+                                                            }
+                                                            Row {
+                                                                spacing: 6
+                                                                anchors.verticalCenter: parent.verticalCenter
+                                                                Rectangle {
+                                                                    width: 56
+                                                                    height: 26
+                                                                    radius: 6
+                                                                    color: devYaziMa.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
+                                                                    border.width: 1
+                                                                    border.color: root.theme.border
+                                                                    MouseArea {
+                                                                        id: devYaziMa
+                                                                        anchors.fill: parent
+                                                                        hoverEnabled: true
+                                                                        cursorShape: Qt.PointingHandCursor
+                                                                        onClicked: {
+                                                                            hubLauncher.command = ["ghostty", "-e", "yazi", parent.parent.parent.resolvedPath]
+                                                                            hubLauncher.running = true
+                                                                            panelWindow.hubOpen = false
+                                                                        }
+                                                                    }
+                                                                    Text {
+                                                                        anchors.centerIn: parent
+                                                                        text: "Yazi"
+                                                                        font.pixelSize: 10
+                                                                        font.family: root.theme.fontFamily
+                                                                        color: root.theme.textPrimary
+                                                                    }
+                                                                }
+                                                                Rectangle {
+                                                                    width: 64
+                                                                    height: 26
+                                                                    radius: 6
+                                                                    color: devTermMa.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
+                                                                    border.width: 1
+                                                                    border.color: root.theme.border
+                                                                    MouseArea {
+                                                                        id: devTermMa
+                                                                        anchors.fill: parent
+                                                                        hoverEnabled: true
+                                                                        cursorShape: Qt.PointingHandCursor
+                                                                        onClicked: {
+                                                                            hubLauncher.command = ["ghostty", "-e", "bash", "-c", "cd " + parent.parent.parent.resolvedPath + " && exec ~/.config/hypr/scripts/zellij-branded.sh"]
+                                                                            hubLauncher.running = true
+                                                                            panelWindow.hubOpen = false
+                                                                        }
+                                                                    }
+                                                                    Text {
+                                                                        anchors.centerIn: parent
+                                                                        text: "Terminal"
+                                                                        font.pixelSize: 10
+                                                                        font.family: root.theme.fontFamily
+                                                                        color: root.theme.textPrimary
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                Item { height: 8 }
+                                                Text {
+                                                    text: "CONFIG"
+                                                    color: root.theme.textMuted
+                                                    font.pixelSize: 9
+                                                    font.family: root.theme.fontFamily
+                                                    font.letterSpacing: 0.8
+                                                }
+                                                HubActionRow {
+                                                    width: contentDeveloper.width
+                                                    theme: root.theme
+                                                    phosphorDir: contentDeveloper.phosphorDir
+                                                    labelText: "Hypr config (nvim)"
+                                                    subText: "Edit Hyprland config"
+                                                    iconName: "file-code"
+                                                    onClicked: {
+                                                        hubLauncher.command = ["ghostty", "-e", "nvim", hubCard.home + "/.config/hypr"]
+                                                        hubLauncher.running = true
+                                                        panelWindow.hubOpen = false
+                                                    }
                                                 }
                                             }
                                         }
@@ -978,14 +1159,13 @@ Scope {
                                                     title: "Wallpapers"
                                                     description: "Set wallpaper or open Waypaper."
                                                     home: hubCard.home
-                                                    launcher: hubLauncher
                                                     wallpaperNames: ["sl1c3d-l4bs-01.png","sl1c3d-l4bs-02.png","sl1c3d-l4bs-03.png","sl1c3d-l4bs-04.png","sl1c3d-l4bs-05.png","sl1c3d-l4bs-06.png","sl1c3d-l4bs-07.png","sl1c3d-l4bs-08.png","sl1c3d-l4bs-09.png","sl1c3d-l4bs-10.png","sl1c3d-l4bs-11.png","sl1c3d-l4bs-12.png","sl1c3d-l4bs-13.png","sl1c3d-l4bs-14.png","sl1c3d-l4bs-15.png"]
-                                                    onRun: { hubLauncher.command = cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                    onRun: function(cmd) { hubLauncher.command = cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
                                                 }
                                             }
                                         }
 
-                                        // ─── System ───
+                                        // ─── System (2026-style: Launch + Config & restore sections) ───
                                         Flickable {
                                             id: contentSystemFlick
                                             contentWidth: contentSystem.width
@@ -994,20 +1174,69 @@ Scope {
                                             Column {
                                                 id: contentSystem
                                                 width: contentSystemFlick.width
-                                                spacing: 12
-                                                HubCard {
-                                                    theme: root.theme
-                                                    phosphorDir: root.phosphorDir
-                                                    title: "System"
-                                                    description: "Launcher, AI, config editor."
-                                                    actions: [
-                                                        { label: "AI (OpenClaw)", icon: "cursor", command: [hubCard.home + "/.config/hypr/scripts/openclaw-sidebar.sh"] },
-                                                        { label: "Fuzzel", icon: "magnifying-glass", command: ["fuzzel"] },
-                                                        { label: "Hypr config (nvim)", icon: "file-code", command: ["ghostty", "-e", "nvim", hubCard.home + "/.config/hypr"] },
-                                                        { label: "Waypaper restore", icon: "images-square", command: ["waypaper", "--restore"] }
+                                                spacing: 16
+                                                property string phosphorDir: root.phosphorDir
+
+                                                Text {
+                                                    text: "System"
+                                                    color: root.theme.logoPurple
+                                                    font.pixelSize: 13
+                                                    font.family: root.theme.fontFamily
+                                                    font.weight: Font.DemiBold
+                                                }
+                                                Text {
+                                                    text: "Launcher, AI assistant, config editor, wallpaper restore."
+                                                    color: root.theme.textMuted
+                                                    font.pixelSize: 10
+                                                    font.family: root.theme.fontFamily
+                                                    wrapMode: Text.WordWrap
+                                                    width: contentSystem.width
+                                                }
+
+                                                Item { height: 4 }
+                                                Text {
+                                                    text: "LAUNCH"
+                                                    color: root.theme.textMuted
+                                                    font.pixelSize: 9
+                                                    font.family: root.theme.fontFamily
+                                                    font.letterSpacing: 0.8
+                                                }
+                                                Repeater {
+                                                    model: [
+                                                        { label: "AI (OpenClaw)", sub: "Sidebar assistant", icon: "cursor", cmd: [hubCard.home + "/.config/hypr/scripts/openclaw-sidebar.sh"] },
+                                                        { label: "Fuzzel", sub: "App launcher", icon: "magnifying-glass", cmd: ["fuzzel"] }
                                                     ]
-                                                    launcher: hubLauncher
-                                                    onRun: { hubLauncher.command = cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                    delegate: HubActionRow {
+                                                        theme: root.theme
+                                                        phosphorDir: contentSystem.phosphorDir
+                                                        labelText: modelData.label
+                                                        subText: modelData.sub
+                                                        iconName: modelData.icon
+                                                        onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                    }
+                                                }
+
+                                                Item { height: 8 }
+                                                Text {
+                                                    text: "CONFIG & RESTORE"
+                                                    color: root.theme.textMuted
+                                                    font.pixelSize: 9
+                                                    font.family: root.theme.fontFamily
+                                                    font.letterSpacing: 0.8
+                                                }
+                                                Repeater {
+                                                    model: [
+                                                        { label: "Hypr config (nvim)", sub: "Edit Hyprland config", icon: "file-code", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/hypr"] },
+                                                        { label: "Waypaper restore", sub: "Restore saved wallpaper", icon: "images-square", cmd: ["waypaper", "--restore"] }
+                                                    ]
+                                                    delegate: HubActionRow {
+                                                        theme: root.theme
+                                                        phosphorDir: contentSystem.phosphorDir
+                                                        labelText: modelData.label
+                                                        subText: modelData.sub
+                                                        iconName: modelData.icon
+                                                        onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                    }
                                                 }
                                             }
                                         }
