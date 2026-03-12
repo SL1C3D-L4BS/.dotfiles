@@ -74,9 +74,11 @@ Scope {
         model: Quickshell.screens
 
         PanelWindow {
+            id: panelWindow
             required property var modelData
             screen: modelData
             visible: true
+            property bool hubOpen: false
 
             anchors.top: true
             anchors.left: true
@@ -130,20 +132,26 @@ Scope {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 8
 
-                    Rectangle {
-                        height: 24
+                    MouseArea {
                         width: 36
-                        radius: 8
-                        color: root.theme.bgBase
+                        height: 24
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: panelWindow.hubOpen = true
 
-                        Image {
-                            anchors.centerIn: parent
-                            source: "file:///home/the_architect/assets/icons/Logo-bar.svg"
-                            width: 20
-                            height: 20
-                            fillMode: Image.PreserveAspectFit
-                            smooth: true
-                            mipmap: true
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 8
+                            color: root.theme.bgBase
+
+                            Image {
+                                anchors.centerIn: parent
+                                source: "file:///home/the_architect/assets/icons/Logo-bar.svg"
+                                width: 20
+                                height: 20
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                                mipmap: true
+                            }
                         }
                     }
 
@@ -550,6 +558,230 @@ Scope {
                                                 trayDelegate.width, trayDelegate.height)
                                             menuAnchor.anchor.rect = widgetRect
                                         }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            PopupWindow {
+                anchor.window: panelWindow
+                anchor.rect.x: 0
+                anchor.rect.y: panelWindow.implicitHeight
+                implicitWidth: 300
+                implicitHeight: 360
+                visible: panelWindow.hubOpen
+                color: "transparent"
+
+                onVisibleChanged: if (!visible) panelWindow.hubOpen = false
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 12
+                    color: root.theme.bgSurface
+                    border.width: 1
+                    border.color: root.theme.border
+                    clip: true
+
+                    Process {
+                        id: hubLauncher
+                        running: false
+                    }
+
+                    property string home: (typeof Qt !== "undefined" && Qt.environment && typeof Qt.environment.value === "function" ? Qt.environment.value("HOME") : null) || "/home/the_architect"
+
+                    Column {
+                        id: hubColumn
+                        anchors.fill: parent
+                        anchors.margins: 14
+                        spacing: 0
+
+                        Row {
+                            id: hubHeaderRow
+                            height: 40
+                            spacing: 0
+                            width: parent.width
+
+                            Row {
+                                id: hubHeaderLeft
+                                spacing: 8
+                                height: parent.height
+
+                                Image {
+                                    source: "file:///home/the_architect/assets/icons/Logo-bar.svg"
+                                    width: 18
+                                    height: 18
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    fillMode: Image.PreserveAspectFit
+                                    smooth: true
+                                    mipmap: true
+                                }
+                                Text {
+                                    text: "SL1C3D-L4BS"
+                                    color: root.theme.logoPurple
+                                    font.pixelSize: 12
+                                    font.family: "JetBrainsMono Nerd Font"
+                                    font.weight: Font.DemiBold
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
+
+                            Item { width: hubHeaderRow.width - hubHeaderLeft.width - 32; height: 1 }
+                            MouseArea {
+                                width: 32
+                                height: 32
+                                anchors.verticalCenter: parent.verticalCenter
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: panelWindow.hubOpen = false
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "×"
+                                    color: root.theme.textMuted
+                                    font.pixelSize: 18
+                                    font.family: "JetBrainsMono Nerd Font"
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            width: parent.width
+                            height: 1
+                            color: root.theme.border
+                            opacity: 0.6
+                        }
+
+                        Item { height: 14 }
+
+                        Text {
+                            text: "DEVELOPER"
+                            color: root.theme.textMuted
+                            font.pixelSize: 9
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.letterSpacing: 0.8
+                        }
+                        Item { height: 6 }
+
+                        Repeater {
+                            model: [
+                                { label: "~/dev", path: hubColumn.parent.home + "/dev" },
+                                { label: "~/.config", path: hubColumn.parent.home + "/.config" },
+                                { label: "~/assets", path: hubColumn.parent.home + "/assets" }
+                            ]
+
+                            Row {
+                                height: 26
+                                spacing: 0
+                                property string path: modelData.path
+
+                                Text {
+                                    width: 100
+                                    text: modelData.label
+                                    color: root.theme.textSecondary
+                                    font.pixelSize: 10
+                                    font.family: "JetBrainsMono Nerd Font"
+                                    elide: Text.ElideMiddle
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                                Row {
+                                    spacing: 12
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    Text {
+                                        text: "Yazi"
+                                        color: root.theme.accentPrimary
+                                        font.pixelSize: 10
+                                        font.family: "JetBrainsMono Nerd Font"
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            anchors.margins: -4
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                hubLauncher.command = ["ghostty", "-e", "yazi", parent.parent.parent.path]
+                                                hubLauncher.running = true
+                                                panelWindow.hubOpen = false
+                                            }
+                                        }
+                                    }
+                                    Text {
+                                        text: "Terminal"
+                                        color: root.theme.accentPrimary
+                                        font.pixelSize: 10
+                                        font.family: "JetBrainsMono Nerd Font"
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            anchors.margins: -4
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                hubLauncher.command = ["ghostty", "-e", "bash", "-c", "cd " + parent.parent.parent.path + " && exec ~/.config/hypr/scripts/zellij-branded.sh"]
+                                                hubLauncher.running = true
+                                                panelWindow.hubOpen = false
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Item { height: 16 }
+                        Text {
+                            text: "SYSTEM"
+                            color: root.theme.textMuted
+                            font.pixelSize: 9
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.letterSpacing: 0.8
+                        }
+                        Item { height: 6 }
+
+                        Row {
+                            height: 26
+                            spacing: 16
+
+                            Text {
+                                text: "Fuzzel"
+                                color: root.theme.accentPrimary
+                                font.pixelSize: 10
+                                font.family: "JetBrainsMono Nerd Font"
+                                MouseArea {
+                                    anchors.fill: parent
+                                    anchors.margins: -4
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        hubLauncher.command = ["fuzzel"]
+                                        hubLauncher.running = true
+                                        panelWindow.hubOpen = false
+                                    }
+                                }
+                            }
+                            Text {
+                                text: "Hypr config"
+                                color: root.theme.accentPrimary
+                                font.pixelSize: 10
+                                font.family: "JetBrainsMono Nerd Font"
+                                MouseArea {
+                                    anchors.fill: parent
+                                    anchors.margins: -4
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        hubLauncher.command = ["ghostty", "-e", "nvim", hubColumn.parent.home + "/.config/hypr"]
+                                        hubLauncher.running = true
+                                        panelWindow.hubOpen = false
+                                    }
+                                }
+                            }
+                            Text {
+                                text: "Waypaper"
+                                color: root.theme.accentPrimary
+                                font.pixelSize: 10
+                                font.family: "JetBrainsMono Nerd Font"
+                                MouseArea {
+                                    anchors.fill: parent
+                                    anchors.margins: -4
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        hubLauncher.command = ["waypaper", "--restore"]
+                                        hubLauncher.running = true
+                                        panelWindow.hubOpen = false
                                     }
                                 }
                             }

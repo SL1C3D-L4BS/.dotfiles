@@ -1,0 +1,55 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Yazi — SL1C3D-L4BS branded, minimal, advanced
+# https://yazi-rs.github.io/docs/configuration/yazi/
+# ─────────────────────────────────────────────────────────────────────────────
+
+[mgr]
+ratio = [1, 4, 3]
+sort_by = "natural"
+sort_dir_first = true
+sort_reverse = false
+sort_sensitive = false
+linemode = "size"
+show_hidden = true
+show_symlink = true
+scrolloff = 3
+title_format = "yazi — {cwd}"
+
+[preview]
+wrap = "no"
+tab_size = 4
+max_width = 800
+max_height = 600
+image_filter = "lanczos3"
+image_quality = 80
+image_delay = 100
+
+[opener]
+edit = [
+    { run = "$EDITOR %s", block = true, for = "unix" },
+]
+play = [
+    { run = "mpv %s", orphan = true, for = "unix" },
+]
+open = [
+    { run = "xdg-open %s", desc = "Open" },
+]
+
+[open]
+prepend_rules = [
+    { mime = "text/*", use = "edit" },
+    { url = "*.md", use = "edit" },
+    { url = "*.json", use = "edit" },
+    { url = "*.toml", use = "edit" },
+    { url = "*.yaml", use = "edit" },
+    { url = "*.yml", use = "edit" },
+    { mime = "video/*", use = "play" },
+    { mime = "audio/*", use = "play" },
+]
+
+[tasks]
+micro_workers = 4
+macro_workers = 2
+
+[input]
+cursor_blink = true

@@ -1,0 +1,88 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Yazi theme — SL1C3D-L4BS (bg #0d0d0d, surface #1a1a1a, border #2d2d2d,
+# fg #f8f8f2, accent #5865F2, logo #b366ff, error #ff5555)
+# https://yazi-rs.github.io/docs/configuration/theme/
+# ─────────────────────────────────────────────────────────────────────────────
+
+[app]
+overall = { bg = "#0d0d0d" }
+
+[mgr]
+cwd = { fg = "#f8f8f2" }
+find_keyword = { fg = "#b366ff", bold = true }
+find_position = { fg = "#909090" }
+symlink_target = { fg = "#909090" }
+marker_copied = { fg = "#5865F2" }
+marker_cut = { fg = "#ff5555" }
+marker_marked = { fg = "#909090" }
+marker_selected = { fg = "#5865F2", reversed = true }
+count_copied = { fg = "#5865F2" }
+count_cut = { fg = "#ff5555" }
+count_selected = { fg = "#f8f8f2" }
+border_symbol = "│"
+border_style = { fg = "#2d2d2d" }
+
+[indicator]
+parent = { fg = "#2d2d2d" }
+current = { fg = "#5865F2" }
+preview = { fg = "#404040" }
+
+[tabs]
+active = { fg = "#f8f8f2", bg = "#1a1a1a" }
+inactive = { fg = "#909090" }
+sep_inner = { open = "[", close = "]" }
+sep_outer = { open = "", close = "" }
+
+[mode]
+normal_main = { fg = "#5865F2" }
+normal_alt = { fg = "#b366ff" }
+select_main = { fg = "#5865F2", reversed = true }
+select_alt = { fg = "#b366ff", reversed = true }
+unset_main = { fg = "#909090" }
+unset_alt = { fg = "#909090" }
+
+[status]
+overall = { fg = "#e0e0e0", bg = "#1a1a1a" }
+sep_left = { open = "", close = "]" }
+sep_right = { open = "[", close = "" }
+perm_type = { fg = "#5865F2" }
+perm_read = { fg = "#50fa7b" }
+perm_write = { fg = "#ffb86c" }
+perm_exec = { fg = "#b366ff" }
+perm_sep = { fg = "#2d2d2d" }
+progress_label = { fg = "#909090" }
+progress_normal = { fg = "#5865F2" }
+progress_error = { fg = "#ff5555" }
+
+[which]
+mask = { fg = "#2d2d2d" }
+cand = { fg = "#5865F2" }
+rest = { fg = "#909090" }
+desc = { fg = "#e0e0e0" }
+separator = " → "
+separator_style = { fg = "#2d2d2d" }
+
+[confirm]
+border = { fg = "#2d2d2d" }
+title = { fg = "#f8f8f2" }
+body = { fg = "#e0e0e0" }
+list = { fg = "#e0e0e0" }
+btn_yes = { fg = "#0d0d0d", bg = "#5865F2" }
+btn_no = { fg = "#f8f8f2", bg = "#2d2d2d" }
+
+[input]
+border = { fg = "#2d2d2d" }
+title = { fg = "#f8f8f2" }
+value = { fg = "#f8f8f2" }
+selected = { fg = "#b366ff" }
+
+[notify]
+title_info = { fg = "#5865F2" }
+title_warn = { fg = "#ffb86c" }
+title_error = { fg = "#ff5555" }
+
+[filetype]
+rules = [
+    { url = "*/", fg = "#5865F2" },
+    { url = "*", fg = "#f8f8f2" },
+]
