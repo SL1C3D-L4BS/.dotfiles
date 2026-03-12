@@ -133,6 +133,7 @@ Scope {
             visible: true
             property bool hubOpen: false
             property bool calendarOpen: false
+            property bool powerMenuOpen: false
 
             anchors.top: true
             anchors.left: true
@@ -754,66 +755,226 @@ Scope {
                         }
                     }
 
+                    // ─── Power menu pill ──────────────────────────────────────
                     Rectangle {
-                        implicitHeight: 24
-                        implicitWidth: trayIcons.implicitWidth + 4
+                        id: powerPill
+                        height: 24
+                        width: 28
                         radius: 8
-                        color: root.theme.bgBase
+                        color: panelWindow.powerMenuOpen
+                            ? root.theme.accentDim2
+                            : (powerPillHover.containsMouse ? root.theme.bgBase : root.theme.bgBase)
+                        border.width: 1
+                        border.color: panelWindow.powerMenuOpen
+                            ? root.theme.accentPrimary
+                            : root.theme.border
+                        opacity: powerPillHover.containsMouse ? 1.0 : 0.85
 
-                        RowLayout {
-                            id: trayIcons
+                        Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                        Behavior on opacity      { NumberAnimation  { duration: root.theme.motionFastMs } }
+
+                        Accessible.role: Accessible.Button
+                        Accessible.name: "Power menu"
+
+                        Text {
                             anchors.centerIn: parent
-                            spacing: 2
+                            text: "⏻"
+                            color: panelWindow.powerMenuOpen
+                                ? root.theme.accentPrimary
+                                : root.theme.textMuted
+                            font.pixelSize: 13
+                            font.family: root.theme.fontFamily
+                            Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                        }
 
-                            Repeater {
-                                model: SystemTray.items
+                        MouseArea {
+                            id: powerPillHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: panelWindow.powerMenuOpen = !panelWindow.powerMenuOpen
+                        }
+                    }
+                }
+            }
 
-                                MouseArea {
-                                    id: trayDelegate
-                                    required property SystemTrayItem modelData
+            // ─── Power menu dropdown popup ────────────────────────────────────
+            PopupWindow {
+                id: powerMenuPopup
+                anchor.window: panelWindow
+                implicitWidth: 220
+                implicitHeight: powerMenuCol.implicitHeight + 24
+                visible: panelWindow.powerMenuOpen
+                color: "transparent"
 
-                                    Accessible.role: Accessible.Button
-                                    Accessible.name: modelData.tooltipTitle || modelData.title || "System tray item"
+                onVisibleChanged: if (!visible) panelWindow.powerMenuOpen = false
 
-                                    Layout.preferredWidth: 24
-                                    Layout.preferredHeight: 24
+                anchor.onAnchoring: {
+                    if (!anchor.window) return
+                    const win = anchor.window
+                    const pr = win.contentItem.mapFromItem(
+                        powerPill, 0, powerPill.height, powerPill.width, powerPill.height)
+                    // align right edge of popup with right edge of pill
+                    const x = pr.x + powerPill.width - implicitWidth
+                    anchor.rect = Qt.rect(x, pr.y + 6, implicitWidth, implicitHeight)
+                }
 
-                                    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+                GlassSurface {
+                    id: powerCard
+                    theme: root.theme
+                    strong: true
+                    anchors.fill: parent
+                    radius: root.theme.radiusModal
+                    clip: true
 
-                                    onClicked: function(mouse) {
-                                        if (mouse.button === Qt.LeftButton) {
-                                            modelData.activate()
-                                        } else if (mouse.button === Qt.RightButton) {
-                                            if (modelData.hasMenu) {
-                                                menuAnchor.open()
-                                            }
-                                        } else if (mouse.button === Qt.MiddleButton) {
-                                            modelData.secondaryActivate()
+                    scale:   panelWindow.powerMenuOpen ? 1.0 : 0.94
+                    opacity: panelWindow.powerMenuOpen ? 1.0 : 0.0
+                    Behavior on scale   { NumberAnimation { duration: root.theme.motionBaseMs; easing.type: Easing.OutCubic } }
+                    Behavior on opacity { NumberAnimation { duration: root.theme.motionBaseMs } }
+
+                    Keys.onEscapePressed: panelWindow.powerMenuOpen = false
+                    focus: panelWindow.powerMenuOpen
+
+                    MouseArea { anchors.fill: parent; onClicked: {} }
+
+                    Column {
+                        id: powerMenuCol
+                        anchors {
+                            top: parent.top; left: parent.left; right: parent.right
+                            margins: 10
+                        }
+                        spacing: 2
+
+                        // ── Header ──────────────────────────────────────────────
+                        Item {
+                            width: parent.width
+                            height: 36
+
+                            Text {
+                                anchors.left: parent.left
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "Power"
+                                color: root.theme.logoPurple
+                                font.pixelSize: 13
+                                font.family: root.theme.fontFamily
+                                font.weight: Font.DemiBold
+                            }
+
+                            // Close ×
+                            MouseArea {
+                                id: pwrClose
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 24; height: 24
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: panelWindow.powerMenuOpen = false
+                                Rectangle {
+                                    anchors.fill: parent; radius: 6
+                                    color: pwrClose.containsMouse ? root.theme.border : "transparent"
+                                    Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                }
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "×"; color: root.theme.textMuted
+                                    font.pixelSize: 16; font.family: root.theme.fontFamily
+                                }
+                            }
+                        }
+
+                        // ── Divider ──────────────────────────────────────────────
+                        Rectangle {
+                            width: parent.width; height: 1
+                            color: root.theme.border; opacity: 0.5
+                        }
+                        Item { width: 1; height: 4 }
+
+                        // ── Power actions ────────────────────────────────────────
+                        Repeater {
+                            model: [
+                                { label: "Lock",     icon: "⏾", sub: "Lock screen",          accent: root.theme.textMuted,    cmd: ["loginctl", "lock-session"] },
+                                { label: "Suspend",  icon: "󰒲", sub: "Sleep mode",            accent: root.theme.accentPrimary, cmd: ["systemctl", "suspend"] },
+                                { label: "Logout",   icon: "󰗽", sub: "End session",           accent: root.theme.accentPrimary, cmd: ["sh", "-c", "hyprctl dispatch exit"] },
+                                { label: "Reboot",   icon: "󰑓", sub: "Restart system",        accent: root.theme.accentOrange,  cmd: ["systemctl", "reboot"] },
+                                { label: "Shutdown", icon: "⏻", sub: "Power off",             accent: root.theme.accentRed,     cmd: ["systemctl", "poweroff"] }
+                            ]
+
+                            delegate: MouseArea {
+                                required property var modelData
+                                id: pwrRow
+                                width: powerMenuCol.width
+                                height: 44
+                                cursorShape: Qt.PointingHandCursor
+                                hoverEnabled: true
+
+                                onClicked: {
+                                    panelWindow.powerMenuOpen = false
+                                    hubLauncher.command = modelData.cmd
+                                    hubLauncher.running = true
+                                }
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    anchors.margins: 1
+                                    radius: root.theme.radiusPill
+                                    color: pwrRow.containsMouse ? root.theme.accentDim2 : "transparent"
+                                    Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                }
+
+                                Row {
+                                    anchors {
+                                        left: parent.left; right: parent.right
+                                        verticalCenter: parent.verticalCenter
+                                        leftMargin: 10; rightMargin: 10
+                                    }
+                                    spacing: 12
+
+                                    // Colored icon glyph
+                                    Text {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        text: pwrRow.modelData.icon
+                                        color: pwrRow.modelData.accent
+                                        font.pixelSize: 16
+                                        font.family: root.theme.fontFamily
+                                        width: 20
+                                        horizontalAlignment: Text.AlignHCenter
+                                    }
+
+                                    // Label + sub
+                                    Column {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        spacing: 1
+                                        Text {
+                                            text: pwrRow.modelData.label
+                                            color: root.theme.textPrimary
+                                            font.pixelSize: 12
+                                            font.family: root.theme.fontFamily
+                                            font.weight: Font.Medium
+                                        }
+                                        Text {
+                                            text: pwrRow.modelData.sub
+                                            color: root.theme.textMuted
+                                            font.pixelSize: 10
+                                            font.family: root.theme.fontFamily
                                         }
                                     }
 
-                                    IconImage {
-                                        anchors.centerIn: parent
-                                        source: trayDelegate.modelData.icon
-                                        implicitSize: 16
-                                    }
-
-                                    QsMenuAnchor {
-                                        id: menuAnchor
-                                        menu: trayDelegate.modelData.menu
-                                        anchor.window: trayDelegate.QsWindow.window
-                                        anchor.adjustment: PopupAdjustment.Flip
-                                        anchor.onAnchoring: {
-                                            const window = trayDelegate.QsWindow.window
-                                            const widgetRect = window.contentItem.mapFromItem(
-                                                trayDelegate, 0, trayDelegate.height,
-                                                trayDelegate.width, trayDelegate.height)
-                                            menuAnchor.anchor.rect = widgetRect
-                                        }
+                                    // Hover arrow
+                                    Item { width: parent.width - 20 - 12 - 100; height: 1 }
+                                    Text {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        text: "›"
+                                        color: pwrRow.containsMouse
+                                            ? pwrRow.modelData.accent
+                                            : root.theme.border
+                                        font.pixelSize: 16
+                                        font.family: root.theme.fontFamily
+                                        Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
                                     }
                                 }
                             }
                         }
+
+                        Item { width: 1; height: 4 }
                     }
                 }
             }
