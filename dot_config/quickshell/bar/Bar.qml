@@ -1915,8 +1915,10 @@ Scope {
                 anchor.adjustment: PopupAdjustment.Flip
                 anchor.margins.top: 8
                 implicitWidth: 332
-                implicitHeight: 430
+                implicitHeight: panelWindow.calTab === "notes" ? 432 : 360
                 visible: panelWindow.calendarOpen
+
+                Behavior on implicitHeight { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
                 color: "transparent"
 
                 onVisibleChanged: if (!visible) panelWindow.calendarOpen = false
@@ -1944,12 +1946,26 @@ Scope {
                         running: false
                         stdout: StdioCollector {
                             onStreamFinished: function() {
-                                panelWindow.notesContent = text || ""
-                                if (notesEditor) notesEditor.text = panelWindow.notesContent
+                                const loaded = text || ""
+                                panelWindow.notesContent = loaded
+                                calCard.loadedText = loaded
+                                calCard.confirmingClear = false
+                                autosaveTimer.stop()
+                                if (notesEditor) notesEditor.text = loaded
                             }
                         }
                     }
                     Process { id: notesSaveProc; running: false }
+                    Process {
+                        id: noteDeleteProc
+                        running: false
+                        stdout: StdioCollector {
+                            onStreamFinished: function() {
+                                calCard.refreshDays()
+                                calCard.refreshRecent()
+                            }
+                        }
+                    }
                     Process {
                         id: notesDaysProc
                         running: false
@@ -1978,6 +1994,9 @@ Scope {
                     property int viewYear:  new Date().getFullYear()
                     property int viewMonth: new Date().getMonth()
                     property var monthNames: ["January","February","March","April","May","June","July","August","September","October","November","December"]
+                    property string loadedText: ""
+                    property bool confirmingClear: false
+                    property bool noteDirty: notesEditor ? (notesEditor.text !== loadedText) : false
 
                     function dateKey(y, m, d) {
                         return String(y) + "-" + String(m + 1).padStart(2,"0") + "-" + String(d).padStart(2,"0")
@@ -1995,13 +2014,31 @@ Scope {
                     }
                     function saveNote() {
                         if (!panelWindow.calSelectedDate) return
-                        notesSaveProc.environment = { "NOTE_CONTENT": notesEditor.text }
+                        if (notesSaveProc.running) { autosaveTimer.restart(); return }
+                        autosaveTimer.stop()
+                        const content = notesEditor ? notesEditor.text : ""
+                        notesSaveProc.environment = { "NOTE_CONTENT": content }
                         notesSaveProc.command = ["sh", "-c",
                             "mkdir -p ~/.local/share/sl1c3d-labs/notes && " +
                             "printf '%s' \"$NOTE_CONTENT\" > ~/.local/share/sl1c3d-labs/notes/" +
                             panelWindow.calSelectedDate + ".txt"]
                         notesSaveProc.running = true
+                        calCard.loadedText = content
+                        calCard.confirmingClear = false
                         refreshDays()
+                        refreshRecent()
+                    }
+                    function deleteNote() {
+                        if (!panelWindow.calSelectedDate) return
+                        autosaveTimer.stop()
+                        noteDeleteProc.command = ["sh", "-c",
+                            "rm -f ~/.local/share/sl1c3d-labs/notes/" +
+                            panelWindow.calSelectedDate + ".txt"]
+                        noteDeleteProc.running = true
+                        if (notesEditor) notesEditor.text = ""
+                        panelWindow.notesContent = ""
+                        calCard.loadedText = ""
+                        calCard.confirmingClear = false
                     }
                     function refreshDays() {
                         notesDaysProc.command = ["sh", "-c",
@@ -2028,6 +2065,9 @@ Scope {
                             }
                         }
                     }
+
+                    Timer { id: autosaveTimer; interval: 2500; repeat: false; onTriggered: calCard.saveNote() }
+                    Timer { id: clearCancelTimer; interval: 3000; repeat: false; onTriggered: calCard.confirmingClear = false }
 
                     Column {
                         anchors { top: parent.top; left: parent.left; right: parent.right; margins: 10 }
@@ -2164,7 +2204,7 @@ Scope {
 
                             Item { height: 3 }
 
-                            // 6-row calendar grid
+                            // Dynamic-row calendar grid (4–6 rows depending on month)
                             Column {
                                 id: calGridCol
                                 width: parent.width; spacing: 2
@@ -2173,9 +2213,10 @@ Scope {
                                 property int gMonth:    calCard.viewMonth
                                 property int firstDay:  { var d = new Date(gYear, gMonth, 1); return (d.getDay() + 6) % 7 }
                                 property int daysInMon: new Date(gYear, gMonth + 1, 0).getDate()
+                                property int rowCount:  Math.ceil((firstDay + daysInMon) / 7)
 
                                 Repeater {
-                                    model: 6
+                                    model: calGridCol.rowCount
                                     delegate: Row {
                                         required property int index
                                         id: weekRowItem
@@ -2261,6 +2302,7 @@ Scope {
                                                     onClicked: {
                                                         if (dayCell.blank) return
                                                         panelWindow.calSelectedDate = dayCell.dKey
+                                                        calCard.loadNote(dayCell.dKey)
                                                     }
                                                 }
                                             }
@@ -2314,89 +2356,181 @@ Scope {
                             width: parent.width; spacing: 0
                             visible: panelWindow.calTab === "notes"
 
-                            // Date + save toolbar
+                            // ── Header: date label + delete + save ─────────────
                             Item {
                                 width: parent.width; height: 28
+
                                 Row {
-                                    anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; spacing: 6
+                                    anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; spacing: 4
                                     Text { anchors.verticalCenter: parent.verticalCenter; text: "✏"; color: root.theme.logoPurple; font.pixelSize: 12; font.family: root.theme.fontFamily }
                                     Text { anchors.verticalCenter: parent.verticalCenter; text: panelWindow.calSelectedDate || "Today"; color: root.theme.textMuted; font.pixelSize: 11; font.family: root.theme.fontFamily }
                                 }
-                                MouseArea {
-                                    id: saveNoteBtn
-                                    anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                                    width: 48; height: 24
-                                    cursorShape: Qt.PointingHandCursor; hoverEnabled: true
-                                    onClicked: calCard.saveNote()
-                                    Rectangle {
-                                        anchors.fill: parent; radius: root.theme.radiusPill
-                                        color: saveNoteBtn.containsMouse ? root.theme.accentPrimary : root.theme.accentDim2
-                                        Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
-                                        Text { anchors.centerIn: parent; text: "Save"; color: root.theme.textPrimary; font.pixelSize: 10; font.weight: Font.Medium; font.family: root.theme.fontFamily }
+
+                                Row {
+                                    anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; spacing: 4
+
+                                    // Delete button
+                                    MouseArea {
+                                        id: deleteNoteBtn; width: 24; height: 22
+                                        cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                        onClicked: calCard.deleteNote()
+                                        Rectangle {
+                                            anchors.fill: parent; radius: 6
+                                            color: deleteNoteBtn.containsMouse ? "#3a1010" : root.theme.bgBase
+                                            border.width: 1; border.color: deleteNoteBtn.containsMouse ? root.theme.accentRed : root.theme.border
+                                            Behavior on color       { ColorAnimation { duration: root.theme.motionFastMs } }
+                                            Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                            Text { anchors.centerIn: parent; text: "🗑"; font.pixelSize: 10; color: root.theme.accentRed }
+                                        }
+                                    }
+
+                                    // Save button with dirty indicator
+                                    MouseArea {
+                                        id: saveNoteBtn; width: 52; height: 22
+                                        cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                        onClicked: calCard.saveNote()
+                                        Rectangle {
+                                            anchors.fill: parent; radius: root.theme.radiusPill
+                                            color: saveNoteBtn.containsMouse ? root.theme.accentPrimary
+                                                 : calCard.noteDirty         ? root.theme.accentDim2
+                                                 : root.theme.bgBase
+                                            border.width: 1
+                                            border.color: calCard.noteDirty ? root.theme.accentPrimary : root.theme.border
+                                            Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
+                                            Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                            Row {
+                                                anchors.centerIn: parent; spacing: 3
+                                                Rectangle {
+                                                    width: 5; height: 5; radius: 2.5
+                                                    color: root.theme.accentPrimary
+                                                    visible: calCard.noteDirty
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                }
+                                                Text { anchors.verticalCenter: parent.verticalCenter; text: "Save"; color: root.theme.textPrimary; font.pixelSize: 10; font.weight: Font.Medium; font.family: root.theme.fontFamily }
+                                            }
+                                        }
                                     }
                                 }
                             }
 
                             Item { height: 6 }
 
-                            // Note editor
+                            // ── Note editor ────────────────────────────────────
                             Rectangle {
-                                width: parent.width; height: 146; radius: root.theme.radiusPill
+                                width: parent.width; height: 152; radius: 10
                                 color: root.theme.bgBase; clip: true
                                 border.width: 1
                                 border.color: notesEditor.activeFocus ? root.theme.accentPrimary : root.theme.border
                                 Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
 
                                 Flickable {
+                                    id: noteFlickable
                                     anchors.fill: parent; anchors.margins: 8
-                                    contentHeight: notesEditor.contentHeight; clip: true
+                                    contentHeight: notesEditor.contentHeight
+                                    clip: true
+                                    interactive: contentHeight > height
+                                    ScrollBar.vertical: ScrollBar { policy: noteFlickable.contentHeight > noteFlickable.height ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff }
 
                                     TextEdit {
                                         id: notesEditor
                                         width: parent.width
-                                        text: panelWindow.notesContent
                                         color: root.theme.textPrimary
                                         font.pixelSize: 12; font.family: root.theme.fontFamily
                                         wrapMode: TextEdit.Wrap
                                         selectByMouse: true
                                         selectedTextColor: root.theme.bgBase
                                         selectionColor: root.theme.accentPrimary
+
+                                        onTextChanged: {
+                                            if (text !== calCard.loadedText) autosaveTimer.restart()
+                                        }
+                                    }
+
+                                    // Placeholder text when editor is empty
+                                    Text {
+                                        anchors.fill: parent
+                                        text: "Write your notes for " + (panelWindow.calSelectedDate || "today") + "…"
+                                        color: root.theme.textMuted
+                                        font.pixelSize: 12; font.family: root.theme.fontFamily
+                                        wrapMode: Text.Wrap
+                                        visible: notesEditor.text.length === 0 && !notesEditor.activeFocus
                                     }
                                 }
                             }
 
                             Item { height: 4 }
 
-                            // Toolbar
+                            // ── Toolbar ────────────────────────────────────────
                             Row {
-                                spacing: 6
+                                spacing: 5; width: parent.width
+
+                                // Format tools
                                 Repeater {
                                     model: [
-                                        { label: "B",  action: "bold" },
-                                        { label: "I",  action: "italic" },
-                                        { label: "–",  action: "hr" },
-                                        { label: "⌫", action: "clear" },
+                                        { label: "B", action: "bold" },
+                                        { label: "I", action: "italic" },
+                                        { label: "—", action: "hr" },
                                         { label: "⎘", action: "copy" }
                                     ]
                                     delegate: MouseArea {
                                         required property var modelData
-                                        id: toolBtn; width: 28; height: 24
+                                        id: fmtBtn; width: 28; height: 24
                                         cursorShape: Qt.PointingHandCursor; hoverEnabled: true
                                         onClicked: {
                                             if      (modelData.action === "bold")   notesEditor.insert(notesEditor.cursorPosition, "**text**")
                                             else if (modelData.action === "italic") notesEditor.insert(notesEditor.cursorPosition, "_text_")
                                             else if (modelData.action === "hr")     notesEditor.insert(notesEditor.cursorPosition, "\n---\n")
-                                            else if (modelData.action === "clear")  notesEditor.text = ""
                                             else if (modelData.action === "copy")   { notesEditor.selectAll(); notesEditor.copy() }
                                         }
                                         Rectangle {
                                             anchors.fill: parent; radius: 6
-                                            color: toolBtn.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
+                                            color: fmtBtn.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
                                             border.width: 1; border.color: root.theme.border
                                             Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
-                                            Text { anchors.centerIn: parent; text: toolBtn.modelData.label; color: root.theme.textSecondary; font.pixelSize: 11; font.family: root.theme.fontFamily }
+                                            Text { anchors.centerIn: parent; text: fmtBtn.modelData.label; color: root.theme.textSecondary; font.pixelSize: 11; font.family: root.theme.fontFamily }
                                         }
                                     }
+                                }
+
+                                // Clear button (two-step confirmation)
+                                MouseArea {
+                                    id: clearBtn; width: calCard.confirmingClear ? 52 : 28; height: 24
+                                    cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                    Behavior on width { NumberAnimation { duration: 120 } }
+                                    onClicked: {
+                                        if (!calCard.confirmingClear) {
+                                            calCard.confirmingClear = true
+                                            clearCancelTimer.restart()
+                                        } else {
+                                            notesEditor.text = ""
+                                            calCard.confirmingClear = false
+                                            clearCancelTimer.stop()
+                                        }
+                                    }
+                                    Rectangle {
+                                        anchors.fill: parent; radius: 6
+                                        color: calCard.confirmingClear ? "#3a1010" : (clearBtn.containsMouse ? root.theme.accentDim2 : root.theme.bgBase)
+                                        border.width: 1
+                                        border.color: calCard.confirmingClear ? root.theme.accentRed : root.theme.border
+                                        Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
+                                        Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: calCard.confirmingClear ? "Sure?" : "⌫"
+                                            color: calCard.confirmingClear ? root.theme.accentRed : root.theme.textSecondary
+                                            font.pixelSize: calCard.confirmingClear ? 9 : 11; font.family: root.theme.fontFamily
+                                        }
+                                    }
+                                }
+
+                                // Autosave status indicator (right-aligned)
+                                Item { width: parent.width - 4*28 - 52 - 5*5; height: 1 }
+                                Text {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: autosaveTimer.running ? "saving…" : (calCard.noteDirty ? "unsaved" : "saved")
+                                    color: calCard.noteDirty ? root.theme.accentOrange : root.theme.textMuted
+                                    font.pixelSize: 9; font.family: root.theme.fontFamily
+                                    Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
                                 }
                             }
 
