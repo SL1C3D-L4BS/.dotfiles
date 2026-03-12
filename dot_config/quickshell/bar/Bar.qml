@@ -81,6 +81,7 @@ Scope {
             screen: modelData
             visible: true
             property bool hubOpen: false
+            property bool calendarOpen: false
 
             anchors.top: true
             anchors.left: true
@@ -159,6 +160,7 @@ Scope {
                     }
 
                     Rectangle {
+                        id: timeDatePill
                         height: 24
                         width: timeDate.width + 16
                         radius: 8
@@ -178,11 +180,13 @@ Scope {
                                 smooth: true
                             }
                             Text {
+                                id: timeText
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: Time.timeString
                                 color: root.theme.accentPrimary
                                 font.pixelSize: 14
                                 font.family: "JetBrainsMono Nerd Font"
+                                width: Math.max(implicitWidth, 48)
                             }
                             Image {
                                 anchors.verticalCenter: parent.verticalCenter
@@ -193,12 +197,20 @@ Scope {
                                 smooth: true
                             }
                             Text {
+                                id: dateText
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: Time.dateString
-                                color: root.theme.textSecondary
+                                text: Time.longDateString
+                                color: root.theme.logoPurple
                                 font.pixelSize: 12
                                 font.family: "JetBrainsMono Nerd Font"
+                                width: Math.max(implicitWidth, 88)
                             }
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: panelWindow.calendarOpen = !panelWindow.calendarOpen
                         }
                     }
 
@@ -960,6 +972,225 @@ Scope {
                             }
                         }
                     }
+                    }
+                }
+            }
+
+            PopupWindow {
+                anchor.window: panelWindow
+                anchor.rect.x: 0
+                anchor.rect.y: panelWindow.implicitHeight
+                anchor.rect.width: 280
+                anchor.rect.height: 320
+                implicitWidth: 280
+                implicitHeight: 320
+                visible: panelWindow.calendarOpen
+                color: "transparent"
+
+                onVisibleChanged: if (!visible) panelWindow.calendarOpen = false
+                anchor.onAnchoring: {
+                    if (timeDatePill && anchor.window) {
+                        const p = timeDatePill.mapToItem(anchor.window, 0, timeDatePill.height)
+                        anchor.rect = Qt.rect(p.x, p.y + 6, 280, 320)
+                    }
+                }
+
+                Rectangle {
+                    id: calendarContent
+                    anchors.fill: parent
+                    radius: 12
+                    color: root.theme.bgSurface
+                    border.width: 1
+                    border.color: root.theme.border
+                    layer.enabled: true
+                    layer.effect: null
+
+                    property int viewYear: new Date().getFullYear()
+                    property int viewMonth: new Date().getMonth()
+                    property var monthNames: ["January","February","March","April","May","June","July","August","September","October","November","December"]
+
+                    Connections {
+                        target: panelWindow
+                        function onCalendarOpenChanged() {
+                            if (panelWindow.calendarOpen) {
+                                var d = new Date()
+                                calendarContent.viewYear = d.getFullYear()
+                                calendarContent.viewMonth = d.getMonth()
+                            }
+                        }
+                    }
+
+                    Column {
+                        anchors.fill: parent
+                        anchors.margins: 14
+                        spacing: 10
+
+                        Row {
+                            width: parent.width
+                            height: 32
+                            spacing: 0
+
+                            MouseArea {
+                                width: 32
+                                height: 32
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    calendarContent.viewMonth--
+                                    if (calendarContent.viewMonth < 0) {
+                                        calendarContent.viewMonth = 11
+                                        calendarContent.viewYear--
+                                    }
+                                }
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: 6
+                                    color: parent.pressed ? root.theme.bgBase : "transparent"
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "‹"
+                                        color: root.theme.logoPurple
+                                        font.pixelSize: 18
+                                        font.family: "JetBrainsMono Nerd Font"
+                                    }
+                                }
+                            }
+
+                            Item { width: 8; height: 1 }
+
+                            Text {
+                                text: calendarContent.monthNames[calendarContent.viewMonth] + " " + calendarContent.viewYear
+                                color: root.theme.logoPurple
+                                font.pixelSize: 14
+                                font.family: "JetBrainsMono Nerd Font"
+                                font.weight: Font.DemiBold
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: parent.width - 32 - 32 - 16
+                                horizontalAlignment: Text.AlignHCenter
+                            }
+
+                            Item { width: 8; height: 1 }
+
+                            MouseArea {
+                                width: 32
+                                height: 32
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    calendarContent.viewMonth++
+                                    if (calendarContent.viewMonth > 11) {
+                                        calendarContent.viewMonth = 0
+                                        calendarContent.viewYear++
+                                    }
+                                }
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: 6
+                                    color: parent.pressed ? root.theme.bgBase : "transparent"
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "›"
+                                        color: root.theme.logoPurple
+                                        font.pixelSize: 18
+                                        font.family: "JetBrainsMono Nerd Font"
+                                    }
+                                }
+                            }
+                        }
+
+                        Row {
+                            spacing: 2
+                            Repeater {
+                                model: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+                                Text {
+                                    required property string modelData
+                                    width: 34
+                                    horizontalAlignment: Text.AlignHCenter
+                                    text: modelData
+                                    color: root.theme.accentPrimary
+                                    font.pixelSize: 10
+                                    font.family: "JetBrainsMono Nerd Font"
+                                }
+                            }
+                        }
+
+                        Grid {
+                            id: calendarGrid
+                            columns: 7
+                            rowSpacing: 4
+                            columnSpacing: 2
+                            width: 7 * 34 + 6 * 2
+                            property int year: calendarContent.viewYear
+                            property int month: calendarContent.viewMonth
+                            property int firstDay: { var d = new Date(calendarGrid.year, calendarGrid.month, 1); return (d.getDay() + 6) % 7 }
+                            property int daysInMonth: new Date(calendarGrid.year, calendarGrid.month + 1, 0).getDate()
+
+                            Repeater {
+                                model: 42
+                                Rectangle {
+                                    required property int index
+                                    width: 34
+                                    height: 28
+                                    radius: 6
+                                    color: {
+                                        const blank = index < calendarGrid.firstDay || index >= calendarGrid.firstDay + calendarGrid.daysInMonth
+                                        const d = index - calendarGrid.firstDay + 1
+                                        const today = new Date()
+                                        const isToday = !blank && d === today.getDate() && calendarGrid.month === today.getMonth() && calendarGrid.year === today.getFullYear()
+                                        if (blank) return "transparent"
+                                        if (isToday) return root.theme.logoPurple
+                                        return root.theme.bgBase
+                                    }
+                                    border.width: 0
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: {
+                                            if (index < calendarGrid.firstDay || index >= calendarGrid.firstDay + calendarGrid.daysInMonth) return ""
+                                            return index - calendarGrid.firstDay + 1
+                                        }
+                                        color: {
+                                            const blank = index < calendarGrid.firstDay || index >= calendarGrid.firstDay + calendarGrid.daysInMonth
+                                            const d = index - calendarGrid.firstDay + 1
+                                            const today = new Date()
+                                            const isToday = !blank && d === today.getDate() && calendarGrid.month === today.getMonth() && calendarGrid.year === today.getFullYear()
+                                            if (blank) return "transparent"
+                                            if (isToday) return root.theme.textPrimary
+                                            return root.theme.accentPrimary
+                                        }
+                                        font.pixelSize: 12
+                                        font.family: "JetBrainsMono Nerd Font"
+                                        font.weight: {
+                                            var d = index - calendarGrid.firstDay + 1
+                                            var today = new Date()
+                                            return (!(index < calendarGrid.firstDay || index >= calendarGrid.firstDay + calendarGrid.daysInMonth) && d === today.getDate() && calendarGrid.month === today.getMonth() && calendarGrid.year === today.getFullYear()) ? Font.DemiBold : Font.Normal
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            width: parent.width - 28
+                            height: 1
+                            color: root.theme.border
+                            opacity: 0.5
+                        }
+
+                        Row {
+                            spacing: 12
+                            Text {
+                                text: Time.timeString
+                                color: root.theme.logoPurple
+                                font.pixelSize: 20
+                                font.family: "JetBrainsMono Nerd Font"
+                                font.weight: Font.Bold
+                            }
+                            Text {
+                                text: Time.dateString
+                                color: root.theme.logoPurple
+                                font.pixelSize: 12
+                                font.family: "JetBrainsMono Nerd Font"
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
                     }
                 }
             }
