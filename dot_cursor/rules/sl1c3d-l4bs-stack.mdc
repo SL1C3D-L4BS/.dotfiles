@@ -1,0 +1,43 @@
+---
+description: SL1C3D-L4BS stack, brand, and conventions — Arch, Hyprland, chezmoi, elite CLI
+alwaysApply: true
+---
+
+# SL1C3D-L4BS · Stack & brand
+
+This project is the **SL1C3D-L4BS** dotfiles and workstation config. Single source of truth via [chezmoi](https://www.chezmoi.io); one apply, one stack, one brand.
+
+## Stack
+
+- **OS:** Arch Linux
+- **WM:** Hyprland (colors, binds, autostart, programs in `~/.config/hypr/`)
+- **Bar:** Quickshell (QML), `~/.config/quickshell/`
+- **Terminal:** Ghostty, theme `sl1c3d-l4bs`, JetBrains Mono Nerd Font
+- **Prompt:** Starship, `~/.config/starship.toml`, palette `brand`
+- **Launcher:** Fuzzel | **FM:** Yazi | **Notifications:** Mako
+- **Editor (terminal):** NvChad (custom lua, base46 brand)
+- **Multiplexer:** Zellij, theme `brand`
+- **Dotfiles:** chezmoi, source `~/.local/share/chezmoi`; alias `cm`
+
+Elite CLI: Atuin, Fastfetch, Zoxide, eza/bat/fd/ripgrep, Delta (git), btop, Lazygit. Install scripts in `~/.config/SL1C3D-L4BS/system-config/`.
+
+## Brand palette
+
+| Token   | Hex       |
+|--------|-----------|
+| bg     | `#0d0d0d` |
+| surface| `#1a1a1a` |
+| border | `#2d2d2d` |
+| fg     | `#f8f8f2` |
+| accent | `#5865F2` (Discord Blurple) |
+| logo   | `#b366ff` |
+| error  | `#ff5555` |
+
+UI: floating pills, rounded corners (8–12), JetBrains Mono Nerd Font, minimal chrome.
+
+## Conventions
+
+- Config lives under `~/.config/`; dotfiles applied via `chezmoi apply`.
+- No redundant READMEs; single root README. Scripts only where needed (system-config installers).
+- Validation: `~/scripts/validate-configs.sh` (Yazi, Fuzzel, Mako, Hypr).
+- When editing Hypr/QML/shell/config, preserve existing style and brand colors.

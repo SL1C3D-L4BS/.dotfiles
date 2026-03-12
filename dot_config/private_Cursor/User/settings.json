@@ -1,0 +1,25 @@
+{
+    "window.commandCenter": true,
+    "editor.fontFamily": "JetBrains Mono Nerd Font, JetBrains Mono, monospace",
+    "editor.fontLigatures": true,
+    "editor.fontSize": 13,
+    "workbench.colorCustomizations": {
+        "editor.background": "#0d0d0d",
+        "editor.foreground": "#f8f8f2",
+        "sideBar.background": "#0d0d0d",
+        "sideBar.foreground": "#f8f8f2",
+        "activityBar.background": "#1a1a1a",
+        "activityBar.foreground": "#f8f8f2",
+        "activityBar.activeBorder": "#5865F2",
+        "statusBar.background": "#1a1a1a",
+        "statusBar.foreground": "#f8f8f2",
+        "titleBar.activeBackground": "#1a1a1a",
+        "titleBar.activeForeground": "#f8f8f2",
+        "focusBorder": "#5865F2",
+        "list.activeSelectionBackground": "#2d2d2d",
+        "list.activeSelectionForeground": "#f8f8f2",
+        "list.highlightForeground": "#b366ff",
+        "panel.background": "#0d0d0d",
+        "panel.border": "#2d2d2d"
+    }
+}
