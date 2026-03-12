@@ -45,6 +45,17 @@ MAKEFLAGS="-j$(nproc)"
 
 Optional: enable **ccache** in `BUILDENV` in the same file (change `!ccache` to `ccache`) for repeated builds.
 
+## Dev stack (2026 elite: JS/TS, Python, Go, Rust, C/C++, Java, .NET, containers, AI)
+
+One-shot install of npm, pip/pipx/uv, deno, Docker, kubectl, Terraform, dotnet-sdk, OpenJDK 17, PHP, Ruby, Zig, C/C++ (gcc, clang, cmake, base-devel), plus AUR: ollama-bin. (bun is in extra and installs with pacman if needed.)
+
+```bash
+chmod +x install-dev-stack.sh
+./install-dev-stack.sh
+```
+
+After install, add your user to the `docker` group to run containers without sudo: `sudo usermod -aG docker $USER` (then log out and back in).
+
 ## Install all (except pacman.conf backup)
 
 From this directory:

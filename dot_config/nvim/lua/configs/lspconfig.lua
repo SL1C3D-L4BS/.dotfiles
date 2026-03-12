@@ -9,6 +9,8 @@ local servers = {
   "rust_analyzer",
   "ts_ls",
   "jsonls",
+  "clangd",   -- C/C++
+  "jdtls",    -- Java
 }
 vim.lsp.enable(servers)
 
