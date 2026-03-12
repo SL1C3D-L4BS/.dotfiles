@@ -66,6 +66,6 @@ After `chezmoi apply`, restart quickshell/terminal/nvim as needed so changes tak
 
 By default chezmoi **copies** files. To use **symlinks** for specific targets (e.g. so edits in source reflect immediately), use the `symlink_` prefix and a template for the target path, e.g. in source: `symlink_zshrc.tmpl` with content `{{ .chezmoi.sourceDir }}/dot_zshrc`. See [source state attributes](https://www.chezmoi.io/reference/source-state-attributes/).
 
-## Retiring the old bare repo
+## Source of truth
 
-After migration and a successful `chezmoi apply`, you can remove the `dot` alias from `.zshrc` and stop using `~/.dotfiles`. The new source of truth is `~/.local/share/chezmoi`. You can keep `~/.dotfiles` as a backup or repurpose it as the remote for the chezmoi source: `cd $(chezmoi source-path) && git remote add origin ~/.dotfiles && git push -u origin main`.
+**Legacy bare repo removed.** Chezmoi at `~/.local/share/chezmoi` is the only dotfiles source. No `~/.dotfiles`; use `cm` (chezmoi) for all edits and apply.

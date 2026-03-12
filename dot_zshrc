@@ -63,11 +63,9 @@ if command -v fzf &>/dev/null; then
   export FZF_CTRL_R_OPTS="--border --header 'Ctrl+R: history'"
 fi
 
-# ─── Dotfiles: chezmoi (source ~/.local/share/chezmoi). Old bare repo: dot alias below ─
+# ─── Dotfiles: chezmoi (source ~/.local/share/chezmoi). Single source of truth. ─
 export PATH="$HOME/.local/bin:$PATH"
 alias cm=chezmoi
-# Optional: keep for legacy; remove once fully on chezmoi
-# alias dot='git --git-dir=$HOME/.dotfiles --work-tree=$HOME'
 
 # ─── Optional: compdump in background (freshen cache without blocking) ─────
 ( compdump 2>/dev/null & )
