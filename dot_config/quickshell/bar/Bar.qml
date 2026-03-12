@@ -1120,7 +1120,10 @@ Scope {
                     property string home: root.homeDir
                     // 0 Overview · 1 Media · 2 Developer · 3 Wallpapers · 4 Control · 5 System
                     property int hubSection: panelWindow.lastHubSection
-                    onHubSectionChanged: panelWindow.lastHubSection = hubSection
+                    onHubSectionChanged: {
+                        panelWindow.lastHubSection = hubSection
+                        if (hubSection === 2) refreshDevTab()
+                    }
 
                     property string selectedWallpaper: ""
 
@@ -1221,7 +1224,6 @@ Scope {
                             if (panelWindow.hubOpen && hubCard.hubSection === 2) hubCard.refreshDevTab()
                         }
                     }
-                    onHubSectionChanged: { if (hubSection === 2) refreshDevTab() }
 
                     MouseArea { anchors.fill: parent; onClicked: { } }
 
