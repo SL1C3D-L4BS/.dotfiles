@@ -2428,7 +2428,11 @@ Scope {
                                     }
                                     Rectangle { anchors.fill: parent; anchors.margins: 1; radius: root.theme.radiusPill; color: recentRow.containsMouse && recentRow.modelData.date !== "—" ? root.theme.accentDim2 : "transparent"; Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } } }
                                     Column {
-                                        anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 8 }; spacing: 2
+                                        anchors.left: parent.left
+                                        anchors.right: parent.right
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        anchors.leftMargin: 8
+                                        spacing: 2
                                         Text { text: recentRow.modelData.date; color: root.theme.logoPurple; font.pixelSize: 10; font.weight: Font.DemiBold; font.family: root.theme.fontFamily }
                                         Text { text: recentRow.modelData.preview || "Empty note"; color: root.theme.textMuted; font.pixelSize: 10; font.family: root.theme.fontFamily; elide: Text.ElideRight; width: parent.width - 16 }
                                     }
