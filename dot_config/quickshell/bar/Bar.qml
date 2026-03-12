@@ -1645,17 +1645,18 @@ Scope {
             PopupWindow {
                 id: focusPopup
                 anchor.window: panelWindow
-                implicitWidth: 280
-                implicitHeight: 490
+                anchor.adjustment: PopupAdjustment.Flip
+                implicitWidth: 268
+                implicitHeight: 416
                 visible: panelWindow.focusOpen
                 color: "transparent"
 
                 onVisibleChanged: if (!visible) panelWindow.focusOpen = false
 
                 anchor.onAnchoring: {
-                    if (!anchor.window || !timeDateSection) return
-                    const p = timeDateSection.mapToItem(anchor.window, 0, timeDateSection.height)
-                    anchor.rect = Qt.rect(p.x, p.y + 6, 280, 490)
+                    if (!anchor.window || !timePill) return
+                    const p = timePill.mapToItem(anchor.window, 0, timePill.height)
+                    anchor.rect = Qt.rect(p.x, panelWindow.implicitHeight + 8, implicitWidth, implicitHeight)
                 }
 
                 GlassSurface {
@@ -1676,12 +1677,12 @@ Scope {
                     MouseArea { anchors.fill: parent; onClicked: {} }
 
                     Column {
-                        anchors { top: parent.top; left: parent.left; right: parent.right; margins: 14 }
+                        anchors { top: parent.top; left: parent.left; right: parent.right; margins: 10 }
                         spacing: 0
 
                         // ── Header ─────────────────────────────────────────────
                         Item {
-                            width: parent.width; height: 40
+                            width: parent.width; height: 34
                             Text {
                                 anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
                                 text: "Focus"
@@ -1705,7 +1706,7 @@ Scope {
                         }
 
                         Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.5 }
-                        Item { height: 18 }
+                        Item { height: 10 }
 
                         // ── Large live clock ────────────────────────────────────
                         Text {
@@ -1713,10 +1714,10 @@ Scope {
                             horizontalAlignment: Text.AlignHCenter
                             text: root.barTimeString + ":" + root.barSecondsString
                             color: root.theme.accentPrimary
-                            font.pixelSize: 46; font.weight: Font.Bold
+                            font.pixelSize: 39; font.weight: Font.Bold
                             font.family: root.theme.fontFamily
                         }
-                        Item { height: 4 }
+                        Item { height: 2 }
                         Text {
                             width: parent.width; horizontalAlignment: Text.AlignHCenter
                             text: root.barDayString + "  ·  " + root.barDateString
@@ -1724,17 +1725,17 @@ Scope {
                             font.pixelSize: 11; font.family: root.theme.fontFamily
                         }
 
-                        Item { height: 18 }
+                        Item { height: 10 }
                         Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.4 }
-                        Item { height: 14 }
+                        Item { height: 8 }
 
                         // ── Dev timer ring ─────────────────────────────────────
                         Item {
-                            width: parent.width; height: 90
+                            width: parent.width; height: 76
 
                             Canvas {
                                 id: timerRing
-                                width: 80; height: 80
+                                width: 68; height: 68
                                 anchors.left: parent.left
                                 anchors.verticalCenter: parent.verticalCenter
 
@@ -1751,7 +1752,7 @@ Scope {
                                 onPaint: {
                                     var ctx = getContext("2d")
                                     ctx.clearRect(0, 0, width, height)
-                                    var cx = width/2, cy = height/2, r = 34
+                                    var cx = width/2, cy = height/2, r = 28
                                     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2)
                                     ctx.strokeStyle = "#2d2d2d"; ctx.lineWidth = 6; ctx.stroke()
                                     if (progress > 0.001) {
@@ -1784,8 +1785,8 @@ Scope {
                             }
 
                             Column {
-                                anchors { left: timerRing.right; leftMargin: 14; verticalCenter: parent.verticalCenter; right: parent.right }
-                                spacing: 6
+                                anchors { left: timerRing.right; leftMargin: 10; verticalCenter: parent.verticalCenter; right: parent.right }
+                                spacing: 4
                                 Text {
                                     text: root.devTimerSecsLeft > 0 ? "DEV TIMER" : "NO ACTIVE TIMER"
                                     color: root.theme.textMuted; font.pixelSize: 9; font.letterSpacing: 0.8
@@ -1798,7 +1799,7 @@ Scope {
                                 }
                                 MouseArea {
                                     id: timerLaunchBtn
-                                    width: parent.width; height: 26
+                                    width: parent.width; height: 24
                                     cursorShape: Qt.PointingHandCursor; hoverEnabled: true
                                     onClicked: {
                                         panelWindow.focusOpen = false
@@ -1821,9 +1822,9 @@ Scope {
                             }
                         }
 
-                        Item { height: 14 }
+                        Item { height: 8 }
                         Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.4 }
-                        Item { height: 14 }
+                        Item { height: 8 }
 
                         // ── Quick timers ───────────────────────────────────────
                         Text {
@@ -1831,7 +1832,7 @@ Scope {
                             color: root.theme.textMuted; font.pixelSize: 9; font.letterSpacing: 0.8
                             font.family: root.theme.fontFamily
                         }
-                        Item { height: 8 }
+                        Item { height: 6 }
                         Row {
                             width: parent.width; spacing: 6
                             Repeater {
@@ -1842,7 +1843,7 @@ Scope {
                                 delegate: MouseArea {
                                     required property var modelData
                                     id: qtBtn
-                                    width: (parent.width - 18) / 4; height: 28
+                                    width: (parent.width - 18) / 4; height: 24
                                     cursorShape: Qt.PointingHandCursor; hoverEnabled: true
                                     onClicked: {
                                         var secs = modelData.mins * 60
@@ -1865,9 +1866,9 @@ Scope {
                             }
                         }
 
-                        Item { height: 14 }
+                        Item { height: 8 }
                         Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.4 }
-                        Item { height: 14 }
+                        Item { height: 8 }
 
                         // ── World clocks ───────────────────────────────────────
                         Text {
@@ -1875,25 +1876,25 @@ Scope {
                             color: root.theme.textMuted; font.pixelSize: 9; font.letterSpacing: 0.8
                             font.family: root.theme.fontFamily
                         }
-                        Item { height: 8 }
+                        Item { height: 6 }
                         Item {
-                            width: parent.width; height: 26
+                            width: parent.width; height: 22
                             Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: "Local"; color: root.theme.textSecondary; font.pixelSize: 11; font.family: root.theme.fontFamily }
                             Text { anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; text: root.barTimeString; color: root.theme.textPrimary; font.pixelSize: 13; font.weight: Font.DemiBold; font.family: root.theme.fontFamily }
                         }
                         Item {
-                            width: parent.width; height: 26
+                            width: parent.width; height: 22
                             Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: "UTC"; color: root.theme.textSecondary; font.pixelSize: 11; font.family: root.theme.fontFamily }
                             Text { anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; text: root.tz2String; color: root.theme.logoPurple; font.pixelSize: 13; font.weight: Font.DemiBold; font.family: root.theme.fontFamily }
                         }
 
-                        Item { height: 14 }
+                        Item { height: 8 }
                         Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.4 }
-                        Item { height: 12 }
+                        Item { height: 8 }
 
                         // ── Uptime ─────────────────────────────────────────────
                         Item {
-                            width: parent.width; height: 20
+                            width: parent.width; height: 18
                             Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: "UPTIME"; color: root.theme.textMuted; font.pixelSize: 9; font.letterSpacing: 0.8; font.family: root.theme.fontFamily }
                             Text {
                                 anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
@@ -1901,7 +1902,7 @@ Scope {
                                 elide: Text.ElideLeft; width: parent.width * 0.72; horizontalAlignment: Text.AlignRight
                             }
                         }
-                        Item { height: 14 }
+                        Item { height: 8 }
                     }
                 }
             }
@@ -1912,17 +1913,18 @@ Scope {
             PopupWindow {
                 id: calPopup
                 anchor.window: panelWindow
-                implicitWidth: 320
-                implicitHeight: 480
+                anchor.adjustment: PopupAdjustment.Flip
+                implicitWidth: 332
+                implicitHeight: 430
                 visible: panelWindow.calendarOpen
                 color: "transparent"
 
                 onVisibleChanged: if (!visible) panelWindow.calendarOpen = false
 
                 anchor.onAnchoring: {
-                    if (!anchor.window || !timeDateSection) return
-                    const p = timeDateSection.mapToItem(anchor.window, 0, timeDateSection.height)
-                    anchor.rect = Qt.rect(p.x, p.y + 6, 320, 480)
+                    if (!anchor.window || !timeDatePill) return
+                    const p = timeDatePill.mapToItem(anchor.window, timeDatePill.width + 6, timeDatePill.height)
+                    anchor.rect = Qt.rect(p.x, panelWindow.implicitHeight + 8, implicitWidth, implicitHeight)
                 }
 
                 GlassSurface {
@@ -2034,12 +2036,12 @@ Scope {
                     }
 
                     Column {
-                        anchors { top: parent.top; left: parent.left; right: parent.right; margins: 14 }
+                        anchors { top: parent.top; left: parent.left; right: parent.right; margins: 10 }
                         spacing: 0
 
                         // ── Tab header ──────────────────────────────────────────
                         Item {
-                            width: parent.width; height: 40
+                            width: parent.width; height: 34
 
                             Row {
                                 anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
@@ -2095,7 +2097,7 @@ Scope {
                         }
 
                         Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.5 }
-                        Item { height: 12 }
+                        Item { height: 8 }
 
                         // ── CALENDAR TAB ──────────────────────────────────────
                         Column {
@@ -2105,10 +2107,10 @@ Scope {
 
                             // Month navigation
                             Row {
-                                width: parent.width; height: 32; spacing: 0
+                                width: parent.width; height: 28; spacing: 0
 
                                 MouseArea {
-                                    id: calPrevBtn; width: 32; height: 32
+                                    id: calPrevBtn; width: 28; height: 28
                                     cursorShape: Qt.PointingHandCursor; hoverEnabled: true
                                     onClicked: { calCard.viewMonth--; if (calCard.viewMonth < 0) { calCard.viewMonth = 11; calCard.viewYear-- } }
                                     Rectangle { anchors.fill: parent; radius: 6; color: parent.containsMouse ? root.theme.accentDim2 : "transparent"; Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
@@ -2117,7 +2119,7 @@ Scope {
                                 }
 
                                 Text {
-                                    width: parent.width - 32 - 32 - 58
+                                    width: parent.width - 28 - 28 - 56
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: calCard.monthNames[calCard.viewMonth] + " " + calCard.viewYear
                                     color: root.theme.textPrimary; font.pixelSize: 12; font.weight: Font.DemiBold
@@ -2125,7 +2127,7 @@ Scope {
                                 }
 
                                 MouseArea {
-                                    id: todayBtn; width: 46; height: 22; anchors.verticalCenter: parent.verticalCenter
+                                    id: todayBtn; width: 44; height: 20; anchors.verticalCenter: parent.verticalCenter
                                     cursorShape: Qt.PointingHandCursor; hoverEnabled: true
                                     onClicked: {
                                         var d = new Date()
@@ -2138,7 +2140,7 @@ Scope {
                                 }
 
                                 MouseArea {
-                                    id: calNextBtn; width: 32; height: 32
+                                    id: calNextBtn; width: 28; height: 28
                                     cursorShape: Qt.PointingHandCursor; hoverEnabled: true
                                     onClicked: { calCard.viewMonth++; if (calCard.viewMonth > 11) { calCard.viewMonth = 0; calCard.viewYear++ } }
                                     Rectangle { anchors.fill: parent; radius: 6; color: parent.containsMouse ? root.theme.accentDim2 : "transparent"; Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
@@ -2147,7 +2149,7 @@ Scope {
                                 }
                             }
 
-                            Item { height: 10 }
+                            Item { height: 6 }
 
                             // Day-of-week headers (W# col + Mon-Sun)
                             Row {
@@ -2166,7 +2168,7 @@ Scope {
                                 }
                             }
 
-                            Item { height: 4 }
+                            Item { height: 3 }
 
                             // 6-row calendar grid
                             Column {
@@ -2188,7 +2190,7 @@ Scope {
 
                                         // Week number cell
                                         Text {
-                                            width: 22; height: 30; verticalAlignment: Text.AlignVCenter; horizontalAlignment: Text.AlignHCenter
+                                            width: 20; height: 28; verticalAlignment: Text.AlignVCenter; horizontalAlignment: Text.AlignHCenter
                                             text: {
                                                 for (var c = 0; c < 7; c++) {
                                                     var i = weekRowItem.rowStart + c
@@ -2207,7 +2209,7 @@ Scope {
                                             delegate: Item {
                                                 required property int index
                                                 id: dayCell
-                                                width: 34; height: 30
+                                                width: 36; height: 28
 
                                                 property int  ci:       weekRowItem.rowStart + index
                                                 property bool blank:    ci < calGridCol.firstDay || ci >= calGridCol.firstDay + calGridCol.daysInMon
@@ -2273,25 +2275,25 @@ Scope {
                                 }
                             }
 
-                            Item { height: 12 }
+                            Item { height: 8 }
                             Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.4 }
-                            Item { height: 10 }
+                            Item { height: 8 }
 
                             // Selected date strip
                             Rectangle {
-                                width: parent.width; height: 38; radius: root.theme.radiusPill
+                                width: parent.width; height: 34; radius: root.theme.radiusPill
                                 color: root.theme.bgBase; border.width: 1; border.color: root.theme.border
                                 Row {
-                                    anchors.centerIn: parent; spacing: 14
-                                    Text { anchors.verticalCenter: parent.verticalCenter; text: root.barTimeString + ":" + root.barSecondsString; color: root.theme.logoPurple; font.pixelSize: 16; font.weight: Font.Bold; font.family: root.theme.fontFamily }
+                                    anchors.centerIn: parent; spacing: 10
+                                    Text { anchors.verticalCenter: parent.verticalCenter; text: root.barTimeString + ":" + root.barSecondsString; color: root.theme.logoPurple; font.pixelSize: 14; font.weight: Font.Bold; font.family: root.theme.fontFamily }
                                     Text { anchors.verticalCenter: parent.verticalCenter; text: panelWindow.calSelectedDate || root.barDateString; color: root.theme.textPrimary; font.pixelSize: 11; font.family: root.theme.fontFamily }
                                 }
                             }
-                            Item { height: 8 }
+                            Item { height: 6 }
 
                             // Open notes for selected day
                             MouseArea {
-                                id: openNoteBtn; width: parent.width; height: 30
+                                id: openNoteBtn; width: parent.width; height: 28
                                 cursorShape: Qt.PointingHandCursor; hoverEnabled: true
                                 onClicked: {
                                     calCard.loadNote(panelWindow.calSelectedDate)
@@ -2310,7 +2312,7 @@ Scope {
                                     }
                                 }
                             }
-                            Item { height: 10 }
+                            Item { height: 6 }
                         }
 
                         // ── NOTES TAB ──────────────────────────────────────────
@@ -2320,7 +2322,7 @@ Scope {
 
                             // Date + save toolbar
                             Item {
-                                width: parent.width; height: 30
+                                width: parent.width; height: 28
                                 Row {
                                     anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; spacing: 6
                                     Text { anchors.verticalCenter: parent.verticalCenter; text: "✏"; color: root.theme.logoPurple; font.pixelSize: 12; font.family: root.theme.fontFamily }
@@ -2341,18 +2343,18 @@ Scope {
                                 }
                             }
 
-                            Item { height: 8 }
+                            Item { height: 6 }
 
                             // Note editor
                             Rectangle {
-                                width: parent.width; height: 162; radius: root.theme.radiusPill
+                                width: parent.width; height: 146; radius: root.theme.radiusPill
                                 color: root.theme.bgBase; clip: true
                                 border.width: 1
                                 border.color: notesEditor.activeFocus ? root.theme.accentPrimary : root.theme.border
                                 Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
 
                                 Flickable {
-                                    anchors.fill: parent; anchors.margins: 10
+                                    anchors.fill: parent; anchors.margins: 8
                                     contentHeight: notesEditor.contentHeight; clip: true
 
                                     TextEdit {
@@ -2369,7 +2371,7 @@ Scope {
                                 }
                             }
 
-                            Item { height: 6 }
+                            Item { height: 4 }
 
                             // Toolbar
                             Row {
@@ -2404,12 +2406,12 @@ Scope {
                                 }
                             }
 
-                            Item { height: 14 }
+                            Item { height: 8 }
                             Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.4 }
-                            Item { height: 10 }
+                            Item { height: 8 }
 
                             Text { text: "RECENT NOTES"; color: root.theme.textMuted; font.pixelSize: 9; font.letterSpacing: 0.8; font.family: root.theme.fontFamily }
-                            Item { height: 8 }
+                            Item { height: 6 }
 
                             Repeater {
                                 model: calCard.recentNotes.length > 0
@@ -2418,7 +2420,7 @@ Scope {
                                 delegate: MouseArea {
                                     required property var modelData
                                     id: recentRow
-                                    width: parent.width; height: 44
+                                    width: parent.width; height: 38
                                     cursorShape: modelData.date !== "—" ? Qt.PointingHandCursor : Qt.ArrowCursor
                                     hoverEnabled: true
                                     onClicked: {
@@ -2438,7 +2440,7 @@ Scope {
                                     }
                                 }
                             }
-                            Item { height: 10 }
+                            Item { height: 6 }
                         }
                     }
                 }
