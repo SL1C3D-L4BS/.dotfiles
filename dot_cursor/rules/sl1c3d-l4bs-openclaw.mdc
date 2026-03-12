@@ -1,0 +1,28 @@
+---
+description: When to use OpenClaw vs Cursor; agent loop checklist for SL1C3D-L4BS
+alwaysApply: false
+globs: ["**/*.md", "**/AGENTS.md", "**/.cursor/**"]
+---
+
+# OpenClaw vs Cursor · SL1C3D-L4BS
+
+## When to use OpenClaw
+
+- **Sidebar chat**: Super+Shift+A opens OpenClaw gateway UI at http://127.0.0.1:18789/
+- **Multi-agent team**: PM, Researcher, Engineer, Ops (session keys / UI dropdown)
+- **Long-running agent tasks**: Research, summarization, multi-step tool runs
+- **Config**: ~/.openclaw/openclaw.json; workspace ~/.openclaw/workspace (AGENTS.md, SOUL.md, USER.md, TOOLS.md)
+
+## When to use Cursor
+
+- **In-repo edits**: Dotfiles, scripts, Hypr/Quickshell config under this workspace
+- **MCP**: GitHub, filesystem, Brave Search (export GITHUB_PERSONAL_ACCESS_TOKEN, BRAVE_API_KEY)
+- **Project-scoped tasks**: Single-file or small-scope code/config changes with immediate apply
+
+## Agent loop (Cursor)
+
+1. Read AGENTS.md and relevant .cursor/rules before making changes.
+2. Prefer editing in place; match existing style and SL1C3D-L4BS brand.
+3. After Hypr/config changes, run ~/scripts/validate-configs.sh.
+4. Use MCP for GitHub/filesystem when needed.
+5. Suggest OpenClaw for research or multi-step agent tasks (sidebar, multi-agent).
