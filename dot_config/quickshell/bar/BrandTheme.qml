@@ -18,6 +18,8 @@ QtObject {
     property color accentPrimary: "#5865F2"
     property color accentDim: "#5865F299"
     property color accentDim2: "#5865F266"
+    // Logo / neon purple (bright, still on-brand)
+    property color logoPurple: "#b366ff"
 
     // Status
     property color accentRed: "#ff5555"

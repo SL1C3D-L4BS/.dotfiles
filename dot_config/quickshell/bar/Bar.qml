@@ -132,6 +132,23 @@ Scope {
 
                     Rectangle {
                         height: 24
+                        width: 36
+                        radius: 8
+                        color: root.theme.bgBase
+
+                        Image {
+                            anchors.centerIn: parent
+                            source: "file:///home/the_architect/assets/icons/Logo-bar.svg"
+                            width: 20
+                            height: 20
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
+                            mipmap: true
+                        }
+                    }
+
+                    Rectangle {
+                        height: 24
                         width: timeDate.width + 16
                         radius: 8
                         color: root.theme.bgBase
