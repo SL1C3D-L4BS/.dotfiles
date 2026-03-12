@@ -1,0 +1,47 @@
+{
+  "models": {
+    "providers": {
+      "ollama": {
+        "baseUrl": "http://127.0.0.1:11434/v1",
+        "apiKey": "ollama-local",
+        "api": "openai-responses"
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "workspace": "~/.openclaw/workspace",
+      "model": { "primary": "ollama/qwen2.5-coder:7b" },
+      "userTimezone": "America/New_York",
+      "timeFormat": 24,
+      "bootstrapMaxChars": 20000,
+      "timeoutSeconds": 600
+    },
+    "named": {
+      "pm": {
+        "model": { "primary": "ollama/llama3.2:3b" },
+        "workspace": "~/.openclaw/workspace/pm"
+      },
+      "researcher": {
+        "model": { "primary": "ollama/deepseek-r1:7b" },
+        "workspace": "~/.openclaw/workspace"
+      },
+      "engineer": {
+        "model": { "primary": "ollama/qwen2.5-coder:7b" },
+        "workspace": "~/.openclaw/workspace"
+      },
+      "ops": {
+        "model": { "primary": "ollama/qwen2.5-coder:7b" },
+        "workspace": "~/.openclaw/workspace"
+      }
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local"
+  },
+  "skills": {
+    "load": { "watch": true },
+    "entries": {}
+  }
+}
