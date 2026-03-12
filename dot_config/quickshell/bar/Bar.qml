@@ -654,499 +654,319 @@ Scope {
             }
 
             PopupWindow {
+                id: hubPopup
                 anchor.window: panelWindow
-                anchor.rect.x: 0
-                anchor.rect.y: panelWindow.implicitHeight
-                implicitWidth: 300
-                implicitHeight: 460
+                anchor.rect: Qt.rect(0, 0, 4096, 2400)
+                implicitWidth: 4096
+                implicitHeight: 2400
                 visible: panelWindow.hubOpen
                 color: "transparent"
 
                 onVisibleChanged: if (!visible) panelWindow.hubOpen = false
 
-                GlassSurface {
-                    theme: root.theme
+                // ─── Scrim: click to close ─────────────────────────────────────────
+                Rectangle {
                     anchors.fill: parent
-                    radius: root.theme.radiusModal
+                    color: root.theme.scrim
+                    opacity: panelWindow.hubOpen ? 1 : 0
+                    Behavior on opacity { NumberAnimation { duration: root.theme.motionBaseMs } }
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: panelWindow.hubOpen = false
+                    }
+                }
+
+                // ─── Card: glass surface + entrance animation ───────────────────
+                GlassSurface {
+                    id: hubCard
+                    theme: root.theme
                     strong: false
+                    anchors.centerIn: parent
+                    width: 380
+                    height: Math.min(560, parent.height - 48)
+                    radius: root.theme.radiusModal
                     clip: true
+
+                    scale: panelWindow.hubOpen ? 1 : 0.96
+                    opacity: panelWindow.hubOpen ? 1 : 0
+                    Behavior on scale { NumberAnimation { duration: root.theme.motionBaseMs } }
+                    Behavior on opacity { NumberAnimation { duration: root.theme.motionBaseMs } }
 
                     Process {
                         id: hubLauncher
                         running: false
                     }
 
-                    property string home: (typeof Qt !== "undefined" && Qt.environment && typeof Qt.environment.value === "function" ? Qt.environment.value("HOME") : null) || "/home/the_architect"
+                    property string home: root.homeDir
 
-                    Flickable {
-                        id: hubFlick
+                    // Prevent scrim click from propagating when clicking card
+                    MouseArea {
                         anchors.fill: parent
-                        anchors.margins: 14
-                        contentWidth: width
-                        contentHeight: hubColumn.implicitHeight
-                        clip: true
-                        boundsBehavior: Flickable.StopAtBounds
+                        onClicked: { }
+                    }
 
-                        Column {
-                            id: hubColumn
-                            width: hubFlick.width
-                            spacing: 0
+                    Column {
+                        id: hubContentColumn
+                        anchors.fill: parent
+                        anchors.margins: 16
+                        spacing: 0
 
-                        Row {
-                            id: hubHeaderRow
-                            height: 40
-                            spacing: 0
-                            width: parent.width
-
-                            Row {
-                                id: hubHeaderLeft
-                                spacing: 8
-                                height: parent.height
-
-                                Image {
-                                    source: "file:///home/the_architect/assets/icons/Logo-bar.svg"
-                                    width: 18
-                                    height: 18
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    fillMode: Image.PreserveAspectFit
-                                    smooth: true
-                                    mipmap: true
-                                }
-                                Text {
-                                    text: "SL1C3D-L4BS"
-                                    color: root.theme.logoPurple
-                                    font.pixelSize: 12
-                                    font.family: root.theme.fontFamily
-                                    font.weight: Font.DemiBold
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
+                        function filterHubModel(arr, query) {
+                            if (!arr) return []
+                            var q = (query || "").toLowerCase()
+                            if (!q) return arr
+                            var out = []
+                            for (var i = 0; i < arr.length; i++) {
+                                if (arr[i].type === "section") out.push(arr[i])
+                                else if (arr[i].label && arr[i].label.toLowerCase().indexOf(q) >= 0) out.push(arr[i])
                             }
+                            return out
+                        }
+                        property var hubFilteredModel: filterHubModel(hubListView.hubModel, hubSearch ? hubSearch.text : "")
 
-                            Item { width: hubHeaderRow.width - hubHeaderLeft.width - 32; height: 1 }
+                        // Header: logo + title + close
+                        Row {
+                            width: parent.width - 32
+                            height: 40
+                            spacing: 10
+                            Item { width: 1; height: 1 }
+                            Image {
+                                source: "file:///home/the_architect/assets/icons/Logo-bar.svg"
+                                width: 20
+                                height: 20
+                                anchors.verticalCenter: parent.verticalCenter
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                                mipmap: true
+                            }
+                            Text {
+                                text: "SL1C3D-L4BS"
+                                color: root.theme.logoPurple
+                                font.pixelSize: 13
+                                font.family: root.theme.fontFamily
+                                font.weight: Font.DemiBold
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                            Item { width: parent.width - 20 - 20 - closeBtn.width - 80; height: 1 }
                             MouseArea {
-                                width: 32
-                                height: 32
+                                id: closeBtn
+                                width: 28
+                                height: 28
                                 anchors.verticalCenter: parent.verticalCenter
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: panelWindow.hubOpen = false
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: 6
+                                    color: parent.pressed ? root.theme.border : "transparent"
+                                    opacity: parent.containsMouse ? 0.6 : 0
+                                    Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
+                                }
                                 Text {
                                     anchors.centerIn: parent
                                     text: "×"
                                     color: root.theme.textMuted
-                                    font.pixelSize: 18
+                                    font.pixelSize: 16
                                     font.family: root.theme.fontFamily
                                 }
                             }
                         }
 
                         Rectangle {
-                            width: parent.width
+                            width: parent.width - 32
                             height: 1
                             color: root.theme.border
-                            opacity: 0.6
+                            opacity: 0.5
                         }
+                        Item { height: 10 }
 
-                        Item { height: 14 }
-
-                        Row {
-                            spacing: 6
-                            Image { source: root.phosphorDir + "/gear.svg"; width: 12; height: 12; fillMode: Image.PreserveAspectFit; smooth: true }
-                            Text {
-                                text: "CONTROL_PLANE"
-                                color: root.theme.textMuted
-                                font.pixelSize: 9
+                        // Search: filter actions (command-palette style)
+                        Rectangle {
+                            width: parent.width - 32
+                            height: 32
+                            radius: 8
+                            color: root.theme.bgBase
+                            border.width: 1
+                            border.color: root.theme.border
+                            opacity: 0.9
+                            TextInput {
+                                id: hubSearch
+                                anchors.fill: parent
+                                anchors.leftMargin: 10
+                                anchors.rightMargin: 10
+                                verticalAlignment: Text.AlignVCenter
+                                color: root.theme.textPrimary
+                                font.pixelSize: 11
                                 font.family: root.theme.fontFamily
-                                font.letterSpacing: 0.8
-                            }
-                        }
-                        Item { height: 6 }
-
-                        Row {
-                            height: 26
-                            spacing: 16
-
-                            Row {
-                                spacing: 6
-                                anchors.verticalCenter: parent.verticalCenter
-                                Image { source: root.phosphorDir + "/gear.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
-                                Text {
-                                    text: "Edition: " + root.editionName
-                                    color: root.theme.textSecondary
-                                    font.pixelSize: 10
-                                    font.family: root.theme.fontFamily
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                            }
-
-                            Item { width: Math.max(0, parent.width - 240); height: 1 }
-
-                            Text {
-                                text: "Validate"
-                                color: root.theme.accentPrimary
-                                font.pixelSize: 10
-                                font.family: root.theme.fontFamily
-                                MouseArea {
-                                    anchors.fill: parent
-                                    anchors.margins: -4
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        hubLauncher.command = ["ghostty", "-e", "bash", "-lc", home + "/scripts/validate-configs.sh; echo; echo 'Press Enter to close'; read"]
-                                        hubLauncher.running = true
-                                        panelWindow.hubOpen = false
-                                    }
-                                }
-                            }
-
-                            Text {
-                                text: "Reload_Hypr"
-                                color: root.theme.logoPurple
-                                font.pixelSize: 10
-                                font.family: root.theme.fontFamily
-                                MouseArea {
-                                    anchors.fill: parent
-                                    anchors.margins: -4
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        hubLauncher.command = ["sh", "-c", "hyprctl reload >/dev/null 2>&1 || true"]
-                                        hubLauncher.running = true
-                                        panelWindow.hubOpen = false
-                                    }
-                                }
-                            }
-
-                            Text {
-                                text: "AI_Gateway"
-                                color: root.theme.accentPrimary
-                                font.pixelSize: 10
-                                font.family: root.theme.fontFamily
-                                MouseArea {
-                                    anchors.fill: parent
-                                    anchors.margins: -4
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        hubLauncher.command = ["sh", "-c", "systemctl --user restart openclaw-gateway.service >/dev/null 2>&1 || true"]
-                                        hubLauncher.running = true
-                                        panelWindow.hubOpen = false
-                                    }
-                                }
-                            }
-
-                            Text {
-                                text: "QuickSettings"
-                                color: root.theme.accentPrimary
-                                font.pixelSize: 10
-                                font.family: root.theme.fontFamily
-                                MouseArea {
-                                    anchors.fill: parent
-                                    anchors.margins: -4
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        hubLauncher.command = ["ghostty", "-e", "bash", "-lc", home + "/.config/SL1C3D-L4BS/bin/sl1c3d-ags doctor; echo; echo 'If OK, run your AGS quicksettings command here.'; read"]
-                                        hubLauncher.running = true
-                                        panelWindow.hubOpen = false
-                                    }
-                                }
+                                // NOTE: Qt version used by Quickshell here does not support placeholderText/placeholderTextColor.
+                                // Keep it simple and rely on an empty field (no placeholder) for maximum compatibility.
                             }
                         }
+                        Item { height: 8 }
 
-                        Item { height: 16 }
+                        // Action list: keyboard nav + hover
+                        ListView {
+                            id: hubListView
+                            width: parent.width - 32
+                            height: parent.height - 40 - 32 - 10 - 8 - 10
+                            clip: true
+                            focus: panelWindow.hubOpen
+                            keyNavigationWraps: true
+                            currentIndex: 0
 
-                        Row {
-                            spacing: 6
-                            Image {
-                                source: root.phosphorDir + "/folder-open.svg"
-                                width: 12
-                                height: 12
-                                fillMode: Image.PreserveAspectFit
-                                smooth: true
-                            }
-                            Text {
-                                text: "DEVELOPER"
-                                color: root.theme.textMuted
-                                font.pixelSize: 9
-                                font.family: root.theme.fontFamily
-                                font.letterSpacing: 0.8
-                            }
-                        }
-                        Item { height: 6 }
-
-                        Repeater {
-                            model: [
-                                { label: "~/dev", path: hubColumn.parent.home + "/dev" },
-                                { label: "~/.config", path: hubColumn.parent.home + "/.config" },
-                                { label: "~/assets", path: hubColumn.parent.home + "/assets" }
-                            ]
-
-                            Row {
-                                height: 26
-                                spacing: 0
-                                property string path: modelData.path
-
-                                Text {
-                                    width: 100
-                                    text: modelData.label
-                                    color: root.theme.textSecondary
-                                    font.pixelSize: 10
-                                    font.family: root.theme.fontFamily
-                                    elide: Text.ElideMiddle
-                                    anchors.verticalCenter: parent.verticalCenter
+                            Timer {
+                                id: hubFocusTimer
+                                interval: 0
+                                repeat: false
+                                onTriggered: {
+                                    var arr = hubContentColumn.hubFilteredModel
+                                    if (!arr) return
+                                    for (var i = 0; i < arr.length; i++)
+                                        if (arr[i].type === "action") { hubListView.currentIndex = i; break }
                                 }
+                            }
+                            Connections {
+                                target: panelWindow
+                                function onHubOpenChanged() {
+                                    if (panelWindow.hubOpen) hubFocusTimer.start()
+                                }
+                            }
+
+                            property var hubModel: (function() {
+                                var h = hubCard.home
+                                return [
+                                    { type: "section", text: "CONTROL PLANE" },
+                                    { type: "action", label: "Validate configs", icon: "gear", command: ["ghostty", "-e", "bash", "-lc", h + "/scripts/validate-configs.sh; echo; echo 'Press Enter to close'; read"] },
+                                    { type: "action", label: "Reload Hypr", icon: "gear", command: ["sh", "-c", "hyprctl reload >/dev/null 2>&1 || true"] },
+                                    { type: "action", label: "AI Gateway (restart)", icon: "gear", command: ["sh", "-c", "systemctl --user restart openclaw-gateway.service >/dev/null 2>&1 || true"] },
+                                    { type: "action", label: "QuickSettings (AGS)", icon: "gear", command: ["ghostty", "-e", "bash", "-lc", h + "/.config/SL1C3D-L4BS/bin/sl1c3d-ags doctor; read"] },
+                                    { type: "section", text: "DEVELOPER" },
+                                    { type: "action", label: "~/dev — Yazi", icon: "folder-open", command: ["ghostty", "-e", "yazi", h + "/dev"] },
+                                    { type: "action", label: "~/dev — Terminal", icon: "terminal-window", command: ["ghostty", "-e", "bash", "-c", "cd " + h + "/dev && exec ~/.config/hypr/scripts/zellij-branded.sh"] },
+                                    { type: "action", label: "~/.config — Yazi", icon: "folder-open", command: ["ghostty", "-e", "yazi", h + "/.config"] },
+                                    { type: "action", label: "~/.config — Terminal", icon: "terminal-window", command: ["ghostty", "-e", "bash", "-c", "cd " + h + "/.config && exec ~/.config/hypr/scripts/zellij-branded.sh"] },
+                                    { type: "action", label: "~/assets — Yazi", icon: "folder-open", command: ["ghostty", "-e", "yazi", h + "/assets"] },
+                                    { type: "action", label: "~/assets — Terminal", icon: "terminal-window", command: ["ghostty", "-e", "bash", "-c", "cd " + h + "/assets && exec ~/.config/hypr/scripts/zellij-branded.sh"] },
+                                    { type: "section", text: "WALLPAPERS" },
+                                    { type: "action", label: "Open wallpapers folder", icon: "images-square", command: ["ghostty", "-e", "yazi", h + "/assets/wallpapers"] },
+                                    { type: "action", label: "Waypaper GUI", icon: "images-square", command: ["waypaper"] }
+                                ].concat(
+                                    ["sl1c3d-l4bs-01.png","sl1c3d-l4bs-02.png","sl1c3d-l4bs-03.png","sl1c3d-l4bs-04.png","sl1c3d-l4bs-05.png","sl1c3d-l4bs-06.png","sl1c3d-l4bs-07.png","sl1c3d-l4bs-08.png","sl1c3d-l4bs-09.png","sl1c3d-l4bs-10.png","sl1c3d-l4bs-11.png","sl1c3d-l4bs-12.png","sl1c3d-l4bs-13.png","sl1c3d-l4bs-14.png","sl1c3d-l4bs-15.png"].map(function(name) {
+                                        return { type: "action", label: "Set " + name, icon: "images-square", command: ["waypaper", "--wallpaper", h + "/assets/wallpapers/" + name, "--fill", "fill", "--monitor", "All", "--backend", "swaybg"] }
+                                    })
+                                ).concat([
+                                    { type: "section", text: "SYSTEM" },
+                                    { type: "action", label: "AI (OpenClaw)", icon: "cursor", command: [h + "/.config/hypr/scripts/openclaw-sidebar.sh"] },
+                                    { type: "action", label: "Fuzzel", icon: "magnifying-glass", command: ["fuzzel"] },
+                                    { type: "action", label: "Hypr config (nvim)", icon: "file-code", command: ["ghostty", "-e", "nvim", h + "/.config/hypr"] },
+                                    { type: "action", label: "Waypaper restore", icon: "images-square", command: ["waypaper", "--restore"] }
+                                ])
+                            })()
+
+                            model: hubContentColumn.hubFilteredModel
+                            delegate: Item {
+                                width: hubListView.width
+                                height: modelData.type === "section" ? 28 : 36
+                                property bool isSection: modelData.type === "section"
+                                property bool isAction: modelData.type === "action"
+                                property bool highlighted: hubListView.currentIndex === index && isAction
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: isSection ? 0 : 6
+                                    anchors.rightMargin: isSection ? 0 : 6
+                                    anchors.topMargin: isSection ? 4 : 2
+                                    anchors.bottomMargin: isSection ? 4 : 2
+                                    radius: 6
+                                    color: highlighted ? root.theme.accentDim2 : (rowHover.containsMouse && isAction ? root.theme.border : "transparent")
+                                    opacity: highlighted ? 1 : (rowHover.containsMouse && isAction ? 0.5 : 0)
+                                    Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                }
+
                                 Row {
-                                    spacing: 12
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    Row {
-                                        spacing: 4
+                                    anchors.fill: parent
+                                    anchors.leftMargin: isSection ? 0 : 12
+                                    anchors.rightMargin: 12
+                                    spacing: 8
+                                    visible: isSection
+                                    Image {
+                                        width: 12; height: 12
+                                        source: root.phosphorDir + "/gear.svg"
+                                        fillMode: Image.PreserveAspectFit
                                         anchors.verticalCenter: parent.verticalCenter
-                                        Image { source: root.phosphorDir + "/folder-open.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
-                                        Text {
-                                            text: "Yazi"
-                                            color: root.theme.accentPrimary
-                                            font.pixelSize: 10
-                                            font.family: root.theme.fontFamily
-                                            MouseArea {
-                                            anchors.fill: parent
-                                            anchors.margins: -4
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: {
-                                                hubLauncher.command = ["ghostty", "-e", "yazi", parent.parent.parent.parent.path]
-                                                hubLauncher.running = true
-                                                panelWindow.hubOpen = false
-                                            }
-                                        }
-                                        }
                                     }
-                                    Row {
-                                        spacing: 4
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        Image { source: root.phosphorDir + "/terminal-window.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
-                                        Text {
-                                        text: "Terminal"
-                                        color: root.theme.accentPrimary
-                                        font.pixelSize: 10
+                                    Text {
+                                        text: (modelData && modelData.text) ? modelData.text : ""
+                                        color: root.theme.textMuted
+                                        font.pixelSize: 9
                                         font.family: root.theme.fontFamily
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            anchors.margins: -4
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: {
-                                                hubLauncher.command = ["ghostty", "-e", "bash", "-c", "cd " + parent.parent.parent.parent.path + " && exec ~/.config/hypr/scripts/zellij-branded.sh"]
-                                                hubLauncher.running = true
-                                                panelWindow.hubOpen = false
-                                            }
-                                        }
-                                        }
+                                        font.letterSpacing: 0.8
+                                        anchors.verticalCenter: parent.verticalCenter
                                     }
                                 }
-                            }
-                        }
 
-                        Item { height: 16 }
-                        Row {
-                            spacing: 6
-                            Image {
-                                source: root.phosphorDir + "/images-square.svg"
-                                width: 12
-                                height: 12
-                                fillMode: Image.PreserveAspectFit
-                                smooth: true
-                            }
-                            Text {
-                                text: "WALLPAPERS"
-                                color: root.theme.textMuted
-                                font.pixelSize: 9
-                                font.family: root.theme.fontFamily
-                                font.letterSpacing: 0.8
-                            }
-                        }
-                        Item { height: 6 }
-
-                        Repeater {
-                            model: [
-                                "sl1c3d-l4bs-01.png", "sl1c3d-l4bs-02.png", "sl1c3d-l4bs-03.png",
-                                "sl1c3d-l4bs-04.png", "sl1c3d-l4bs-05.png", "sl1c3d-l4bs-06.png",
-                                "sl1c3d-l4bs-07.png", "sl1c3d-l4bs-08.png", "sl1c3d-l4bs-09.png",
-                                "sl1c3d-l4bs-10.png", "sl1c3d-l4bs-11.png", "sl1c3d-l4bs-12.png",
-                                "sl1c3d-l4bs-13.png", "sl1c3d-l4bs-14.png", "sl1c3d-l4bs-15.png"
-                            ]
-                            Row {
-                                height: 26
-                                spacing: 0
-                                property string wpPath: hubColumn.parent.home + "/assets/wallpapers/" + modelData
-                                Text {
-                                    width: 140
-                                    text: modelData
-                                    color: root.theme.textSecondary
-                                    font.pixelSize: 10
-                                    font.family: root.theme.fontFamily
-                                    elide: Text.ElideMiddle
-                                    anchors.verticalCenter: parent.verticalCenter
+                                Row {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 12
+                                    anchors.rightMargin: 12
+                                    spacing: 8
+                                    visible: isAction
+                                    Image {
+                                        width: 14
+                                        height: 14
+                                        source: root.phosphorDir + "/" + (modelData.icon || "gear") + ".svg"
+                                        fillMode: Image.PreserveAspectFit
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                    Text {
+                                        text: (modelData && modelData.label) ? modelData.label : ""
+                                        color: highlighted ? root.theme.accentPrimary : root.theme.textSecondary
+                                        font.pixelSize: 11
+                                        font.family: root.theme.fontFamily
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
                                 }
-                                Text {
-                                    text: "Set"
-                                    color: root.theme.accentPrimary
-                                    font.pixelSize: 10
-                                    font.family: root.theme.fontFamily
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        anchors.margins: -4
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: {
-                                            hubLauncher.command = ["waypaper", "--wallpaper", parent.parent.wpPath, "--fill", "fill", "--monitor", "All", "--backend", "swaybg"]
+
+                                MouseArea {
+                                    id: rowHover
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    visible: isAction
+                                    onClicked: {
+                                        if (isAction && modelData.command) {
+                                            hubLauncher.command = modelData.command
                                             hubLauncher.running = true
                                             panelWindow.hubOpen = false
                                         }
                                     }
+                                    onPressed: if (isAction) hubListView.currentIndex = index
                                 }
                             }
+
+                            Keys.onUpPressed: {
+                                var arr = hubContentColumn.hubFilteredModel
+                                var idx = currentIndex
+                                do { idx = idx - 1 } while (idx >= 0 && arr[idx] && arr[idx].type !== "action")
+                                if (idx >= 0) currentIndex = idx
+                            }
+                            Keys.onDownPressed: {
+                                var arr = hubContentColumn.hubFilteredModel
+                                var idx = currentIndex
+                                do { idx = idx + 1 } while (idx < arr.length && arr[idx] && arr[idx].type !== "action")
+                                if (idx < arr.length) currentIndex = idx
+                            }
+                            Keys.onReturnPressed: {
+                                var arr = hubContentColumn.hubFilteredModel
+                                var d = arr[currentIndex]
+                                if (d && d.type === "action" && d.command) {
+                                    hubLauncher.command = d.command
+                                    hubLauncher.running = true
+                                    panelWindow.hubOpen = false
+                                }
+                            }
+                            Keys.onEscapePressed: panelWindow.hubOpen = false
                         }
 
-                        Row {
-                            height: 26
-                            spacing: 12
-                            Text {
-                                text: "Open folder"
-                                color: root.theme.logoPurple
-                                font.pixelSize: 10
-                                font.family: root.theme.fontFamily
-                                MouseArea {
-                                    anchors.fill: parent
-                                    anchors.margins: -4
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        hubLauncher.command = ["ghostty", "-e", "yazi", hubColumn.parent.home + "/assets/wallpapers"]
-                                        hubLauncher.running = true
-                                        panelWindow.hubOpen = false
-                                    }
-                                }
-                            }
-                            Text {
-                                text: "Waypaper GUI"
-                                color: root.theme.accentPrimary
-                                font.pixelSize: 10
-                                font.family: root.theme.fontFamily
-                                MouseArea {
-                                    anchors.fill: parent
-                                    anchors.margins: -4
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        hubLauncher.command = ["waypaper"]
-                                        hubLauncher.running = true
-                                        panelWindow.hubOpen = false
-                                    }
-                                }
-                            }
-                        }
-
-                        Item { height: 16 }
-                        Row {
-                            spacing: 6
-                            Image {
-                                source: root.phosphorDir + "/gear.svg"
-                                width: 12
-                                height: 12
-                                fillMode: Image.PreserveAspectFit
-                                smooth: true
-                            }
-                            Text {
-                                text: "SYSTEM"
-                                color: root.theme.textMuted
-                                font.pixelSize: 9
-                                font.family: root.theme.fontFamily
-                                font.letterSpacing: 0.8
-                            }
-                        }
-                        Item { height: 6 }
-
-                        Row {
-                            height: 26
-                            spacing: 16
-
-                            Row {
-                                spacing: 4
-                                anchors.verticalCenter: parent.verticalCenter
-                                Image { source: root.phosphorDir + "/cursor.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
-                                Text {
-                                text: "AI (OpenClaw)"
-                                color: root.theme.accentPrimary
-                                font.pixelSize: 10
-                                font.family: root.theme.fontFamily
-                                MouseArea {
-                                    anchors.fill: parent
-                                    anchors.margins: -4
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        hubLauncher.command = [hubColumn.parent.home + "/.config/hypr/scripts/openclaw-sidebar.sh"]
-                                        hubLauncher.running = true
-                                        panelWindow.hubOpen = false
-                                    }
-                                }
-                                }
-                            }
-                            Row {
-                                spacing: 4
-                                anchors.verticalCenter: parent.verticalCenter
-                                Image { source: root.phosphorDir + "/magnifying-glass.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
-                                Text {
-                                text: "Fuzzel"
-                                color: root.theme.accentPrimary
-                                font.pixelSize: 10
-                                font.family: root.theme.fontFamily
-                                MouseArea {
-                                    anchors.fill: parent
-                                    anchors.margins: -4
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        hubLauncher.command = ["fuzzel"]
-                                        hubLauncher.running = true
-                                        panelWindow.hubOpen = false
-                                    }
-                                }
-                                }
-                            }
-                            Row {
-                                spacing: 4
-                                anchors.verticalCenter: parent.verticalCenter
-                                Image { source: root.phosphorDir + "/file-code.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
-                                Text {
-                                text: "Hypr config"
-                                color: root.theme.accentPrimary
-                                font.pixelSize: 10
-                                font.family: root.theme.fontFamily
-                                MouseArea {
-                                    anchors.fill: parent
-                                    anchors.margins: -4
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        hubLauncher.command = ["ghostty", "-e", "nvim", hubColumn.parent.home + "/.config/hypr"]
-                                        hubLauncher.running = true
-                                        panelWindow.hubOpen = false
-                                    }
-                                }
-                                }
-                            }
-                            Row {
-                                spacing: 4
-                                anchors.verticalCenter: parent.verticalCenter
-                                Image { source: root.phosphorDir + "/images-square.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
-                                Text {
-                                text: "Waypaper"
-                                color: root.theme.accentPrimary
-                                font.pixelSize: 10
-                                font.family: root.theme.fontFamily
-                                MouseArea {
-                                    anchors.fill: parent
-                                    anchors.margins: -4
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        hubLauncher.command = ["waypaper", "--restore"]
-                                        hubLauncher.running = true
-                                        panelWindow.hubOpen = false
-                                    }
-                                }
-                                }
-                            }
-                        }
-                    }
                     }
                 }
             }
