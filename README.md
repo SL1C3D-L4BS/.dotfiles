@@ -31,9 +31,6 @@ UI/UX: floating pills, rounded corners (radius 8–12), JetBrains Mono Nerd Font
 ```bash
 # Install chezmoi (Arch)
 paru -S chezmoi
-# or from source
-bash ~/.local/share/chezmoi/build-chezmoi-from-source.sh
-
 # Clone this repo into the source directory, then apply
 chezmoi init --apply SL1C3D-L4BS/.dotfiles
 ```
@@ -71,6 +68,8 @@ Alias: `cm` = chezmoi (in `.zshrc`).
 | **Editor** | NvChad | custom lua, base46 brand, rounded floats |
 | **Multiplexer** | Zellij | rounded panes, theme `brand` |
 | **Wallpaper** | Waypaper | `~/assets/wallpapers` |
+
+**Elite CLI (2026):** Atuin (history), Fastfetch (system info), Zoxide (`z`), eza/bat/fd/ripgrep, Delta (git pager), btop (Super+B), Lazygit (Super+G). Install: `~/.config/SL1C3D-L4BS/system-config/install-elite-stack.sh`.
 
 ---
 
