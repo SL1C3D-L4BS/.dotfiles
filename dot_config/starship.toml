@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Starship — SL1C3D-L4BS | floating pill/segment style, brand palette
+# Starship — SL1C3D-L4BS | powerline pill-chain, brand palette, full context
 # ─────────────────────────────────────────────────────────────────────────────
 
 "$schema" = 'https://starship.rs/config-schema.json'
@@ -11,93 +11,146 @@ palette = "brand"
 # Brand palette (matches ~/.config/hypr/colors.conf)
 [palettes.brand]
 accent   = "#5865F2"
+logo     = "#b366ff"
 bg       = "#0d0d0d"
 surface  = "#1a1a1a"
 border   = "#2d2d2d"
+mid      = "#404040"
 fg       = "#f8f8f2"
 fgdim    = "#e0e0e0"
 muted    = "#909090"
-success  = "#5865F2"
+success  = "#50fa7b"
 error    = "#ff5555"
 warn     = "#f1fa8c"
 
-# Segment/pill layout: directory | git | character; time on right (all brand-colored)
+# ─── Prompt layout: connected powerline pill-chain ──────────────────────────
+# directory(surface) → git_branch(accent) → git_status(border) → langs → char
 format = """
+[\uE0B6](fg:surface)\
 $directory\
+[\uE0B4](fg:surface bg:accent)\
 $git_branch\
+[\uE0B4](fg:accent bg:border)\
 $git_status\
+[\uE0B4](fg:border bg:mid)\
+$golang$nodejs$python$rust$java$lua\
+[\uE0B4](fg:mid)\
+$cmd_duration\
+$status\
 $character"""
 
-right_format = "$time"
+right_format = "$time$hostname"
 
-# ─── Character (prompt symbol) — Nerd Font ───────────────────────────────────
+# ─── Character (prompt cap) ──────────────────────────────────────────────────
 [character]
-success_symbol = "[\uE0B0](bold fg:accent)"
-error_symbol   = "[\uE0B0](bold fg:error)"
-vimcmd_symbol  = "[\uE0B2](bold fg:accent)"
+success_symbol = " [](bold fg:success)"
+error_symbol   = " [](bold fg:error)"
+vimcmd_symbol  = " [](bold fg:accent)"
 
-# ─── Directory — segment pill + folder icon (Nerd Font) ──────────────────────
+# ─── Directory ───────────────────────────────────────────────────────────────
 [directory]
 style = "bg:surface fg:fgdim bold"
-truncation_length = 3
+truncation_length = 4
 truncation_symbol = "…/"
-format = "[\uF07B  $path ]($style)"
+read_only = " 󰌾"
+format = "[ \uF07B $path$read_only ]($style)"
 
-# ─── Git branch — segment pill + branch icon (Nerd Font) ────────────────────
+# ─── Git branch ──────────────────────────────────────────────────────────────
 [git_branch]
 symbol = "\uE0A0 "
 style = "bg:accent fg:bg bold"
 format = "[ $symbol$branch ]($style)"
+truncation_length = 24
 
-# ─── Git status — segment pill (bg border, fg muted) ──────────────────────────
+# ─── Git status ──────────────────────────────────────────────────────────────
 [git_status]
-style = "bg:border fg:muted"
-format = '[\[$all_status$ahead_behind\]]($style)'
+style = "bg:border fg:fgdim"
+format = '[$all_status$ahead_behind ]($style)'
+conflicted = "⚡"
+ahead      = "⇡${count}"
+behind     = "⇣${count}"
+diverged   = "⇕⇡${ahead_count}⇣${behind_count}"
+untracked  = "?${count}"
+stashed    = "≡"
+modified   = "!${count}"
+staged     = "+${count}"
+renamed    = "»${count}"
+deleted    = "✘${count}"
 
-# ─── Time (right prompt) — Nerd Font clock ───────────────────────────────────
+# ─── Language versions (appear in mid segment when in project) ───────────────
+[golang]
+symbol = "\uE626 "
+style = "bg:mid fg:fgdim"
+format = "[ $symbol($version) ]($style)"
+detect_files = ["go.mod", "go.sum", "go.work", ".go-version"]
+
+[nodejs]
+symbol = "\uF898 "
+style = "bg:mid fg:fgdim"
+format = "[ $symbol($version) ]($style)"
+detect_files = ["package.json", ".node-version", ".nvmrc"]
+
+[python]
+symbol = "\uE235 "
+style = "bg:mid fg:fgdim"
+format = "[ $symbol($version)($virtualenv) ]($style)"
+detect_files = ["pyproject.toml", "requirements.txt", ".python-version", "setup.py"]
+
+[rust]
+symbol = "\uE7A8 "
+style = "bg:mid fg:fgdim"
+format = "[ $symbol($version) ]($style)"
+detect_files = ["Cargo.toml", "Cargo.lock"]
+
+[java]
+symbol = "\uE738 "
+style = "bg:mid fg:fgdim"
+format = "[ $symbol($version) ]($style)"
+
+[lua]
+symbol = "\uE620 "
+style = "bg:mid fg:fgdim"
+format = "[ $symbol($version) ]($style)"
+
+# ─── Command duration ────────────────────────────────────────────────────────
+[cmd_duration]
+min_time = 2000
+style = "fg:muted"
+format = " [\uF252 $duration]($style)"
+
+# ─── Exit status (non-zero) ───────────────────────────────────────────────────
+[status]
+symbol = " ✗ "
+style = "fg:error"
+format = "[$symbol$status]($style) "
+disabled = false
+not_executable_symbol = " 🚫"
+not_found_symbol = " 🔍"
+sigint_symbol = " 󰚌"
+
+# ─── Time (right prompt) ─────────────────────────────────────────────────────
 [time]
 style = "fg:muted"
-format = "[\uF017 $time]($style) "
+format = "[\uF017 $time ]($style)"
 time_format = "%I:%M %p"
 disabled = false
 
-# ─── Hostname (SSH) — Nerd Font globe ───────────────────────────────────────
+# ─── Hostname (SSH only) ──────────────────────────────────────────────────────
 [hostname]
 ssh_only = true
 ssh_symbol = "\uF0AC "
 style = "fg:muted"
-format = "[$ssh_symbol$hostname]($style) in "
+format = "[$ssh_symbol$hostname ]($style)"
 
-# ─── Command duration — Nerd Font timer ─────────────────────────────────────
-[cmd_duration]
-min_time = 2000
-style = "fg:muted"
-format = " [\uF252 $duration]($style) "
-
-# ─── Lang/context — Nerd Font symbols + brand styles ────────────────────────
+# ─── Disabled noise ──────────────────────────────────────────────────────────
 [package]
 disabled = true
 
-[golang]
-symbol = "\uE626 "
-style = "fg:fgdim"
-
-[nodejs]
-symbol = "\uF898 "
-style = "fg:fgdim"
-
-[python]
-symbol = "\uE235 "
-style = "fg:fgdim"
-
-[rust]
-symbol = "\uE7A8 "
-style = "fg:fgdim"
-
 [conda]
-symbol = "\uE001 "
-style = "fg:fgdim"
+disabled = true
 
 [docker_context]
 symbol = "\uF308 "
 style = "fg:muted"
+format = "[ $symbol$context ]($style)"
+only_with_files = true

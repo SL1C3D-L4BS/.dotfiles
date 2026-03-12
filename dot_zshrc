@@ -1,26 +1,44 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# SL1C3D-L4BS Elite Zsh — Hyprland #1 brand (white, black, grey, Discord Blurple)
-# Fast startup, Starship, plugins (Zinit or fallback), fzf, dir stack
+# SL1C3D-L4BS Elite Zsh — Hyprland #1 brand
+# Fast startup, Starship, Zinit plugins, fzf, atuin, zoxide, dir stack
 # ─────────────────────────────────────────────────────────────────────────────
+
+# ─── Default apps (exported for all child processes) ─────────────────────────
+export EDITOR="nvim"
+export VISUAL="nvim"
+export TERMINAL="ghostty"
+export BROWSER="firefox"
+
+# ─── Beautiful man pages via bat ─────────────────────────────────────────────
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+export MANRWIDTH=80
+
+# ─── Better less: colors, case-insensitive, quit-if-small ────────────────────
+export LESS="--RAW-CONTROL-CHARS --quit-if-one-screen --ignore-case --LONG-PROMPT"
+export LESSHISTFILE="${XDG_CACHE_HOME:-$HOME/.cache}/.lesshst"
 
 # ─── Completion (cache for speed) ────────────────────────────────────────────
 autoload -Uz compinit
 [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]] && compinit -C || compinit
 zstyle ':completion:*' menu select
 zstyle ':completion:*' list-colors ''
+zstyle ':completion:*:descriptions' format '[%d]'
+zstyle ':completion:*' group-name ''
+zstyle ':fzf-tab:*' switch-group '<' '>'
 setopt COMPLETE_IN_WORD
 setopt ALWAYS_TO_END
 
-# ─── History ───────────────────────────────────────────────────────────────
+# ─── History ─────────────────────────────────────────────────────────────────
 HISTFILE="${ZDOTDIR:-$HOME}/.zsh_history"
-HISTSIZE=10000
-SAVEHIST=10000
+HISTSIZE=50000
+SAVEHIST=50000
 setopt EXTENDED_HISTORY
 setopt SHARE_HISTORY
 setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_REDUCE_BLANKS
 setopt HIST_IGNORE_SPACE
 setopt APPEND_HISTORY
+setopt INC_APPEND_HISTORY_TIME
 
 # ─── Directory stack & navigation ────────────────────────────────────────────
 DIRSTACKSIZE=8
@@ -31,26 +49,43 @@ setopt PUSHD_TO_HOME
 alias dh='dirs -v'
 CDPATH=.:~:~/src:~/projects:~/dev
 
-# ─── Prompt: Starship (brand palette in ~/.config/starship.toml) ────────────
+# ─── Prompt: Starship (brand palette in ~/.config/starship.toml) ─────────────
 eval "$(starship init zsh)"
 
-# ─── Zinit (turbo) + plugins — load after first prompt when installed ──────
+# ─── Zinit (turbo) + plugins ─────────────────────────────────────────────────
 if [[ -f ${ZDOTDIR:-$HOME}/.local/share/zinit/zinit.git/zinit.zsh ]]; then
   source "${ZDOTDIR:-$HOME}/.local/share/zinit/zinit.git/zinit.zsh"
+
   zinit ice wait lucid atload"zicompinit; zicdreplay"
   zinit light zdharma-continuum/fast-syntax-highlighting
-  zinit ice wait lucid
+
+  zinit ice wait lucid atload"_zsh_autosuggest_start"
   zinit light zsh-users/zsh-autosuggestions
+
+  zinit ice wait lucid
+  zinit light zsh-users/zsh-history-substring-search
+
+  zinit ice wait lucid
+  zinit light zsh-users/zsh-completions
 else
-  # Fallback: Arch /usr/share plugins if installed (paru -S zsh-autosuggestions fast-syntax-highlighting)
-  [[ -f /usr/share/zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh ]] && source /usr/share/zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
-  [[ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+  # Fallback: Arch /usr/share plugins
+  [[ -f /usr/share/zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh ]] \
+    && source /usr/share/zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
+  [[ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]] \
+    && source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
 
-# ─── Autosuggestions: brand muted grey (#909090) ────────────────────────────
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#909090'
+# History substring search keybinds (Up/Down)
+bindkey '^[[A' history-substring-search-up   2>/dev/null || true
+bindkey '^[[B' history-substring-search-down 2>/dev/null || true
+bindkey '^P'   history-substring-search-up   2>/dev/null || true
+bindkey '^N'   history-substring-search-down 2>/dev/null || true
 
-# ─── fzf: keybindings + brand colors ───────────────────────────────────────
+# ─── Autosuggestions: brand muted grey (#909090) ─────────────────────────────
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#909090'
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+
+# ─── fzf: keybindings + brand colors ─────────────────────────────────────────
 if command -v fzf &>/dev/null; then
   if [[ -f /usr/share/fzf/shell/key-bindings.zsh ]]; then
     source /usr/share/fzf/shell/key-bindings.zsh
@@ -59,30 +94,87 @@ if command -v fzf &>/dev/null; then
   else
     source <(fzf --zsh 2>/dev/null) 2>/dev/null || true
   fi
-  export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border --color=fg:#f8f8f2,bg:#0d0d0d,hl:#5865F2,fg+:#f8f8f2,bg+:#1a1a1a,hl+:#5865F2,info:#909090,prompt:#5865F2,pointer:#5865F2,marker:#5865F2,spinner:#5865F2,header:#909090"
-  export FZF_CTRL_R_OPTS="--border --header 'Ctrl+R: history'"
-  command -v fd &>/dev/null && export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
-  command -v fd &>/dev/null && export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+  export FZF_DEFAULT_OPTS="
+    --height 50% --layout=reverse --border rounded --padding 1
+    --color=fg:#f8f8f2,bg:#0d0d0d,hl:#5865F2
+    --color=fg+:#f8f8f2,bg+:#1a1a1a,hl+:#b366ff
+    --color=info:#909090,prompt:#5865F2,pointer:#b366ff
+    --color=marker:#5865F2,spinner:#5865F2,header:#909090
+    --color=border:#2d2d2d,label:#5865F2
+    --prompt ' ' --pointer '' --marker '▎'
+  "
+  export FZF_CTRL_R_OPTS="--border rounded --header 'Shell History'"
+  command -v fd &>/dev/null && {
+    export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+    export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+    export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+  }
 fi
 
-# ─── Atuin: sync'd shell history (Ctrl+R = fuzzy history) ───────────────────
+# ─── Atuin: sync'd shell history (replaces Ctrl+R) ──────────────────────────
 [[ -n $(command -v atuin 2>/dev/null) ]] && eval "$(atuin init zsh)"
 
-# ─── Zoxide: smart cd (z <dir>) ────────────────────────────────────────────
+# ─── Zoxide: smart cd (z <dir>, zi = interactive) ────────────────────────────
 [[ -n $(command -v zoxide 2>/dev/null) ]] && eval "$(zoxide init zsh)"
 
-# ─── Modern CLI: eza (ls), bat (cat) ────────────────────────────────────────
-command -v eza &>/dev/null && alias ls='eza --icons --group-directories-first' && alias ll='eza -l --icons --group-directories-first' && alias la='eza -la --icons --group-directories-first'
-command -v bat &>/dev/null && alias cat='bat --paging=never' && alias batp='bat'
+# ─── Modern CLI: eza (ls), bat (cat) ─────────────────────────────────────────
+if command -v eza &>/dev/null; then
+  alias ls='eza --icons --group-directories-first --git'
+  alias ll='eza -l --icons --group-directories-first --git --time-style=relative'
+  alias la='eza -la --icons --group-directories-first --git --time-style=relative'
+  alias lt='eza --tree --icons --group-directories-first --level=2'
+  alias lta='eza --tree --icons --group-directories-first --level=3 -a'
+fi
+if command -v bat &>/dev/null; then
+  alias cat='bat --paging=never --style=plain'
+  alias batp='bat --paging=always'
+fi
 
-# ─── Dotfiles: chezmoi (source ~/.local/share/chezmoi). Single source of truth. ─
-export PATH="$HOME/.local/bin:$PATH"
-alias cm=chezmoi
+# ─── Yazi: cd on quit (y <path> → exits to last directory) ──────────────────
+function y() {
+  local tmp
+  tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+  yazi "$@" --cwd-file="$tmp"
+  if cwd="$(cat -- "$tmp")" && [[ -n "$cwd" && "$cwd" != "$PWD" ]]; then
+    builtin cd -- "$cwd"
+  fi
+  command rm -f -- "$tmp"
+}
 
-# ─── Fastfetch: system info on new interactive shell (not over SSH) ─────────
+# ─── Aliases ──────────────────────────────────────────────────────────────────
+alias cm='chezmoi'
+alias cma='chezmoi apply'
+alias cme='chezmoi edit'
+alias lg='lazygit'
+alias vi='nvim'
+alias vim='nvim'
+alias grep='grep --color=auto'
+alias diff='diff --color=auto'
+alias ip='ip --color=auto'
+alias mkdir='mkdir -pv'
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+# Git shortcuts (common elite set)
+alias gs='git status -sb'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gpl='git pull'
+alias gd='git diff'
+alias gl='git log --oneline --graph --decorate'
+alias gco='git checkout'
+alias gb='git branch'
+alias gst='git stash'
+
+# ─── Dotfiles: chezmoi + PATH ────────────────────────────────────────────────
+export PATH="$HOME/.local/bin:$HOME/.config/SL1C3D-L4BS/bin:$PATH"
+
+# ─── Fastfetch: system info on new interactive shell (not SSH) ───────────────
 if [[ -o interactive ]] && [[ -z "$SSH_TTY" ]] && command -v fastfetch &>/dev/null; then
   fastfetch
 fi
 
-# ─── Optional: compdump in background (freshen cache without blocking) ─────
+# ─── Optional: refresh completion dump in background ─────────────────────────
 ( compdump 2>/dev/null & )

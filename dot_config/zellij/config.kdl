@@ -1,11 +1,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Zellij — SL1C3D-L4BS | Hyprland #1 brand (white, black, grey, Discord Blurple)
-// Start with: zellij (or zellij -s SL1C3D-L4BS for branded session name)
 // ─────────────────────────────────────────────────────────────────────────────
 
 default_shell "zsh"
 default_layout "default"
-default_mode "locked"
+default_mode "normal"
 theme "brand"
 pane_frames true
 copy_command "wl-copy"
@@ -18,37 +17,48 @@ on_force_close "detach"
 show_startup_tips false
 show_release_notes false
 
-// UI: rounded pane frames (NvChad-style soft corners)
+// UI: rounded pane frames
 ui {
     pane_frames {
         rounded_corners true
     }
 }
 
-// Keybinds: Ctrl+g lock/unlock, Ctrl+o session, Ctrl+p pane, Ctrl+t tab, Ctrl+s scroll
-keybinds {
+// Keybinds: minimal — Ctrl+G unlock, Ctrl+O session manager
+keybinds clear-defaults=false {
     locked {
         bind "Ctrl g" { SwitchToMode "Normal"; }
+    }
+    normal {
+        bind "Ctrl g" { SwitchToMode "Locked"; }
+        bind "Ctrl p" { SwitchToMode "Pane"; }
+        bind "Ctrl t" { SwitchToMode "Tab"; }
+        bind "Ctrl s" { SwitchToMode "Scroll"; }
+        bind "Ctrl o" { SwitchToMode "Session"; }
+        bind "Ctrl n" { SwitchToMode "Resize"; }
+        bind "Ctrl h" { SwitchToMode "Move"; }
+        bind "Alt n"  { NewPane; }
+        bind "Alt q"  { CloseFocus; }
+        bind "Alt +"  { Resize "Increase"; }
+        bind "Alt -"  { Resize "Decrease"; }
+        bind "Alt ["  { PreviousSwapLayout; }
+        bind "Alt ]"  { NextSwapLayout; }
     }
 }
 
 // Plugin aliases (defaults)
 plugins {
-    tab-bar location="zellij:tab-bar"
-    status-bar location="zellij:status-bar"
-    strider location="zellij:strider"
-    compact-bar location="zellij:compact-bar"
+    tab-bar       location="zellij:tab-bar"
+    status-bar    location="zellij:status-bar"
+    strider       location="zellij:strider"
+    compact-bar   location="zellij:compact-bar"
     session-manager location="zellij:session-manager"
-    welcome-screen location="zellij:session-manager" {
+    welcome-screen  location="zellij:session-manager" {
         welcome_screen true
     }
     configuration location="zellij:configuration"
     plugin-manager location="zellij:plugin-manager"
-    about location="zellij:about"
-}
-
-load_plugins {
-    "zellij:link"
+    about         location="zellij:about"
 }
 
 // ─── Theme: brand (SL1C3D-L4BS) — Discord Blurple #5865F2, black, grey, white ─
@@ -168,14 +178,14 @@ themes {
         }
         multiplayer_user_colors {
             player_1 88 101 242
-            player_2 224 224 224
-            player_3 144 144 144
-            player_4 45 45 45
-            player_5 248 248 242
-            player_6 26 26 26
-            player_7 255 85 85
-            player_8 40 42 54
-            player_9 64 64 64
+            player_2 179 102 255
+            player_3 80 250 123
+            player_4 241 250 140
+            player_5 255 85 85
+            player_6 224 224 224
+            player_7 144 144 144
+            player_8 248 248 242
+            player_9 45 45 45
             player_10 13 13 13
         }
     }

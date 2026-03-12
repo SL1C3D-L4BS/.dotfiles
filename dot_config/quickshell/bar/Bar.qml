@@ -606,6 +606,53 @@ Scope {
                         }
                     }
 
+                    // ─── CPU + RAM pill ───────────────────────────────────────
+                    Rectangle {
+                        height: 24
+                        width: cpuRamContent.width + 12
+                        radius: 8
+                        color: root.theme.bgBase
+                        visible: SystemInfo.cpuUsage !== "0%"
+
+                        Accessible.role: Accessible.StaticText
+                        Accessible.name: "CPU: " + SystemInfo.cpuUsage + "  RAM: " + SystemInfo.memoryUsage
+
+                        Row {
+                            id: cpuRamContent
+                            anchors.centerIn: parent
+                            spacing: 6
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: ""
+                                color: root.theme.accentPrimary
+                                font.pixelSize: 11
+                                font.family: root.theme.fontFamily
+                            }
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: SystemInfo.cpuUsage
+                                color: root.theme.textPrimary
+                                font.pixelSize: 11
+                                font.family: root.theme.fontFamily
+                            }
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "  "
+                                color: root.theme.logoPurple
+                                font.pixelSize: 11
+                                font.family: root.theme.fontFamily
+                            }
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: SystemInfo.memoryUsage
+                                color: root.theme.textPrimary
+                                font.pixelSize: 11
+                                font.family: root.theme.fontFamily
+                            }
+                        }
+                    }
+
                     Rectangle {
                         implicitHeight: 24
                         implicitWidth: trayIcons.implicitWidth + 4
