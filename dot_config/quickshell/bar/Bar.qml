@@ -1200,7 +1200,7 @@ Scope {
                                     const name = parts[0].trim()
                                     const ver  = parts[1].trim()
                                     const c = colorMap[name] || { bg: "#1a1a1a", border: "#444", color: "#f8f8f2", icon: "▸" }
-                                    pills.push({ name, ver, ...c })
+                                    pills.push({ name: name, ver: ver, bg: c.bg, border: c.border, color: c.color, icon: c.icon })
                                 })
                                 hubCard.runtimePills = pills
                             }
