@@ -71,6 +71,8 @@ Alias: `cm` = chezmoi (in `.zshrc`).
 
 **Elite CLI (2026):** Atuin (history), Fastfetch (system info), Zoxide (`z`), eza/bat/fd/ripgrep, Delta (git pager), btop (Super+B), Lazygit (Super+G). Install: `~/.config/SL1C3D-L4BS/system-config/install-elite-stack.sh`.
 
+**Cursor (powerhouse):** MCP (GitHub, filesystem, Brave Search) in `~/.cursor/mcp.json`; always-on rule in `~/.cursor/rules/sl1c3d-l4bs-stack.mdc`; `AGENTS.md` at project root; SL1C3D-L4BS theme in Cursor settings (workbench colors + JetBrains Mono Nerd Font). Export `GITHUB_PERSONAL_ACCESS_TOKEN` and `BRAVE_API_KEY` for MCP; restart Cursor after editing `mcp.json`.
+
 ---
 
 ## Source layout
