@@ -28,6 +28,14 @@ UI/UX: floating pills, rounded corners (radius 8–12), JetBrains Mono Nerd Font
 
 ## Quick start
 
+**One-command install:** (replace `REPO_URL` with your repo, e.g. `https://github.com/you/SL1C3D-L4BS-dotfiles`)
+
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/OWNER/REPO/main/get.sh) REPO_URL
+```
+
+Manual:
+
 ```bash
 # Install chezmoi (Arch)
 paru -S chezmoi
@@ -36,6 +44,36 @@ chezmoi init --apply SL1C3D-L4BS/.dotfiles
 ```
 
 Existing install: `chezmoi apply` from anywhere (source = `~/.local/share/chezmoi`).
+
+### After install / First run
+
+1. Select **Hyprland** at login.
+2. Run `~/scripts/validate-configs.sh`.
+3. Open the **hub** (click the bar logo) for dev paths, wallpapers, system.
+4. Press **Super+/** for keybinds.
+
+---
+
+## Keybinds
+
+| Action | Key |
+|--------|-----|
+| Terminal | Super+Return |
+| Close window | Super+Q |
+| Exit / shutdown | Super+M |
+| File manager | Super+F |
+| btop | Super+B |
+| Lazygit | Super+G |
+| Toggle float | Super+V |
+| Launcher | Super+Space |
+| Toggle split | Super+J |
+| Workspaces 1–10 | Super+1..0 |
+| Move window to workspace | Super+Shift+1..0 |
+| Scratchpad (toggle / move) | Super+S / Super+Shift+S |
+| Focus direction | Super+Arrow |
+| Lock screen | Super+L |
+| Keybinds help | Super+/ |
+| Notifications (dismiss / DND) | Super+N / Super+D |
 
 ---
 
@@ -52,13 +90,15 @@ Existing install: `chezmoi apply` from anywhere (source = `~/.local/share/chezmo
 
 Alias: `cm` = chezmoi (in `.zshrc`).
 
+**Customization:** To add personal Hyprland keybinds or settings without editing the repo, edit `~/.config/hypr/custom.conf` (sourced last). To keep your edits across `chezmoi apply`, run `chezmoi forget ~/.config/hypr/custom.conf` after editing. One-command install uses `get.sh` from the repo; document your repo URL in the one-liner for new users.
+
 ---
 
 ## Stack
 
 | Layer | Config | Notes |
 |-------|--------|--------|
-| **WM** | Hyprland | colors, binds, autostart, programs |
+| **WM** | Hyprland | colors, binds, autostart, programs; lock (Super+L), idle (hypridle) |
 | **Bar** | Quickshell | QML bar + branded hub (dev paths, wallpapers, system) |
 | **Terminal** | Ghostty | theme `sl1c3d-l4bs`, JetBrains Mono Nerd Font |
 | **Prompt** | Starship | `palettes.brand`, pill segments |
@@ -68,6 +108,8 @@ Alias: `cm` = chezmoi (in `.zshrc`).
 | **Editor** | NvChad | custom lua, base46 brand, rounded floats |
 | **Multiplexer** | Zellij | rounded panes, theme `brand` |
 | **Wallpaper** | Waypaper | `~/assets/wallpapers` |
+
+**Lock & idle:** hyprlock (Super+L) and hypridle (auto-lock after 5 min, optional dim/suspend). Config: `~/.config/hypr/hyprlock.conf`, `~/.config/hypr/hypridle.conf`. Install: `paru -S hyprlock hypridle`.
 
 **Elite CLI (2026):** Atuin (history), **Fastfetch** (system info; Linux ASCII logo from [fastfetch-cli/fastfetch](https://github.com/fastfetch-cli/fastfetch) in `~/.config/fastfetch/logo.txt`, full SL1C3D-L4BS colors in `config.jsonc` — accent `#5865F2`, logo `#b366ff`, fg `#f8f8f2`), Zoxide (`z`), eza/bat/fd/ripgrep, Delta (git pager), btop (Super+B), Lazygit (Super+G). Install: `~/.config/SL1C3D-L4BS/system-config/install-elite-stack.sh`.
 
@@ -97,7 +139,7 @@ After changes or apply:
 ~/scripts/validate-configs.sh
 ```
 
-Checks: Yazi (TOML), Fuzzel (ini), Mako (config + reload), Hypr (sourced files, mako integration). All pass = stack consistent.
+Checks: Yazi (TOML), Fuzzel (ini), Mako (config + reload), Hypr (all 9 sourced files, mako integration). All pass = stack consistent.
 
 ---
 

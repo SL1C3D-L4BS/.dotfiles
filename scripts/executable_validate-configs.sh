@@ -39,7 +39,7 @@ fi
 
 echo ""
 echo "=== Hyprland (sourced files) ==="
-for f in colors.conf programs.conf autostart.conf binds.conf; do
+for f in colors.conf monitors.conf env.conf programs.conf autostart.conf general.conf input.conf binds.conf windowrules.conf; do
   test -f ~/.config/hypr/$f && echo "  hypr/$f: OK" || { echo "  hypr/$f: MISSING"; ((FAIL++)) || true; }
 done
 grep -q 'exec-once = mako' ~/.config/hypr/autostart.conf 2>/dev/null && echo "  mako in autostart: yes" || echo "  mako in autostart: no"
