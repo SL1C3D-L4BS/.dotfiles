@@ -933,7 +933,7 @@ Scope {
                             Row {
                                 spacing: 4
                                 anchors.verticalCenter: parent.verticalCenter
-                                Image { source: root.phosphorDir + "/robot.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
+                                Image { source: root.phosphorDir + "/cursor.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
                                 Text {
                                 text: "AI (OpenClaw)"
                                 color: root.theme.accentPrimary
