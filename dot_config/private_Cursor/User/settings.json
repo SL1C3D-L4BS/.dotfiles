@@ -3,6 +3,13 @@
     "editor.fontFamily": "JetBrains Mono Nerd Font, JetBrains Mono, monospace",
     "editor.fontLigatures": true,
     "editor.fontSize": 13,
+    "workbench.iconTheme": "material-icon-theme",
+    "workbench.productIconTheme": "fluent-icons",
+    "material-icon-theme.folders.color": "#5865F2",
+    "material-icon-theme.folders.theme": "specific",
+    "material-icon-theme.hidesExplorerArrows": false,
+    "material-icon-theme.saturation": 1,
+    "material-icon-theme.opacity": 1,
     "workbench.colorCustomizations": {
         "editor.background": "#0d0d0d",
         "editor.foreground": "#f8f8f2",

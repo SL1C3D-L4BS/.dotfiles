@@ -20,3 +20,8 @@ If GitHub or Brave Search MCP is used, export before starting Cursor:
 - `BRAVE_API_KEY` (Brave Search MCP)
 
 Optional: add to `~/.zshrc` or use a keyring so Cursor inherits them.
+
+## Icons (Cursor + Neovim)
+
+- **Cursor:** Install extensions **Material Icon Theme** (PKief.material-icon-theme) and **Fluent Icons** (miguelsolorio.fluent-icons). Settings already set `workbench.iconTheme` and `workbench.productIconTheme` plus Material folder color.
+- **Neovim:** Devicons overrides in `~/.config/nvim/lua/plugins/devicons.lua`; terminal (Ghostty) must use a Nerd Font. Verify with `:NvimWebDeviconsHiTest`.

@@ -5,8 +5,8 @@
 # Theme: brand palette (full 16 ANSI in themes/sl1c3d-l4bs)
 theme = sl1c3d-l4bs
 
-# Font: Nerd Font for icons + Zellij rounded corners
-font-family = "JetBrainsMono Nerd Font"
+# Font: Nerd Font required for Neovim devicons (NvimTree, Telescope, etc.)
+font-family = "JetBrains Mono Nerd Font"
 font-size = 11
 
 # Colors (override if theme not loaded)

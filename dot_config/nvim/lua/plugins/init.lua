@@ -1,4 +1,6 @@
 return {
+  { import = "plugins.devicons" },
+
   {
     "stevearc/conform.nvim",
     -- event = 'BufWritePre', -- uncomment for format on save
