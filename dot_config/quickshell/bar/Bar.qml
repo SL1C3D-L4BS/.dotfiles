@@ -1137,27 +1137,91 @@ Scope {
                         onTriggered: if (hubCard.mprisPlayer) hubCard.mprisPlayer.positionChanged()
                     }
 
-                    // Chezmoi status process
+                    // ── Developer tab live data ───────────────────────────
                     property string chezmoiStatus: "—"
+                    property string cmBranch: "main"
+                    property string cmLastCommit: "—"
+                    property int    cmChangedCount: 0
+                    property var    runtimePills: []
+
                     Process {
                         id: chezmoiStatusProc
                         running: false
                         stdout: StdioCollector {
                             onStreamFinished: {
                                 const lines = text.trim().split("\n").filter(l => l.length > 0)
+                                hubCard.cmChangedCount = lines.length
                                 hubCard.chezmoiStatus = lines.length > 0 ? lines.length + " modified" : "clean"
                             }
                         }
                     }
-                    Connections {
-                        target: panelWindow
-                        function onHubOpenChanged() {
-                            if (panelWindow.hubOpen && hubCard.hubSection === 2) {
-                                chezmoiStatusProc.command = ["sh", "-c", "chezmoi status 2>/dev/null"]
-                                chezmoiStatusProc.running = true
+                    Process {
+                        id: cmBranchProc
+                        command: ["sh", "-c", "git -C $(chezmoi source-path 2>/dev/null) branch --show-current 2>/dev/null || echo 'main'"]
+                        running: false
+                        stdout: StdioCollector {
+                            onStreamFinished: hubCard.cmBranch = text.trim() || "main"
+                        }
+                    }
+                    Process {
+                        id: cmLastCommitProc
+                        command: ["sh", "-c", "git -C $(chezmoi source-path 2>/dev/null) log -1 --format='%h · %cr · %s' 2>/dev/null || echo '—'"]
+                        running: false
+                        stdout: StdioCollector {
+                            onStreamFinished: hubCard.cmLastCommit = text.trim() || "—"
+                        }
+                    }
+                    Process {
+                        id: runtimesProc
+                        command: ["sh", "-c", [
+                            "V=$(git --version 2>/dev/null | grep -oP '[\\d.]+' | head -1) && echo 'git:'$V",
+                            "V=$(nvim --version 2>/dev/null | head -1 | grep -oP '[\\d.]+' | head -1) && echo 'nvim:'$V",
+                            "V=$(python3 --version 2>/dev/null | awk '{print $2}') && echo 'python:'$V",
+                            "V=$(node --version 2>/dev/null | tr -d v) && echo 'node:'$V",
+                            "V=$(rustc --version 2>/dev/null | awk '{print $2}') && echo 'rust:'$V",
+                            "V=$(go version 2>/dev/null | awk '{print $3}' | tr -d go) && echo 'go:'$V",
+                            "true"
+                        ].join("; ")]
+                        running: false
+                        stdout: StdioCollector {
+                            onStreamFinished: {
+                                const colorMap = {
+                                    git:    { bg: "#0d1a0d", border: "#3d6b3d", color: "#73c991", icon: "" },
+                                    nvim:   { bg: "#091a2a", border: "#1a6b4a", color: "#57c7a5", icon: "" },
+                                    python: { bg: "#0a1020", border: "#254f7f", color: "#5fa8d3", icon: "" },
+                                    node:   { bg: "#0a1a0a", border: "#2d5a2d", color: "#68a063", icon: "" },
+                                    rust:   { bg: "#1a0a08", border: "#6b2820", color: "#ce4c2b", icon: "" },
+                                    go:     { bg: "#081520", border: "#00576f", color: "#00acd7", icon: "" }
+                                }
+                                const pills = []
+                                text.trim().split("\n").forEach(function(line) {
+                                    const parts = line.split(":")
+                                    if (parts.length < 2 || !parts[1].trim()) return
+                                    const name = parts[0].trim()
+                                    const ver  = parts[1].trim()
+                                    const c = colorMap[name] || { bg: "#1a1a1a", border: "#444", color: "#f8f8f2", icon: "▸" }
+                                    pills.push({ name, ver, ...c })
+                                })
+                                hubCard.runtimePills = pills
                             }
                         }
                     }
+
+                    // Trigger dev-tab data refresh whenever section 2 becomes active
+                    function refreshDevTab() {
+                        chezmoiStatusProc.command = ["sh", "-c", "chezmoi status 2>/dev/null"]
+                        chezmoiStatusProc.running = true
+                        cmBranchProc.running      = true
+                        cmLastCommitProc.running  = true
+                        runtimesProc.running      = true
+                    }
+                    Connections {
+                        target: panelWindow
+                        function onHubOpenChanged() {
+                            if (panelWindow.hubOpen && hubCard.hubSection === 2) hubCard.refreshDevTab()
+                        }
+                    }
+                    onHubSectionChanged: { if (hubSection === 2) refreshDevTab() }
 
                     MouseArea { anchors.fill: parent; onClicked: { } }
 
@@ -1669,99 +1733,407 @@ Scope {
 
                                     // ─── 2 · DEVELOPER ───────────────────────
                                     Flickable {
+                                        id: devFlickable
                                         anchors.fill: parent; contentHeight: devCol.implicitHeight; clip: true
                                         opacity: hubCard.hubSection === 2 ? 1 : 0
                                         visible: opacity > 0
                                         Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
 
                                         Column {
-                                            id: devCol; width: parent.width; spacing: 12
+                                            id: devCol; width: parent.width; spacing: 10
 
-                                            // Chezmoi status
-                                            Row {
-                                                spacing: 6
-                                                Text { text: "dotfiles"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0; anchors.verticalCenter: parent.verticalCenter }
-                                                Rectangle {
-                                                    height: 16; width: statusTxt.width + 10; radius: 8
-                                                    color: hubCard.chezmoiStatus === "clean" ? "#1a3a1a" : "#3a1a10"
-                                                    border.width: 1; border.color: hubCard.chezmoiStatus === "clean" ? root.theme.accentGreen : root.theme.accentOrange
-                                                    Text { id: statusTxt; anchors.centerIn: parent; text: hubCard.chezmoiStatus; color: hubCard.chezmoiStatus === "clean" ? root.theme.accentGreen : root.theme.accentOrange; font.pixelSize: 9; font.family: root.theme.fontFamily }
+                                            // ── DOTFILES CARD ─────────────────────────────
+                                            Rectangle {
+                                                width: devCol.width
+                                                height: dotfilesInner.implicitHeight + 22
+                                                radius: 10
+                                                color: root.theme.bgBase
+                                                border.width: 1
+                                                border.color: hubCard.cmChangedCount > 0 ? root.theme.accentOrange : root.theme.accentGreen
+                                                Behavior on border.color { ColorAnimation { duration: 400 } }
+
+                                                // Pulsing dirty border
+                                                SequentialAnimation on opacity {
+                                                    loops: Animation.Infinite
+                                                    running: hubCard.cmChangedCount > 0
+                                                    NumberAnimation { to: 0.65; duration: 1200; easing.type: Easing.InOutSine }
+                                                    NumberAnimation { to: 1.0;  duration: 1200; easing.type: Easing.InOutSine }
                                                 }
-                                                MouseArea {
-                                                    width: 20; height: 20; cursorShape: Qt.PointingHandCursor; hoverEnabled: true
-                                                    onClicked: { chezmoiStatusProc.command = ["sh", "-c", "chezmoi status 2>/dev/null"]; chezmoiStatusProc.running = true }
-                                                    Text { anchors.centerIn: parent; text: "↻"; color: root.theme.textMuted; font.pixelSize: 13 }
-                                                }
-                                            }
 
-                                            Text { text: "WORKSPACE PATHS"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+                                                Column {
+                                                    id: dotfilesInner
+                                                    anchors { fill: parent; margins: 12 }
+                                                    spacing: 8
 
-                                            Repeater {
-                                                model: [
-                                                    { path: "~/dev",                      label: "~/dev",       icon: "folder-open",    git: true  },
-                                                    { path: "~/.config",                  label: "~/.config",   icon: "gear",           git: false },
-                                                    { path: "~/.local/share/chezmoi",     label: "dotfiles",    icon: "git-branch",     git: true  },
-                                                    { path: "~/scripts",                  label: "~/scripts",   icon: "terminal-window",git: false },
-                                                    { path: "~/assets",                   label: "~/assets",    icon: "images-square",  git: false }
-                                                ]
-                                                delegate: Rectangle {
-                                                    required property var modelData
-                                                    width: devCol.width; height: 42; radius: root.theme.radiusPill
-                                                    color: root.theme.bgBase; border.width: 1; border.color: root.theme.border
-                                                    property string rp: modelData.path.replace("~", hubCard.home)
+                                                    // Branch + status row
                                                     Row {
-                                                        anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
-                                                        spacing: 8
-                                                        Image { width: 14; height: 14; source: root.phosphorDir + "/" + modelData.icon + ".svg"; fillMode: Image.PreserveAspectFit; anchors.verticalCenter: parent.verticalCenter }
-                                                        Text { text: modelData.label; color: root.theme.textSecondary; font.pixelSize: 10; font.family: root.theme.fontFamily; anchors.verticalCenter: parent.verticalCenter; width: 80; elide: Text.ElideRight }
-                                                        Item { width: devCol.width - 10 - 14 - 8 - 80 - 8 - 52 - 6 - 60 - (modelData.git ? 6+52 : 0) - 10; height: 1 }
-                                                        // Yazi
-                                                        Rectangle {
-                                                            width: 52; height: 26; radius: 6
-                                                            color: yaziMa2.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
-                                                            border.width: 1; border.color: root.theme.border
+                                                        width: parent.width; spacing: 6
+                                                        Image {
+                                                            source: root.phosphorDir + "/git-branch.svg"
+                                                            width: 13; height: 13; fillMode: Image.PreserveAspectFit; smooth: true
                                                             anchors.verticalCenter: parent.verticalCenter
-                                                            MouseArea { id: yaziMa2; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { hubLauncher.command = ["ghostty", "-e", "yazi", parent.parent.parent.rp]; hubLauncher.running = true; panelWindow.hubOpen = false } }
-                                                            Text { anchors.centerIn: parent; text: "Yazi"; font.pixelSize: 10; font.family: root.theme.fontFamily; color: root.theme.textPrimary }
                                                         }
-                                                        // Term
-                                                        Rectangle {
-                                                            width: 60; height: 26; radius: 6
-                                                            color: termMa2.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
-                                                            border.width: 1; border.color: root.theme.border
+                                                        Text {
+                                                            text: hubCard.cmBranch
+                                                            color: root.theme.accentPrimary; font.pixelSize: 11; font.weight: Font.DemiBold; font.family: root.theme.fontFamily
                                                             anchors.verticalCenter: parent.verticalCenter
-                                                            MouseArea { id: termMa2; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { hubLauncher.command = ["ghostty", "-e", "bash", "-c", "cd " + parent.parent.parent.rp + " && exec ~/.config/hypr/scripts/zellij-branded.sh"]; hubLauncher.running = true; panelWindow.hubOpen = false } }
-                                                            Text { anchors.centerIn: parent; text: "Term"; font.pixelSize: 10; font.family: root.theme.fontFamily; color: root.theme.textPrimary }
                                                         }
-                                                        // Lazygit (git paths only)
+                                                        Item { width: 1; height: 1; Layout.fillWidth: true
+                                                               // spacer trick: make it stretch
+                                                               Component.onCompleted: { }
+                                                        }
+                                                        // Status badge
                                                         Rectangle {
-                                                            visible: modelData.git
-                                                            width: 52; height: 26; radius: 6
-                                                            color: gitMa2.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
-                                                            border.width: 1; border.color: root.theme.border
+                                                            id: dfStatusBadge
                                                             anchors.verticalCenter: parent.verticalCenter
-                                                            MouseArea { id: gitMa2; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { hubLauncher.command = ["ghostty", "-e", "bash", "-c", "cd " + parent.parent.parent.rp + " && lazygit"]; hubLauncher.running = true; panelWindow.hubOpen = false } }
-                                                            Text { anchors.centerIn: parent; text: "Git"; font.pixelSize: 10; font.family: root.theme.fontFamily; color: root.theme.accentGreen }
+                                                            height: 18; width: dfStatusTxt.width + 12; radius: 9
+                                                            color: hubCard.cmChangedCount > 0 ? "#2a1200" : "#0d2210"
+                                                            border.width: 1
+                                                            border.color: hubCard.cmChangedCount > 0 ? root.theme.accentOrange : root.theme.accentGreen
+                                                            Text {
+                                                                id: dfStatusTxt; anchors.centerIn: parent
+                                                                text: hubCard.cmChangedCount > 0 ? ("⚡ " + hubCard.cmChangedCount + " pending") : "✓ clean"
+                                                                color: hubCard.cmChangedCount > 0 ? root.theme.accentOrange : root.theme.accentGreen
+                                                                font.pixelSize: 9; font.family: root.theme.fontFamily
+                                                            }
+                                                        }
+                                                        // Refresh button
+                                                        MouseArea {
+                                                            id: dfRefreshBtn; width: 22; height: 22
+                                                            cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                            anchors.verticalCenter: parent.verticalCenter
+                                                            onClicked: hubCard.refreshDevTab()
+                                                            scale: containsMouse ? (pressed ? 0.88 : 1.12) : 1.0
+                                                            Behavior on scale { SpringAnimation { spring: 3.0; damping: 0.6 } }
+                                                            Text {
+                                                                anchors.centerIn: parent; text: "↻"
+                                                                color: dfRefreshBtn.containsMouse ? root.theme.accentPrimary : root.theme.textMuted
+                                                                font.pixelSize: 14
+                                                                Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                            }
+                                                        }
+                                                    }
+
+                                                    // Last commit line
+                                                    Text {
+                                                        width: parent.width
+                                                        text: hubCard.cmLastCommit
+                                                        color: root.theme.textMuted; font.pixelSize: 9
+                                                        font.family: root.theme.fontFamily
+                                                        elide: Text.ElideRight
+                                                    }
+
+                                                    // Action pills
+                                                    Row {
+                                                        spacing: 6
+                                                        Repeater {
+                                                            model: [
+                                                                { label: "Apply",  accent: root.theme.accentPrimary, cmd: ["ghostty", "-e", "bash", "-lc", "chezmoi apply && echo '\\n✓ applied'; read"] },
+                                                                { label: "Push",   accent: root.theme.accentGreen,   cmd: ["sh", "-c", "cd $(chezmoi source-path 2>/dev/null) && git add -A && git commit -m 'chore: sync' --allow-empty 2>/dev/null; git push 2>&1 | head -4 | notify-send -u low 'Dotfiles' 'Pushed to remote'"] },
+                                                                { label: "Status", accent: root.theme.accentOrange,  cmd: ["ghostty", "-e", "bash", "-lc", "chezmoi status; echo; read"] }
+                                                            ]
+                                                            delegate: MouseArea {
+                                                                required property var modelData
+                                                                width: 64; height: 26
+                                                                cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                                scale: containsMouse ? (pressed ? 0.92 : 1.05) : 1.0
+                                                                Behavior on scale { SpringAnimation { spring: 2.8; damping: 0.65 } }
+                                                                onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                                Rectangle {
+                                                                    anchors.fill: parent; radius: root.theme.radiusPill
+                                                                    color: parent.containsMouse ? Qt.rgba(0,0,0,0.4) : root.theme.bgBase
+                                                                    border.width: 1
+                                                                    border.color: parent.containsMouse ? modelData.accent : root.theme.border
+                                                                    Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                                }
+                                                                Text {
+                                                                    anchors.centerIn: parent; text: modelData.label
+                                                                    color: parent.containsMouse ? modelData.accent : root.theme.textSecondary
+                                                                    font.pixelSize: 10; font.family: root.theme.fontFamily
+                                                                    Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
                                             }
 
-                                            Text { text: "CONFIG EDITORS"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
-                                            Repeater {
-                                                model: [
-                                                    { label: "Hyprland config", sub: "~/.config/hypr", icon: "gear",          cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/hypr"] },
-                                                    { label: "Quickshell bar",  sub: "bar/Bar.qml",    icon: "squares-four",  cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/quickshell/bar/Bar.qml"] },
-                                                    { label: "Zellij config",   sub: "config.kdl",     icon: "terminal-window",cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/zellij/config.kdl"] },
-                                                    { label: "Chezmoi apply",   sub: "Sync dotfiles",  icon: "arrow-clockwise",cmd: ["ghostty", "-e", "bash", "-lc", "chezmoi apply && echo done; read"] }
-                                                ]
-                                                delegate: HubActionRow {
-                                                    required property var modelData
-                                                    width: devCol.width; theme: root.theme; phosphorDir: root.phosphorDir
-                                                    labelText: modelData.label; subText: modelData.sub; iconName: modelData.icon
-                                                    onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                            // ── DEV TIMER CARD (conditional) ──────────────
+                                            Rectangle {
+                                                width: devCol.width; height: visible ? 44 : 0
+                                                visible: root.devTimerSecsLeft > 0
+                                                radius: 10; color: root.theme.bgBase
+                                                border.width: 1; border.color: root.theme.accentPrimary
+                                                Behavior on height { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+
+                                                Row {
+                                                    anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
+                                                    spacing: 10
+
+                                                    // Timer icon (pulsing)
+                                                    Text {
+                                                        anchors.verticalCenter: parent.verticalCenter
+                                                        text: "⏱"; font.pixelSize: 14
+                                                        SequentialAnimation on opacity {
+                                                            loops: Animation.Infinite
+                                                            running: root.devTimerSecsLeft > 0
+                                                            NumberAnimation { to: 0.4; duration: 800 }
+                                                            NumberAnimation { to: 1.0; duration: 800 }
+                                                        }
+                                                    }
+
+                                                    Column {
+                                                        anchors.verticalCenter: parent.verticalCenter; spacing: 1
+                                                        Text {
+                                                            text: root.devTimerLabel || "Dev Timer"
+                                                            color: root.theme.textPrimary; font.pixelSize: 10; font.weight: Font.DemiBold; font.family: root.theme.fontFamily
+                                                        }
+                                                        Text {
+                                                            text: {
+                                                                const s = root.devTimerSecsLeft
+                                                                if (s <= 0) return "—"
+                                                                const h = Math.floor(s / 3600)
+                                                                const m = Math.floor((s % 3600) / 60)
+                                                                const sec = s % 60
+                                                                return (h > 0 ? h + "h " : "") + String(m).padStart(2,"0") + "m " + String(sec).padStart(2,"0") + "s"
+                                                            }
+                                                            color: root.devTimerSecsLeft < 300 ? root.theme.accentRed : root.theme.accentPrimary
+                                                            font.pixelSize: 10; font.family: root.theme.fontFamily
+                                                            Behavior on color { ColorAnimation { duration: 500 } }
+                                                        }
+                                                    }
+
+                                                    Item { width: parent.width - 14 - 10 - 120 - 10 - 60; height: 1 }
+
+                                                    // Progress bar
+                                                    Item {
+                                                        width: 60; height: 4; anchors.verticalCenter: parent.verticalCenter
+                                                        Rectangle { anchors.fill: parent; radius: 2; color: root.theme.border }
+                                                        Rectangle {
+                                                            height: parent.height; radius: 2
+                                                            width: root.devTimerTotal > 0 ? parent.width * (root.devTimerSecsLeft / root.devTimerTotal) : 0
+                                                            color: root.devTimerSecsLeft < 300 ? root.theme.accentRed : root.theme.accentPrimary
+                                                            Behavior on width { NumberAnimation { duration: 1000 } }
+                                                        }
+                                                    }
                                                 }
                                             }
+
+                                            // ── ENVIRONMENT ───────────────────────────────
+                                            Row {
+                                                width: parent.width; height: 20
+                                                Text { text: "ENVIRONMENT"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0; anchors.verticalCenter: parent.verticalCenter }
+                                            }
+                                            Flow {
+                                                width: parent.width; spacing: 5
+                                                Repeater {
+                                                    model: hubCard.runtimePills
+                                                    delegate: Rectangle {
+                                                        required property var modelData
+                                                        height: 20; radius: 10; width: rtTxt.width + 16
+                                                        color: modelData.bg || root.theme.bgBase
+                                                        border.width: 1; border.color: modelData.border || root.theme.border
+                                                        Text {
+                                                            id: rtTxt; anchors.centerIn: parent
+                                                            text: (modelData.icon || "") + " " + modelData.name + " " + modelData.ver
+                                                            color: modelData.color || root.theme.textPrimary
+                                                            font.pixelSize: 9; font.family: root.theme.fontFamily
+                                                        }
+                                                    }
+                                                }
+                                                Text {
+                                                    visible: hubCard.runtimePills.length === 0
+                                                    text: "detecting runtimes…"
+                                                    color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily
+                                                }
+                                            }
+
+                                            // ── WORKSPACES ────────────────────────────────
+                                            Row {
+                                                width: parent.width; height: 20
+                                                Text { text: "WORKSPACES"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0; anchors.verticalCenter: parent.verticalCenter }
+                                            }
+                                            Repeater {
+                                                model: [
+                                                    { path: "~/dev",                  label: "dev",       sub: "~/dev",                  icon: "folder-open",     git: true,  iconBg: "#0f1135", accent: "#5865F2" },
+                                                    { path: "~/.config",              label: ".config",   sub: "~/.config",              icon: "gear",            git: false, iconBg: "#251a00", accent: "#ffb86c" },
+                                                    { path: "~/.local/share/chezmoi", label: "dotfiles",  sub: "chezmoi source",         icon: "git-branch",      git: true,  iconBg: "#0d2210", accent: "#50fa7b" },
+                                                    { path: "~/scripts",              label: "scripts",   sub: "~/scripts",              icon: "terminal-window", git: false, iconBg: "#1a0820", accent: "#b366ff" },
+                                                    { path: "~/assets",               label: "assets",    sub: "~/assets",               icon: "images-square",   git: false, iconBg: "#1a1015", accent: "#ff79c6" }
+                                                ]
+                                                delegate: Rectangle {
+                                                    id: wsDelegate
+                                                    required property var modelData
+                                                    required property int index
+                                                    width: devCol.width; height: 54; radius: 10
+                                                    property string rp: wsDelegate.modelData.path.replace("~", hubCard.home)
+                                                    color: wsMa.containsMouse ? Qt.rgba(0.05,0.05,0.08,1.0) : root.theme.bgBase
+                                                    border.width: 1
+                                                    border.color: wsMa.containsMouse ? wsDelegate.modelData.accent : root.theme.border
+                                                    scale: wsMa.containsMouse ? 1.008 : 1.0
+                                                    Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                    Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                    Behavior on scale        { SpringAnimation { spring: 3.0; damping: 0.7 } }
+
+                                                    // Entry fade-in with stagger
+                                                    opacity: 0
+                                                    y: 8
+                                                    NumberAnimation on opacity {
+                                                        from: 0; to: 1; duration: 220 + wsDelegate.index * 45
+                                                        easing.type: Easing.OutCubic; running: devFlickable.visible
+                                                    }
+                                                    NumberAnimation on y {
+                                                        from: 8; to: 0; duration: 220 + wsDelegate.index * 45
+                                                        easing.type: Easing.OutCubic; running: devFlickable.visible
+                                                    }
+
+                                                    Row {
+                                                        anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
+                                                        spacing: 10
+
+                                                        // Icon backdrop
+                                                        Rectangle {
+                                                            width: 34; height: 34; radius: 8
+                                                            color: wsDelegate.modelData.iconBg
+                                                            border.width: 1; border.color: Qt.rgba(1,1,1,0.06)
+                                                            anchors.verticalCenter: parent.verticalCenter
+                                                            Image {
+                                                                anchors.centerIn: parent
+                                                                source: root.phosphorDir + "/" + wsDelegate.modelData.icon + ".svg"
+                                                                width: 16; height: 16; fillMode: Image.PreserveAspectFit; smooth: true
+                                                            }
+                                                        }
+
+                                                        // Label + subpath
+                                                        Column {
+                                                            anchors.verticalCenter: parent.verticalCenter; spacing: 2
+                                                            width: devCol.width - 10 - 34 - 10 - (wsDelegate.modelData.git ? 3*28+2*5 : 2*28+5) - 10
+                                                            Text { text: wsDelegate.modelData.label; color: root.theme.textPrimary; font.pixelSize: 11; font.weight: Font.DemiBold; font.family: root.theme.fontFamily; elide: Text.ElideRight; width: parent.width }
+                                                            Text { text: wsDelegate.modelData.sub;   color: root.theme.textMuted;  font.pixelSize: 9;  font.family: root.theme.fontFamily;  elide: Text.ElideRight; width: parent.width }
+                                                        }
+
+                                                        // Action icon buttons
+                                                        Row {
+                                                            spacing: 5; anchors.verticalCenter: parent.verticalCenter
+                                                            Repeater {
+                                                                model: wsDelegate.modelData.git
+                                                                    ? [ { i: "folder-open",     c: ["ghostty", "-e", "yazi",    wsDelegate.rp] },
+                                                                        { i: "terminal-window", c: ["ghostty", "-e", "bash", "-c", "cd " + wsDelegate.rp + " && exec ~/.config/hypr/scripts/zellij-branded.sh 2>/dev/null || exec zsh"] },
+                                                                        { i: "git-branch",      c: ["ghostty", "-e", "bash", "-c", "cd " + wsDelegate.rp + " && lazygit"] } ]
+                                                                    : [ { i: "folder-open",     c: ["ghostty", "-e", "yazi",    wsDelegate.rp] },
+                                                                        { i: "terminal-window", c: ["ghostty", "-e", "bash", "-c", "cd " + wsDelegate.rp + " && exec ~/.config/hypr/scripts/zellij-branded.sh 2>/dev/null || exec zsh"] } ]
+                                                                delegate: MouseArea {
+                                                                    required property var modelData
+                                                                    width: 28; height: 28; cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                                    scale: containsMouse ? (pressed ? 0.85 : 1.1) : 1.0
+                                                                    Behavior on scale { SpringAnimation { spring: 3.2; damping: 0.6 } }
+                                                                    onClicked: { hubLauncher.command = modelData.c; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                                    Rectangle {
+                                                                        anchors.fill: parent; radius: 7
+                                                                        color: parent.containsMouse ? root.theme.accentDim2 : "#00000000"
+                                                                        border.width: 1; border.color: parent.containsMouse ? wsDelegate.modelData.accent : root.theme.border
+                                                                        Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                                        Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                                    }
+                                                                    Image {
+                                                                        anchors.centerIn: parent
+                                                                        source: root.phosphorDir + "/" + modelData.i + ".svg"
+                                                                        width: 13; height: 13; fillMode: Image.PreserveAspectFit; smooth: true
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    MouseArea { id: wsMa; anchors.fill: parent; hoverEnabled: true; acceptedButtons: Qt.NoButton }
+                                                }
+                                            }
+
+                                            // ── CONFIG EDITORS ────────────────────────────
+                                            Row {
+                                                width: parent.width; height: 20
+                                                Text { text: "CONFIG EDITORS"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0; anchors.verticalCenter: parent.verticalCenter }
+                                            }
+                                            Repeater {
+                                                model: [
+                                                    { label: "Zsh",              sub: "~/.zshrc",                      icon: "terminal-window", accent: "#b366ff", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.zshrc"] },
+                                                    { label: "Hyprland",         sub: "~/.config/hypr/",               icon: "gear",            accent: "#5865F2", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/hypr"] },
+                                                    { label: "Quickshell",       sub: "bar/Bar.qml",                   icon: "squares-four",    accent: "#5865F2", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/quickshell/bar/Bar.qml"] },
+                                                    { label: "Zellij",           sub: "config.kdl",                    icon: "terminal-window", accent: "#ffb86c", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/zellij/config.kdl"] },
+                                                    { label: "Starship",         sub: "starship.toml",                 icon: "sparkle",         accent: "#ff79c6", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/starship.toml"] },
+                                                    { label: "Neovim",           sub: "~/.config/nvim/",               icon: "file-code",       accent: "#50fa7b", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/nvim"] },
+                                                    { label: "Chezmoi apply",    sub: "Sync & apply dotfiles",         icon: "arrow-clockwise", accent: "#5865F2", cmd: ["ghostty", "-e", "bash", "-lc", "chezmoi apply && echo '\\n✓ Done'; read"] }
+                                                ]
+                                                delegate: MouseArea {
+                                                    id: cfgDelegate
+                                                    required property var modelData
+                                                    required property int index
+                                                    width: devCol.width; height: 44
+                                                    cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                    scale: containsMouse ? (pressed ? 0.98 : 1.005) : 1.0
+                                                    Behavior on scale { SpringAnimation { spring: 3.0; damping: 0.7 } }
+                                                    onClicked: { hubLauncher.command = modelData.cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+
+                                                    // Staggered fade-in
+                                                    opacity: 0
+                                                    NumberAnimation on opacity {
+                                                        from: 0; to: 1; duration: 250 + cfgDelegate.index * 40
+                                                        easing.type: Easing.OutCubic; running: devFlickable.visible
+                                                    }
+
+                                                    Rectangle {
+                                                        anchors.fill: parent; radius: 10
+                                                        color: cfgDelegate.containsMouse ? Qt.rgba(0.05,0.05,0.1,1) : root.theme.bgBase
+                                                        border.width: 1
+                                                        border.color: cfgDelegate.containsMouse ? cfgDelegate.modelData.accent : root.theme.border
+                                                        Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                        Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+
+                                                        Row {
+                                                            anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
+                                                            spacing: 10
+
+                                                            // Colored icon pill
+                                                            Rectangle {
+                                                                width: 28; height: 28; radius: 7; anchors.verticalCenter: parent.verticalCenter
+                                                                color: Qt.rgba(0.08, 0.08, 0.15, 1)
+                                                                border.width: 1; border.color: cfgDelegate.containsMouse ? cfgDelegate.modelData.accent : Qt.rgba(1,1,1,0.08)
+                                                                Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                                Image {
+                                                                    anchors.centerIn: parent
+                                                                    source: root.phosphorDir + "/" + cfgDelegate.modelData.icon + ".svg"
+                                                                    width: 13; height: 13; fillMode: Image.PreserveAspectFit; smooth: true
+                                                                }
+                                                            }
+
+                                                            // Label + sub
+                                                            Column {
+                                                                anchors.verticalCenter: parent.verticalCenter; spacing: 1
+                                                                width: devCol.width - 10 - 28 - 10 - 16 - 10 - 10
+                                                                Text {
+                                                                    text: cfgDelegate.modelData.label
+                                                                    color: cfgDelegate.containsMouse ? cfgDelegate.modelData.accent : root.theme.textPrimary
+                                                                    font.pixelSize: 11; font.weight: Font.DemiBold; font.family: root.theme.fontFamily
+                                                                    Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                                }
+                                                                Text {
+                                                                    text: cfgDelegate.modelData.sub
+                                                                    color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily
+                                                                    elide: Text.ElideRight; width: parent.width
+                                                                }
+                                                            }
+
+                                                            // Arrow chevron
+                                                            Text {
+                                                                anchors.verticalCenter: parent.verticalCenter
+                                                                text: "›"; font.pixelSize: 18; font.family: root.theme.fontFamily
+                                                                color: cfgDelegate.containsMouse ? cfgDelegate.modelData.accent : root.theme.textMuted
+                                                                Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            Item { height: 4 }
                                         }
                                     }
 
