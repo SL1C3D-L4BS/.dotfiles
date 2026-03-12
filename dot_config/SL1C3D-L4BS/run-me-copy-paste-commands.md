@@ -2,6 +2,8 @@
 
 Scripts under `~/scripts`, `~/.config/hypr/scripts`, and `~/.config/SL1C3D-L4BS/system-config/` are now executable. Run the following in order.
 
+**On boot:** OpenClaw gateway starts via Hyprland `exec-once` (full path `~/.openclaw/bin/openclaw gateway start`) and/or systemd user service `openclaw-gateway.service` (enabled). Bar, mako, hypridle, waypaper, quickshell start from `autostart.conf`.
+
 ---
 
 ## 1. Sync dotfiles (resolve chezmoi prompt)
