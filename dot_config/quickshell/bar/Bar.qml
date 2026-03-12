@@ -1549,7 +1549,7 @@ Scope {
                                                         { label: "Files",     icon: "folder-open",     cmd: ["ghostty", "-e", "yazi"] },
                                                         { label: "Editor",    icon: "file-code",       cmd: ["ghostty", "-e", "nvim"] },
                                                         { label: "Monitor",   icon: "cpu",             cmd: ["ghostty", "-e", "btop"] },
-                                                        { label: "Music",     icon: "music-notes",     cmd: ["spotube"] },
+                                                        { label: "Music",     icon: "music-notes",     cmd: ["bash", "-c", hubCard.home + "/.config/hypr/scripts/spotifyd-toggle.sh"] },
                                                         { label: "AI",        icon: "cursor",          cmd: [hubCard.home + "/.config/hypr/scripts/openclaw-sidebar.sh"] }
                                                     ]
                                                     delegate: MouseArea {
@@ -1588,75 +1588,136 @@ Scope {
                                         Column {
                                             id: mediaCol; width: parent.width; spacing: 14
 
-                                            // Header row: MEDIA PLAYER label + Spotube launch pill
+                                            // ── spotifyd daemon status + controls ─────────
+                                            property bool spotifydRunning: false
+                                            Process {
+                                                id: spotifydStatusProc
+                                                command: ["sh", "-c", "systemctl --user is-active spotifyd 2>/dev/null"]
+                                                running: true
+                                                stdout: StdioCollector {
+                                                    onStreamFinished: mediaCol.spotifydRunning = text.trim() === "active"
+                                                }
+                                            }
+                                            Timer {
+                                                interval: 4000; repeat: true; running: hubCard.hubSection === 1
+                                                onTriggered: spotifydStatusProc.running = true
+                                            }
+
+                                            // Header: MEDIA PLAYER + live daemon pill
                                             Item {
-                                                width: parent.width; height: 20
+                                                width: parent.width; height: 22
                                                 Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: "MEDIA PLAYER"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
-                                                MouseArea {
-                                                    id: spotubeHeaderBtn
+                                                // Live daemon status pill
+                                                Rectangle {
                                                     anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                                                    width: spotubeHeaderRow.width + 14; height: 20
-                                                    cursorShape: Qt.PointingHandCursor; hoverEnabled: true
-                                                    scale: containsMouse ? (pressed ? 0.92 : 1.06) : 1.0
-                                                    Behavior on scale { SpringAnimation { spring: 2.8; damping: 0.65 } }
-                                                    onClicked: { hubLauncher.command = ["spotube"]; hubLauncher.running = true }
-                                                    Rectangle {
-                                                        anchors.fill: parent; radius: 10
-                                                        color: spotubeHeaderBtn.containsMouse ? "#1a1a3a" : root.theme.bgBase
-                                                        border.width: 1; border.color: spotubeHeaderBtn.containsMouse ? root.theme.logoPurple : root.theme.border
-                                                        Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
-                                                        Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
-                                                    }
+                                                    height: 18; width: daemonPillRow.width + 12; radius: 9
+                                                    color: mediaCol.spotifydRunning ? "#0d2210" : root.theme.bgBase
+                                                    border.width: 1
+                                                    border.color: mediaCol.spotifydRunning ? root.theme.accentGreen : root.theme.border
+                                                    Behavior on color        { ColorAnimation { duration: 400 } }
+                                                    Behavior on border.color { ColorAnimation { duration: 400 } }
                                                     Row {
-                                                        id: spotubeHeaderRow
+                                                        id: daemonPillRow
                                                         anchors.centerIn: parent; spacing: 5
-                                                        Image { source: root.phosphorDir + "/music-notes.svg"; width: 11; height: 11; fillMode: Image.PreserveAspectFit; smooth: true; anchors.verticalCenter: parent.verticalCenter }
-                                                        Text { text: "Spotube"; color: spotubeHeaderBtn.containsMouse ? root.theme.logoPurple : root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; anchors.verticalCenter: parent.verticalCenter; Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } } }
+                                                        Rectangle {
+                                                            width: 6; height: 6; radius: 3
+                                                            color: mediaCol.spotifydRunning ? root.theme.accentGreen : root.theme.textMuted
+                                                            anchors.verticalCenter: parent.verticalCenter
+                                                            Behavior on color { ColorAnimation { duration: 400 } }
+                                                            SequentialAnimation on opacity {
+                                                                loops: Animation.Infinite; running: mediaCol.spotifydRunning
+                                                                NumberAnimation { to: 0.3; duration: 900 }
+                                                                NumberAnimation { to: 1.0; duration: 900 }
+                                                            }
+                                                        }
+                                                        Text {
+                                                            text: mediaCol.spotifydRunning ? "spotifyd active" : "daemon stopped"
+                                                            color: mediaCol.spotifydRunning ? root.theme.accentGreen : root.theme.textMuted
+                                                            font.pixelSize: 9; font.family: root.theme.fontFamily
+                                                            Behavior on color { ColorAnimation { duration: 400 } }
+                                                        }
                                                     }
                                                 }
                                             }
 
-                                            // No-player state — branded Spotube launch card
+                                            // Daemon control card (always visible, above MPRIS panel)
                                             Rectangle {
-                                                visible: !hubCard.mprisPlayer
-                                                width: parent.width; height: 110; radius: 14
-                                                color: root.theme.bgBase; border.width: 1; border.color: root.theme.border
+                                                width: parent.width; height: 52; radius: 10
+                                                color: root.theme.bgBase; border.width: 1
+                                                border.color: mediaCol.spotifydRunning ? Qt.rgba(0.19,0.49,0.27,0.4) : Qt.rgba(1,1,1,0.07)
+                                                Behavior on border.color { ColorAnimation { duration: 400 } }
 
-                                                Column {
-                                                    anchors.centerIn: parent; spacing: 10
-                                                    Image {
-                                                        source: root.phosphorDir + "/music-notes.svg"
-                                                        width: 28; height: 28; fillMode: Image.PreserveAspectFit; smooth: true
-                                                        anchors.horizontalCenter: parent.horizontalCenter
-                                                        opacity: 0.5
-                                                    }
-                                                    Text {
-                                                        anchors.horizontalCenter: parent.horizontalCenter
-                                                        text: "No player active"
-                                                        color: root.theme.textMuted; font.pixelSize: 11; font.family: root.theme.fontFamily
-                                                    }
-                                                    // Launch Spotube pill
-                                                    MouseArea {
-                                                        id: spotubeEmptyBtn
-                                                        anchors.horizontalCenter: parent.horizontalCenter
-                                                        width: spotubeEmptyRow.width + 24; height: 30
-                                                        cursorShape: Qt.PointingHandCursor; hoverEnabled: true
-                                                        scale: containsMouse ? (pressed ? 0.93 : 1.05) : 1.0
-                                                        Behavior on scale { SpringAnimation { spring: 2.8; damping: 0.65 } }
-                                                        onClicked: { hubLauncher.command = ["spotube"]; hubLauncher.running = true }
-                                                        Rectangle {
-                                                            anchors.fill: parent; radius: 15
-                                                            color: spotubeEmptyBtn.containsMouse ? root.theme.logoPurple : Qt.rgba(0.18,0.13,0.26,1)
-                                                            Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                Item {
+                                                    anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
+
+                                                    // Left: icon + description
+                                                    Row {
+                                                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; spacing: 10
+                                                        Image { source: root.phosphorDir + "/music-notes.svg"; width: 18; height: 18; fillMode: Image.PreserveAspectFit; smooth: true; anchors.verticalCenter: parent.verticalCenter; opacity: mediaCol.spotifydRunning ? 1.0 : 0.4 }
+                                                        Column {
+                                                            anchors.verticalCenter: parent.verticalCenter; spacing: 1
+                                                            Text { text: "spotifyd"; color: root.theme.textPrimary; font.pixelSize: 11; font.weight: Font.DemiBold; font.family: root.theme.fontFamily }
+                                                            Text { text: mediaCol.spotifydRunning ? "Headless — open Spotify on any device to play" : "Start daemon to stream headlessly"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily }
                                                         }
-                                                        Row {
-                                                            id: spotubeEmptyRow
-                                                            anchors.centerIn: parent; spacing: 7
-                                                            Image { source: root.phosphorDir + "/music-notes.svg"; width: 13; height: 13; fillMode: Image.PreserveAspectFit; smooth: true; anchors.verticalCenter: parent.verticalCenter }
-                                                            Text { text: "Open Spotube"; color: root.theme.textPrimary; font.pixelSize: 11; font.weight: Font.Medium; font.family: root.theme.fontFamily; anchors.verticalCenter: parent.verticalCenter }
+                                                    }
+
+                                                    // Right: Start / Stop toggle button
+                                                    MouseArea {
+                                                        id: daemonToggleBtn
+                                                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                                                        width: daemonToggleTxt.width + 20; height: 28
+                                                        cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                        scale: containsMouse ? (pressed ? 0.91 : 1.06) : 1.0
+                                                        Behavior on scale { SpringAnimation { spring: 2.8; damping: 0.65 } }
+                                                        onClicked: {
+                                                            var action = mediaCol.spotifydRunning ? "stop" : "start"
+                                                            hubLauncher.command = ["bash", "-c", root.homeDir + "/.config/hypr/scripts/spotifyd-toggle.sh " + action]
+                                                            hubLauncher.running = true
+                                                            // Optimistic UI update
+                                                            mediaCol.spotifydRunning = !mediaCol.spotifydRunning
+                                                        }
+                                                        Rectangle {
+                                                            anchors.fill: parent; radius: root.theme.radiusPill
+                                                            color: daemonToggleBtn.containsMouse
+                                                                ? (mediaCol.spotifydRunning ? "#2a0a0a" : "#0a2210")
+                                                                : Qt.rgba(0.05,0.05,0.1,1)
+                                                            border.width: 1
+                                                            border.color: mediaCol.spotifydRunning
+                                                                ? (daemonToggleBtn.containsMouse ? root.theme.accentRed : Qt.rgba(0.8,0.2,0.2,0.5))
+                                                                : (daemonToggleBtn.containsMouse ? root.theme.accentGreen : Qt.rgba(0.2,0.8,0.3,0.4))
+                                                            Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                            Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                        }
+                                                        Text {
+                                                            id: daemonToggleTxt
+                                                            anchors.centerIn: parent
+                                                            text: mediaCol.spotifydRunning ? "Stop" : "Start"
+                                                            color: mediaCol.spotifydRunning
+                                                                ? (daemonToggleBtn.containsMouse ? root.theme.accentRed : root.theme.textSecondary)
+                                                                : (daemonToggleBtn.containsMouse ? root.theme.accentGreen : root.theme.textSecondary)
+                                                            font.pixelSize: 10; font.family: root.theme.fontFamily
+                                                            Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
                                                         }
                                                     }
                                                 }
+                                            }
+
+                                            // No MPRIS signal yet
+                                            Rectangle {
+                                                visible: !hubCard.mprisPlayer && mediaCol.spotifydRunning
+                                                width: parent.width; height: 44; radius: 10
+                                                color: root.theme.bgBase; border.width: 1; border.color: Qt.rgba(1,1,1,0.06)
+                                                Row {
+                                                    anchors { fill: parent; leftMargin: 12 }; spacing: 10
+                                                    Text { anchors.verticalCenter: parent.verticalCenter; text: "ℹ"; font.pixelSize: 14; color: root.theme.accentPrimary }
+                                                    Text { anchors.verticalCenter: parent.verticalCenter; text: "Open Spotify on your phone or desktop,\nselect \"SL1C3D-L4BS\" as the device."; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily }
+                                                }
+                                            }
+                                            Rectangle {
+                                                visible: !hubCard.mprisPlayer && !mediaCol.spotifydRunning
+                                                width: parent.width; height: 36; radius: 10
+                                                color: root.theme.bgBase; border.width: 1; border.color: Qt.rgba(1,1,1,0.06)
+                                                Text { anchors.centerIn: parent; text: "Start spotifyd, then play from the Spotify app"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily }
                                             }
 
                                             // Full MPRIS panel
