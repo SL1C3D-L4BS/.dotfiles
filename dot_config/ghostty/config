@@ -50,7 +50,6 @@ window-vsync = true
 # Cursor style
 cursor-style = bar
 cursor-style-blink = true
-cursor-blink-interval = 600
 
 # Shell integration
 shell-integration = zsh

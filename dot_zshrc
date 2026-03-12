@@ -62,7 +62,13 @@ if [[ -f ${ZDOTDIR:-$HOME}/.local/share/zinit/zinit.git/zinit.zsh ]]; then
   zinit ice wait lucid atload"_zsh_autosuggest_start"
   zinit light zsh-users/zsh-autosuggestions
 
-  zinit ice wait lucid
+  # Bind Up/Down inside atload so widgets exist before fast-syntax-highlighting wraps them
+  zinit ice wait lucid atload"
+    bindkey '^[[A' history-substring-search-up
+    bindkey '^[[B' history-substring-search-down
+    bindkey '^P'   history-substring-search-up
+    bindkey '^N'   history-substring-search-down
+  "
   zinit light zsh-users/zsh-history-substring-search
 
   zinit ice wait lucid
@@ -73,13 +79,12 @@ else
     && source /usr/share/zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
   [[ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]] \
     && source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+  # Fallback bindkeys for non-zinit path
+  bindkey '^[[A' history-substring-search-up   2>/dev/null || true
+  bindkey '^[[B' history-substring-search-down 2>/dev/null || true
+  bindkey '^P'   history-substring-search-up   2>/dev/null || true
+  bindkey '^N'   history-substring-search-down 2>/dev/null || true
 fi
-
-# History substring search keybinds (Up/Down)
-bindkey '^[[A' history-substring-search-up   2>/dev/null || true
-bindkey '^[[B' history-substring-search-down 2>/dev/null || true
-bindkey '^P'   history-substring-search-up   2>/dev/null || true
-bindkey '^N'   history-substring-search-down 2>/dev/null || true
 
 # ─── Autosuggestions: brand muted grey (#909090) ─────────────────────────────
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#909090'
