@@ -1549,7 +1549,7 @@ Scope {
                                                         { label: "Files",     icon: "folder-open",     cmd: ["ghostty", "-e", "yazi"] },
                                                         { label: "Editor",    icon: "file-code",       cmd: ["ghostty", "-e", "nvim"] },
                                                         { label: "Monitor",   icon: "cpu",             cmd: ["ghostty", "-e", "btop"] },
-                                                        { label: "Lazygit",   icon: "git-branch",      cmd: ["ghostty", "-e", "lazygit"] },
+                                                        { label: "Music",     icon: "music-notes",     cmd: ["spotube"] },
                                                         { label: "AI",        icon: "cursor",          cmd: [hubCard.home + "/.config/hypr/scripts/openclaw-sidebar.sh"] }
                                                     ]
                                                     delegate: MouseArea {
@@ -1588,13 +1588,75 @@ Scope {
                                         Column {
                                             id: mediaCol; width: parent.width; spacing: 14
 
-                                            Text { text: "MEDIA PLAYER"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+                                            // Header row: MEDIA PLAYER label + Spotube launch pill
+                                            Item {
+                                                width: parent.width; height: 20
+                                                Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: "MEDIA PLAYER"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
+                                                MouseArea {
+                                                    id: spotubeHeaderBtn
+                                                    anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                                                    width: spotubeHeaderRow.width + 14; height: 20
+                                                    cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                    scale: containsMouse ? (pressed ? 0.92 : 1.06) : 1.0
+                                                    Behavior on scale { SpringAnimation { spring: 2.8; damping: 0.65 } }
+                                                    onClicked: { hubLauncher.command = ["spotube"]; hubLauncher.running = true }
+                                                    Rectangle {
+                                                        anchors.fill: parent; radius: 10
+                                                        color: spotubeHeaderBtn.containsMouse ? "#1a1a3a" : root.theme.bgBase
+                                                        border.width: 1; border.color: spotubeHeaderBtn.containsMouse ? root.theme.logoPurple : root.theme.border
+                                                        Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                        Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                    }
+                                                    Row {
+                                                        id: spotubeHeaderRow
+                                                        anchors.centerIn: parent; spacing: 5
+                                                        Image { source: root.phosphorDir + "/music-notes.svg"; width: 11; height: 11; fillMode: Image.PreserveAspectFit; smooth: true; anchors.verticalCenter: parent.verticalCenter }
+                                                        Text { text: "Spotube"; color: spotubeHeaderBtn.containsMouse ? root.theme.logoPurple : root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; anchors.verticalCenter: parent.verticalCenter; Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } } }
+                                                    }
+                                                }
+                                            }
 
-                                            // No-player state
-                                            Text {
+                                            // No-player state — branded Spotube launch card
+                                            Rectangle {
                                                 visible: !hubCard.mprisPlayer
-                                                text: "No media player active"
-                                                color: root.theme.textMuted; font.pixelSize: 11; font.family: root.theme.fontFamily
+                                                width: parent.width; height: 110; radius: 14
+                                                color: root.theme.bgBase; border.width: 1; border.color: root.theme.border
+
+                                                Column {
+                                                    anchors.centerIn: parent; spacing: 10
+                                                    Image {
+                                                        source: root.phosphorDir + "/music-notes.svg"
+                                                        width: 28; height: 28; fillMode: Image.PreserveAspectFit; smooth: true
+                                                        anchors.horizontalCenter: parent.horizontalCenter
+                                                        opacity: 0.5
+                                                    }
+                                                    Text {
+                                                        anchors.horizontalCenter: parent.horizontalCenter
+                                                        text: "No player active"
+                                                        color: root.theme.textMuted; font.pixelSize: 11; font.family: root.theme.fontFamily
+                                                    }
+                                                    // Launch Spotube pill
+                                                    MouseArea {
+                                                        id: spotubeEmptyBtn
+                                                        anchors.horizontalCenter: parent.horizontalCenter
+                                                        width: spotubeEmptyRow.width + 24; height: 30
+                                                        cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                        scale: containsMouse ? (pressed ? 0.93 : 1.05) : 1.0
+                                                        Behavior on scale { SpringAnimation { spring: 2.8; damping: 0.65 } }
+                                                        onClicked: { hubLauncher.command = ["spotube"]; hubLauncher.running = true }
+                                                        Rectangle {
+                                                            anchors.fill: parent; radius: 15
+                                                            color: spotubeEmptyBtn.containsMouse ? root.theme.logoPurple : Qt.rgba(0.18,0.13,0.26,1)
+                                                            Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                        }
+                                                        Row {
+                                                            id: spotubeEmptyRow
+                                                            anchors.centerIn: parent; spacing: 7
+                                                            Image { source: root.phosphorDir + "/music-notes.svg"; width: 13; height: 13; fillMode: Image.PreserveAspectFit; smooth: true; anchors.verticalCenter: parent.verticalCenter }
+                                                            Text { text: "Open Spotube"; color: root.theme.textPrimary; font.pixelSize: 11; font.weight: Font.Medium; font.family: root.theme.fontFamily; anchors.verticalCenter: parent.verticalCenter }
+                                                        }
+                                                    }
+                                                }
                                             }
 
                                             // Full MPRIS panel
