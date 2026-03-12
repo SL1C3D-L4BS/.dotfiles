@@ -571,7 +571,7 @@ Scope {
                 anchor.rect.x: 0
                 anchor.rect.y: panelWindow.implicitHeight
                 implicitWidth: 300
-                implicitHeight: 360
+                implicitHeight: 460
                 visible: panelWindow.hubOpen
                 color: "transparent"
 
@@ -592,11 +592,19 @@ Scope {
 
                     property string home: (typeof Qt !== "undefined" && Qt.environment && typeof Qt.environment.value === "function" ? Qt.environment.value("HOME") : null) || "/home/the_architect"
 
-                    Column {
-                        id: hubColumn
+                    Flickable {
+                        id: hubFlick
                         anchors.fill: parent
                         anchors.margins: 14
-                        spacing: 0
+                        contentWidth: width
+                        contentHeight: hubColumn.implicitHeight
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+
+                        Column {
+                            id: hubColumn
+                            width: hubFlick.width
+                            spacing: 0
 
                         Row {
                             id: hubHeaderRow
@@ -725,6 +733,93 @@ Scope {
 
                         Item { height: 16 }
                         Text {
+                            text: "WALLPAPERS"
+                            color: root.theme.textMuted
+                            font.pixelSize: 9
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.letterSpacing: 0.8
+                        }
+                        Item { height: 6 }
+
+                        Repeater {
+                            model: [
+                                "sl1c3d-l4bs-01.png", "sl1c3d-l4bs-02.png", "sl1c3d-l4bs-03.png",
+                                "sl1c3d-l4bs-04.png", "sl1c3d-l4bs-05.png", "sl1c3d-l4bs-06.png",
+                                "sl1c3d-l4bs-07.png", "sl1c3d-l4bs-08.png", "sl1c3d-l4bs-09.png",
+                                "sl1c3d-l4bs-10.png", "sl1c3d-l4bs-11.png", "sl1c3d-l4bs-12.png",
+                                "sl1c3d-l4bs-13.png", "sl1c3d-l4bs-14.png", "sl1c3d-l4bs-15.png"
+                            ]
+                            Row {
+                                height: 26
+                                spacing: 0
+                                property string wpPath: hubColumn.parent.home + "/assets/wallpapers/" + modelData
+                                Text {
+                                    width: 140
+                                    text: modelData
+                                    color: root.theme.textSecondary
+                                    font.pixelSize: 10
+                                    font.family: "JetBrainsMono Nerd Font"
+                                    elide: Text.ElideMiddle
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                                Text {
+                                    text: "Set"
+                                    color: root.theme.accentPrimary
+                                    font.pixelSize: 10
+                                    font.family: "JetBrainsMono Nerd Font"
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        anchors.margins: -4
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            hubLauncher.command = ["waypaper", "--wallpaper", parent.parent.wpPath, "--fill", "fill", "--monitor", "All", "--backend", "swaybg"]
+                                            hubLauncher.running = true
+                                            panelWindow.hubOpen = false
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Row {
+                            height: 26
+                            spacing: 12
+                            Text {
+                                text: "Open folder"
+                                color: root.theme.logoPurple
+                                font.pixelSize: 10
+                                font.family: "JetBrainsMono Nerd Font"
+                                MouseArea {
+                                    anchors.fill: parent
+                                    anchors.margins: -4
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        hubLauncher.command = ["ghostty", "-e", "yazi", hubColumn.parent.home + "/assets/wallpapers"]
+                                        hubLauncher.running = true
+                                        panelWindow.hubOpen = false
+                                    }
+                                }
+                            }
+                            Text {
+                                text: "Waypaper GUI"
+                                color: root.theme.accentPrimary
+                                font.pixelSize: 10
+                                font.family: "JetBrainsMono Nerd Font"
+                                MouseArea {
+                                    anchors.fill: parent
+                                    anchors.margins: -4
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        hubLauncher.command = ["waypaper"]
+                                        hubLauncher.running = true
+                                        panelWindow.hubOpen = false
+                                    }
+                                }
+                            }
+                        }
+
+                        Item { height: 16 }
+                        Text {
                             text: "SYSTEM"
                             color: root.theme.textMuted
                             font.pixelSize: 9
@@ -786,6 +881,7 @@ Scope {
                                 }
                             }
                         }
+                    }
                     }
                 }
             }
