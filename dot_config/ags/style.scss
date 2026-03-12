@@ -1,0 +1,222 @@
+// https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/theme/Adwaita/_colors-public.scss
+$fg-color: #{"@theme_fg_color"};
+$bg-color: #{"@theme_bg_color"};
+
+@import "./sl1c3d-tokens.scss";
+
+// ─── QuickSettings panel ──────────────────────────────────────────────────────
+window.QuickSettings {
+  background: transparent;
+  color: $sl_fg;
+
+  > box.qs-panel {
+    background: $sl_surface_glass_strong;
+    border: 1px solid $sl_border_glass;
+    border-radius: $sl_radius_modal;
+    padding: $sl_spacing_lg;
+    margin: $sl_spacing_md;
+    margin-top: 56px;
+    min-width: 340px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+    gap: $sl_spacing_sm;
+  }
+}
+
+// ─── Header ───────────────────────────────────────────────────────────────────
+box.qs-header {
+  padding-bottom: $sl_spacing_sm;
+
+  label.qs-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: $sl_logo;
+  }
+
+  label.qs-time {
+    font-size: 11px;
+    color: $sl_fg_muted;
+    margin-top: 2px;
+  }
+
+  button.qs-close-btn {
+    background: transparent;
+    border: none;
+    color: $sl_fg_muted;
+    font-size: 18px;
+    min-width: 28px;
+    min-height: 28px;
+    border-radius: $sl_radius_pill;
+    transition: all $sl_motion_fast;
+
+    &:hover {
+      background: rgba(255, 85, 85, 0.18);
+      color: $sl_error;
+    }
+  }
+}
+
+// ─── Divider ─────────────────────────────────────────────────────────────────
+box.qs-divider {
+  background: $sl_border;
+  min-height: 1px;
+  margin: $sl_spacing_xs 0;
+  opacity: 0.6;
+}
+
+// ─── Quick action pills ───────────────────────────────────────────────────────
+box.qs-quick-actions {
+  gap: $sl_spacing_sm;
+  padding: $sl_spacing_xs 0;
+
+  button.qs-quick-btn {
+    background: rgba(88, 101, 242, 0.10);
+    border: 1px solid $sl_border;
+    border-radius: $sl_radius_pill;
+    padding: $sl_spacing_sm $sl_spacing_md;
+    min-width: 84px;
+    transition: all $sl_motion_fast;
+    color: $sl_fg_dim;
+
+    &:hover {
+      background: rgba(88, 101, 242, 0.22);
+      border-color: rgba(88, 101, 242, 0.5);
+      color: $sl_fg;
+    }
+
+    label.qs-quick-icon {
+      font-size: 18px;
+      color: $sl_accent;
+    }
+
+    label.qs-quick-label {
+      font-size: 10px;
+      color: $sl_fg_muted;
+      margin-top: 2px;
+    }
+  }
+}
+
+// ─── Data rows (volume, brightness, network, DND) ────────────────────────────
+box.qs-row {
+  gap: $sl_spacing_md;
+  padding: $sl_spacing_xs 0;
+  min-height: 48px;
+
+  label.qs-icon {
+    font-size: 20px;
+    color: $sl_accent;
+    min-width: 28px;
+  }
+
+  label.qs-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: $sl_fg;
+  }
+
+  label.qs-sublabel {
+    font-size: 11px;
+    color: $sl_fg_muted;
+    margin-top: 1px;
+  }
+
+  // Slider
+  slider.qs-slider {
+    min-height: 6px;
+    margin-top: 4px;
+
+    trough {
+      background: rgba(88, 101, 242, 0.18);
+      border-radius: 3px;
+      min-height: 6px;
+    }
+
+    highlight {
+      background: $sl_accent;
+      border-radius: 3px;
+    }
+
+    slider {
+      background: $sl_accent;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      min-width: 14px;
+      min-height: 14px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      transition: all $sl_motion_fast;
+
+      &:hover {
+        background: $sl_logo;
+        box-shadow: 0 2px 10px rgba(88, 101, 242, 0.5);
+      }
+    }
+  }
+
+  // Toggle switch
+  switch.qs-switch {
+    background: $sl_border_mid;
+    border-radius: 12px;
+    min-width: 44px;
+    min-height: 24px;
+    transition: background $sl_motion_base;
+
+    &:checked {
+      background: $sl_accent;
+    }
+
+    slider {
+      background: $sl_fg;
+      border-radius: 50%;
+      min-width: 18px;
+      min-height: 18px;
+      margin: 2px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  // Mute icon button
+  button.qs-icon-btn {
+    background: transparent;
+    border: none;
+    color: $sl_fg_muted;
+    font-size: 16px;
+    min-width: 28px;
+    min-height: 28px;
+    border-radius: $sl_radius_pill;
+    transition: all $sl_motion_fast;
+
+    &:hover {
+      background: rgba(88, 101, 242, 0.15);
+      color: $sl_accent;
+    }
+  }
+}
+
+// ─── Power row ────────────────────────────────────────────────────────────────
+box.qs-power-row {
+  gap: $sl_spacing_sm;
+  padding: $sl_spacing_xs 0;
+
+  button.qs-power-btn {
+    background: rgba(88, 101, 242, 0.08);
+    border: 1px solid $sl_border;
+    border-radius: $sl_radius_pill;
+    min-width: 48px;
+    min-height: 40px;
+    font-size: 18px;
+    color: $sl_fg_muted;
+    transition: all $sl_motion_fast;
+
+    &:hover {
+      background: rgba(88, 101, 242, 0.20);
+      border-color: rgba(88, 101, 242, 0.5);
+      color: $sl_accent;
+    }
+
+    &:last-child:hover {
+      background: rgba(255, 85, 85, 0.15);
+      border-color: rgba(255, 85, 85, 0.4);
+      color: $sl_error;
+    }
+  }
+}
