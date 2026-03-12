@@ -1309,11 +1309,15 @@ Scope {
                                                 Row {
                                                     anchors { fill: parent; margins: 10 }
                                                     spacing: 10
-                                                    Image {
+                                                    Rectangle {
                                                         width: 36; height: 36; radius: 6
-                                                        source: hubCard.mprisPlayer?.trackArtUrl ?? ""
-                                                        fillMode: Image.PreserveAspectCrop
+                                                        color: root.theme.bgBase; clip: true
                                                         anchors.verticalCenter: parent.verticalCenter
+                                                        Image {
+                                                            anchors.fill: parent
+                                                            source: hubCard.mprisPlayer?.trackArtUrl ?? ""
+                                                            fillMode: Image.PreserveAspectCrop
+                                                        }
                                                     }
                                                     Column {
                                                         width: parent.width - 36 - 10 - 80; anchors.verticalCenter: parent.verticalCenter; spacing: 1
