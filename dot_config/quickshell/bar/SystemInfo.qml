@@ -36,7 +36,7 @@ Singleton {
 
     Process {
         id: netProc
-        command: ["sh", "-c", "nmcli -t -f active,ssid dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2 || (nmcli -t -f state dev show 2>/dev/null | head -1 | grep -q 'connected' && echo 'Wired' || echo 'Disconnected')"]
+        command: ["sh", "-c", "{ nmcli -t -f active,ssid dev wifi 2>/dev/null | awk -F: '$1==\"yes\" {print ($2 ? $2 : \"Wi‑Fi\"); exit}'; nmcli -t -f TYPE connection show --active 2>/dev/null | grep -qE '802-3-ethernet|ethernet' && echo 'Ethernet'; nmcli -t -f DEVICE,STATE device 2>/dev/null | awk -F: '$2~/connected/ && $1!~/^wl/ {print \"Ethernet\"; exit}'; nmcli -t connection show --active 2>/dev/null | head -1 | cut -d: -f1; echo 'Disconnected'; } | grep -m1 ."]
         running: true
         stdout: StdioCollector {
             onStreamFinished: function() {
