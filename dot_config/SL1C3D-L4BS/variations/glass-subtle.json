@@ -1,0 +1,27 @@
+{
+  "name": "glass-subtle",
+  "ui": {
+    "glass": {
+      "opacity": 0.58,
+      "opacityStrong": 0.74,
+      "scrim": 0.35,
+      "borderAlpha": 0.22,
+      "blur": {
+        "size": 6,
+        "passes": 3,
+        "vibrancy": 0.12,
+        "ignoreAlpha": 0.25
+      }
+    },
+    "motion": {
+      "fastMs": 120,
+      "baseMs": 180,
+      "slowMs": 240
+    },
+    "radius": {
+      "pill": 8,
+      "modal": 12
+    }
+  }
+}
+

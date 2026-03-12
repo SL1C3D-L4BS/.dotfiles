@@ -1,0 +1,21 @@
+{
+  "name": "laptop",
+  "extends": "base",
+  "packages": {
+    "pacman": [
+      "brightnessctl"
+    ],
+    "aur": []
+  },
+  "services": {
+    "systemd_user_enable": [
+      "openclaw-gateway.service"
+    ]
+  },
+  "modules": {
+    "ai": true,
+    "bar": true,
+    "notifications": true,
+    "idle_lock": true
+  }
+}

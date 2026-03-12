@@ -6,20 +6,20 @@ base_url="http://127.0.0.1:18789/"
 cfg="$HOME/.openclaw/openclaw.json"
 
 read_token() {
-  if command -v jq >/dev/null 2>&1; then
-    jq -r '.gateway.auth.token // empty' "$cfg" 2>/dev/null || true
+  # Strict local-only secrets: never read tokens from synced dotfiles/config.
+  # Prefer env var, then a machine-local secret file.
+  if [ -n "${OPENCLAW_GATEWAY_TOKEN:-}" ]; then
+    printf '%s' "$OPENCLAW_GATEWAY_TOKEN"
     return 0
   fi
-  if command -v python3 >/dev/null 2>&1; then
-    python3 - "$cfg" <<'PY' 2>/dev/null || true
-import json, sys
-path = sys.argv[1]
-with open(path, "r", encoding="utf-8") as f:
-    data = json.load(f)
-print(((data.get("gateway") or {}).get("auth") or {}).get("token") or "")
-PY
+
+  local token_file="$HOME/.openclaw/secrets/gateway_token"
+  if [ -f "$token_file" ]; then
+    # shellcheck disable=SC2002
+    cat "$token_file" 2>/dev/null | tr -d '\n' || true
     return 0
   fi
+
   return 0
 }
 
@@ -38,9 +38,7 @@ if ! echo "$code" | grep -qE '^[23]'; then
 fi
 
 token=""
-if [ -f "$cfg" ]; then
-  token="$(read_token)"
-fi
+token="$(read_token)"
 
 url="$base_url"
 if [ -n "$token" ]; then

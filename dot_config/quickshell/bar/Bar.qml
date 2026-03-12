@@ -7,6 +7,7 @@ import Quickshell.Services.SystemTray
 import Quickshell.Io
 import Quickshell.Services.Mpris
 import Quickshell.Services.Pipewire
+import "../ui"
 
 Scope {
     id: root
@@ -16,6 +17,31 @@ Scope {
 
     property string barTimeString: "00:00"
     property string barDateString: "—"
+    property string editionName: "base"
+
+    Process {
+        id: editionReadProc
+        command: ["sh", "-c", "cat \"$HOME/.config/SL1C3D-L4BS/state/edition.json\" 2>/dev/null || true"]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: function() {
+                try {
+                    const obj = JSON.parse((text || "").trim() || "{}")
+                    if (obj && obj.edition) root.editionName = String(obj.edition)
+                } catch (e) {
+                    // Keep last known editionName
+                }
+            }
+        }
+    }
+
+    Timer {
+        interval: 2000
+        running: true
+        repeat: true
+        onTriggered: editionReadProc.running = true
+    }
+    Component.onCompleted: editionReadProc.running = true
 
     property var activePlayer: {
         const players = Mpris.players.values
@@ -165,10 +191,11 @@ Scope {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: panelWindow.hubOpen = true
 
-                        Rectangle {
+                        GlassSurface {
+                            theme: root.theme
                             anchors.fill: parent
-                            radius: 8
-                            color: root.theme.bgBase
+                            radius: root.theme.radiusPill
+                            strong: true
 
                             Image {
                                 anchors.centerIn: parent
@@ -187,7 +214,7 @@ Scope {
                         height: 24
                         width: timeDate.width + 16
                         radius: 8
-                        color: root.theme.bgBase
+                        color: root.theme.surfaceGlassStrong
 
                         Row {
                             id: timeDate
@@ -635,12 +662,11 @@ Scope {
 
                 onVisibleChanged: if (!visible) panelWindow.hubOpen = false
 
-                Rectangle {
+                GlassSurface {
+                    theme: root.theme
                     anchors.fill: parent
-                    radius: 12
-                    color: root.theme.bgSurface
-                    border.width: 1
-                    border.color: root.theme.border
+                    radius: root.theme.radiusModal
+                    strong: false
                     clip: true
 
                     Process {
@@ -719,6 +745,109 @@ Scope {
                         }
 
                         Item { height: 14 }
+
+                        Row {
+                            spacing: 6
+                            Image { source: root.phosphorDir + "/gear.svg"; width: 12; height: 12; fillMode: Image.PreserveAspectFit; smooth: true }
+                            Text {
+                                text: "CONTROL_PLANE"
+                                color: root.theme.textMuted
+                                font.pixelSize: 9
+                                font.family: "JetBrainsMono Nerd Font"
+                                font.letterSpacing: 0.8
+                            }
+                        }
+                        Item { height: 6 }
+
+                        Row {
+                            height: 26
+                            spacing: 16
+
+                            Row {
+                                spacing: 6
+                                anchors.verticalCenter: parent.verticalCenter
+                                Image { source: root.phosphorDir + "/tag.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
+                                Text {
+                                    text: "Edition: " + root.editionName
+                                    color: root.theme.textSecondary
+                                    font.pixelSize: 10
+                                    font.family: root.theme.fontFamily
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
+
+                            Item { width: Math.max(0, parent.width - 240); height: 1 }
+
+                            Text {
+                                text: "Validate"
+                                color: root.theme.accentPrimary
+                                font.pixelSize: 10
+                                font.family: root.theme.fontFamily
+                                MouseArea {
+                                    anchors.fill: parent
+                                    anchors.margins: -4
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        hubLauncher.command = ["ghostty", "-e", "bash", "-lc", home + "/scripts/validate-configs.sh; echo; echo 'Press Enter to close'; read"]
+                                        hubLauncher.running = true
+                                        panelWindow.hubOpen = false
+                                    }
+                                }
+                            }
+
+                            Text {
+                                text: "Reload_Hypr"
+                                color: root.theme.logoPurple
+                                font.pixelSize: 10
+                                font.family: "JetBrainsMono Nerd Font"
+                                MouseArea {
+                                    anchors.fill: parent
+                                    anchors.margins: -4
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        hubLauncher.command = ["sh", "-c", "hyprctl reload >/dev/null 2>&1 || true"]
+                                        hubLauncher.running = true
+                                        panelWindow.hubOpen = false
+                                    }
+                                }
+                            }
+
+                            Text {
+                                text: "AI_Gateway"
+                                color: root.theme.accentPrimary
+                                font.pixelSize: 10
+                                font.family: root.theme.fontFamily
+                                MouseArea {
+                                    anchors.fill: parent
+                                    anchors.margins: -4
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        hubLauncher.command = ["sh", "-c", "systemctl --user restart openclaw-gateway.service >/dev/null 2>&1 || true"]
+                                        hubLauncher.running = true
+                                        panelWindow.hubOpen = false
+                                    }
+                                }
+                            }
+
+                            Text {
+                                text: "QuickSettings"
+                                color: root.theme.accentPrimary
+                                font.pixelSize: 10
+                                font.family: root.theme.fontFamily
+                                MouseArea {
+                                    anchors.fill: parent
+                                    anchors.margins: -4
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        hubLauncher.command = ["ghostty", "-e", "bash", "-lc", home + "/.config/SL1C3D-L4BS/bin/sl1c3d-ags doctor; echo; echo 'If OK, run your AGS quicksettings command here.'; read"]
+                                        hubLauncher.running = true
+                                        panelWindow.hubOpen = false
+                                    }
+                                }
+                            }
+                        }
+
+                        Item { height: 16 }
 
                         Row {
                             spacing: 6

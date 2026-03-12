@@ -1,0 +1,23 @@
+{
+  "name": "desktop",
+  "extends": "base",
+  "packages": {
+    "pacman": [
+      "btop",
+      "git",
+      "ripgrep"
+    ],
+    "aur": []
+  },
+  "services": {
+    "systemd_user_enable": [
+      "openclaw-gateway.service"
+    ]
+  },
+  "modules": {
+    "ai": true,
+    "bar": true,
+    "notifications": true,
+    "idle_lock": true
+  }
+}

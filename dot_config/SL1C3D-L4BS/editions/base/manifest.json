@@ -1,0 +1,27 @@
+{
+  "name": "base",
+  "packages": {
+    "pacman": [
+      "hyprland",
+      "hypridle",
+      "hyprlock",
+      "mako",
+      "fuzzel",
+      "yazi",
+      "ghostty",
+      "quickshell"
+    ],
+    "aur": []
+  },
+  "services": {
+    "systemd_user_enable": [
+      "openclaw-gateway.service"
+    ]
+  },
+  "modules": {
+    "ai": true,
+    "bar": true,
+    "notifications": true,
+    "idle_lock": true
+  }
+}

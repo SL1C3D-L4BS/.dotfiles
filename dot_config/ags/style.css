@@ -1,0 +1,34 @@
+window.QuickSettings {
+  background: transparent;
+  color: #f8f8f2;
+}
+
+window.QuickSettings > box#panel {
+  background: rgba(26, 26, 26, 0.58);
+  border: 1px solid rgba(88, 101, 242, 0.22);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px;
+  min-width: 320px;
+}
+
+window.QuickSettings label#title {
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+window.QuickSettings box#row {
+  margin-top: 8px;
+}
+
+window.QuickSettings button#btn {
+  background: rgba(13, 13, 13, 0.74);
+  border: 1px solid rgba(88, 101, 242, 0.22);
+  border-radius: 8px;
+  padding: 8px 12px;
+  transition: background 120ms;
+}
+
+window.QuickSettings button#btn:hover {
+  background: rgba(88, 101, 242, 0.18);
+}

@@ -1,0 +1,20 @@
+[Unit]
+Description=OpenClaw Gateway (SL1C3D-L4BS)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=%h/.openclaw/bin/openclaw gateway start
+ExecStop=%h/.openclaw/bin/openclaw gateway stop
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=30
+TimeoutStartSec=30
+SuccessExitStatus=0 143
+
+# Strict local-only secrets: do not embed tokens here.
+Environment=OPENCLAW_GATEWAY_PORT=18789
+
+[Install]
+WantedBy=default.target
