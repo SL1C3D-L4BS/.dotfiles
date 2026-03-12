@@ -656,34 +656,34 @@ Scope {
             PopupWindow {
                 id: hubPopup
                 anchor.window: panelWindow
-                anchor.rect: Qt.rect(0, 0, 4096, 2400)
-                implicitWidth: 4096
-                implicitHeight: 2400
+                // Dropdown under the logo: fixed-size popup anchored to the logo MouseArea
+                implicitWidth: 380
+                implicitHeight: 520
                 visible: panelWindow.hubOpen
                 color: "transparent"
 
                 onVisibleChanged: if (!visible) panelWindow.hubOpen = false
 
-                // ─── Scrim: click to close ─────────────────────────────────────────
-                Rectangle {
-                    anchors.fill: parent
-                    color: root.theme.scrim
-                    opacity: panelWindow.hubOpen ? 1 : 0
-                    Behavior on opacity { NumberAnimation { duration: root.theme.motionBaseMs } }
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: panelWindow.hubOpen = false
+                anchor.onAnchoring: {
+                    if (anchor.window && leftSection) {
+                        // Position popup just under the logo pill, slightly offset down
+                        var window = anchor.window
+                        var pillRect = window.contentItem.mapFromItem(
+                            leftSection, 0, leftSection.height,
+                            leftSection.width, leftSection.height
+                        )
+                        var x = pillRect.x
+                        var y = pillRect.y + 4
+                        anchor.rect = Qt.rect(x, y, implicitWidth, implicitHeight)
                     }
                 }
 
-                // ─── Card: glass surface + entrance animation ───────────────────
+                // ─── Card: glass surface + entrance animation (dropdown) ───────
                 GlassSurface {
                     id: hubCard
                     theme: root.theme
                     strong: false
-                    anchors.centerIn: parent
-                    width: 380
-                    height: Math.min(560, parent.height - 48)
+                    anchors.fill: parent
                     radius: root.theme.radiusModal
                     clip: true
 
