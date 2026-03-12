@@ -41,7 +41,10 @@ Scope {
         repeat: true
         onTriggered: editionReadProc.running = true
     }
-    Component.onCompleted: editionReadProc.running = true
+    Component.onCompleted: {
+        editionReadProc.running = true
+        dateTimeProc.running = true
+    }
 
     property var activePlayer: {
         const players = Mpris.players.values
@@ -119,7 +122,6 @@ Scope {
         repeat: true
         onTriggered: dateTimeProc.running = true
     }
-    Component.onCompleted: dateTimeProc.running = true
 
     Variants {
         model: Quickshell.screens
@@ -766,7 +768,7 @@ Scope {
                             Row {
                                 spacing: 6
                                 anchors.verticalCenter: parent.verticalCenter
-                                Image { source: root.phosphorDir + "/tag.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
+                                Image { source: root.phosphorDir + "/gear.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
                                 Text {
                                     text: "Edition: " + root.editionName
                                     color: root.theme.textSecondary
