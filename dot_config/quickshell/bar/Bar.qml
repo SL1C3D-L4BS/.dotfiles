@@ -14,6 +14,9 @@ Scope {
     property string homeDir: (typeof Qt !== "undefined" && Qt.environment && typeof Qt.environment.value === "function" ? Qt.environment.value("HOME") : null) || "/home/the_architect"
     property string phosphorDir: "file://" + homeDir + "/assets/icons/phosphor"
 
+    property string barTimeString: "00:00"
+    property string barDateString: "—"
+
     property var activePlayer: {
         const players = Mpris.players.values
         if (!players || players.length === 0) return null
@@ -71,6 +74,26 @@ Scope {
             }
         }
     }
+
+    Process {
+        id: dateTimeProc
+        command: ["sh", "-c", "date +%H:%M; date '+%b %d, %Y'"]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: function() {
+                const lines = (text && text.trim()) ? text.trim().split("\n") : []
+                if (lines.length >= 1) root.barTimeString = lines[0].trim() || "00:00"
+                if (lines.length >= 2) root.barDateString = lines[1].trim() || "—"
+            }
+        }
+    }
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: dateTimeProc.running = true
+    }
+    Component.onCompleted: dateTimeProc.running = true
 
     Variants {
         model: Quickshell.screens
@@ -182,8 +205,8 @@ Scope {
                             Text {
                                 id: timeText
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: Time.timeString
-                                color: root.theme.accentPrimary
+                                text: root.barTimeString
+                                color: "#5865F2"
                                 font.pixelSize: 14
                                 font.family: "JetBrainsMono Nerd Font"
                                 width: Math.max(implicitWidth, 48)
@@ -199,8 +222,8 @@ Scope {
                             Text {
                                 id: dateText
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: Time.longDateString
-                                color: root.theme.logoPurple
+                                text: root.barDateString
+                                color: "#b366ff"
                                 font.pixelSize: 12
                                 font.family: "JetBrainsMono Nerd Font"
                                 width: Math.max(implicitWidth, 88)
@@ -1177,14 +1200,14 @@ Scope {
                         Row {
                             spacing: 12
                             Text {
-                                text: Time.timeString
+                                text: root.barTimeString
                                 color: root.theme.logoPurple
                                 font.pixelSize: 20
                                 font.family: "JetBrainsMono Nerd Font"
                                 font.weight: Font.Bold
                             }
                             Text {
-                                text: Time.dateString
+                                text: root.barDateString
                                 color: root.theme.logoPurple
                                 font.pixelSize: 12
                                 font.family: "JetBrainsMono Nerd Font"
