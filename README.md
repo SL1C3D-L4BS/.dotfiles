@@ -72,7 +72,9 @@ Existing install: `chezmoi apply` from anywhere (source = `~/.local/share/chezmo
 | Scratchpad (toggle / move) | Super+S / Super+Shift+S |
 | Focus direction | Super+Arrow |
 | Lock screen | Super+L |
+| AI sidebar (OpenClaw) | Super+Shift+A |
 | Window overview | Super+A |
+| Window overview (preview) | Super+Tab |
 | Keybinds help | Super+/ |
 | Notifications (dismiss / DND) | Super+N / Super+D |
 
@@ -112,6 +114,8 @@ Alias: `cm` = chezmoi (in `.zshrc`).
 
 **Lock & idle:** hyprlock (Super+L) and hypridle (auto-lock after 5 min, optional dim/suspend). Config: `~/.config/hypr/hyprlock.conf`, `~/.config/hypr/hypridle.conf`. Install: `paru -S hyprlock hypridle`.
 
+**AI (OpenClaw + Ollama):** Sidebar at Super+Shift+A (or hub → AI (OpenClaw)); gateway http://127.0.0.1:18789/. Multi-agent team: PM, Researcher, Engineer, Ops. Install: `~/.config/SL1C3D-L4BS/system-config/install-openclaw-ollama.sh`. Requires Node 22+, Ollama, then `npm install -g openclaw@latest`. Copy workspace templates from `~/.config/SL1C3D-L4BS/openclaw-workspace-templates/` to `~/.openclaw/workspace/`. Pull models: `ollama pull qwen2.5-coder:7b`, `ollama pull deepseek-r1:7b`. Plugins and hooks: `~/.openclaw/plugins/`; see `~/.config/SL1C3D-L4BS/OPENCLAW-PLUGINS.md`. [OpenClaw docs](https://docs.openclaw.ai), [Ollama](https://ollama.com).
+
 **Elite CLI (2026):** Atuin (history), **Fastfetch** (system info; Linux ASCII logo from [fastfetch-cli/fastfetch](https://github.com/fastfetch-cli/fastfetch) in `~/.config/fastfetch/logo.txt`, full SL1C3D-L4BS colors in `config.jsonc` — accent `#5865F2`, logo `#b366ff`, fg `#f8f8f2`), Zoxide (`z`), eza/bat/fd/ripgrep, Delta (git pager), btop (Super+B), Lazygit (Super+G). Install: `~/.config/SL1C3D-L4BS/system-config/install-elite-stack.sh`.
 
 **Cursor (powerhouse):** MCP (GitHub, filesystem, Brave Search) in `~/.cursor/mcp.json`; always-on rule in `~/.cursor/rules/sl1c3d-l4bs-stack.mdc`; `AGENTS.md` at project root; SL1C3D-L4BS theme in Cursor settings (workbench colors + JetBrains Mono Nerd Font). **Icons:** install extensions **Material Icon Theme** (PKief) and **Fluent Icons** (miguelsolorio.fluent-icons); settings preconfigure `workbench.iconTheme` / `workbench.productIconTheme` and Material folder color `#5865F2`. Export `GITHUB_PERSONAL_ACCESS_TOKEN` and `BRAVE_API_KEY` for MCP; restart Cursor after editing `mcp.json`.
@@ -120,14 +124,26 @@ Alias: `cm` = chezmoi (in `.zshrc`).
 
 ---
 
+## Screenshots
+
+Screenshots for the repo live in `assets/screenshots/`. Capture with:
+
+```bash
+~/scripts/screenshot-for-readme.sh bar.png
+```
+
+Requires `grim` and `slurp` (e.g. `paru -S grim slurp`). Run from a Wayland session; select a region or Cancel for full screen.
+
+---
+
 ## Source layout
 
 ```
 README.md                    →  ~/README.md
 dot_zshrc, dot_gitconfig     →  ~/.zshrc, ~/.gitconfig
-dot_config/                  →  ~/.config/  (hypr, quickshell, starship, ghostty, fastfetch, fuzzel, mako, yazi, zellij, waypaper, nvim, git, chezmoi, SL1C3D-L4BS/system-config, …)
-scripts/                     →  ~/scripts/  (validate-configs.sh)
-assets/                      →  ~/assets/   (icons, wallpapers)
+dot_config/                  →  ~/.config/  (hypr, quickshell, starship, ghostty, fastfetch, fuzzel, mako, yazi, zellij, waypaper, nvim, git, chezmoi, SL1C3D-L4BS/system-config, openclaw-workspace-templates, …)
+scripts/                     →  ~/scripts/  (validate-configs.sh, screenshot-for-readme.sh)
+assets/                      →  ~/assets/   (icons, wallpapers, screenshots)
 ```
 
 ---

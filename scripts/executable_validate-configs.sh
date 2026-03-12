@@ -46,6 +46,15 @@ grep -q 'exec-once = mako' ~/.config/hypr/autostart.conf 2>/dev/null && echo "  
 grep -q 'makoctl' ~/.config/hypr/binds.conf 2>/dev/null && echo "  mako binds: yes" || echo "  mako binds: no"
 
 echo ""
+echo "=== OpenClaw (optional) ==="
+command -v openclaw >/dev/null 2>&1 && echo "  openclaw: installed" || echo "  openclaw: not installed (optional)"
+test -f ~/.openclaw/openclaw.json && echo "  openclaw.json: present" || echo "  openclaw.json: not found (optional)"
+if command -v curl >/dev/null 2>&1; then
+  code="$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 1 http://127.0.0.1:18789/ 2>/dev/null)" || code=""
+  [ "$code" = "200" ] && echo "  gateway :18789: reachable" || echo "  gateway :18789: not reachable (start with: openclaw gateway start)"
+fi
+
+echo ""
 if [ "$FAIL" -eq 0 ]; then
   echo "=== Result: all checks passed ==="
   exit 0

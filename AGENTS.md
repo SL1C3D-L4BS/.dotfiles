@@ -1,5 +1,10 @@
 # SL1C3D-L4BS · Agent instructions
 
+## AI stack (OpenClaw + Ollama)
+
+- **OpenClaw + Ollama**: Multi-agent team (PM, Researcher, Engineer, Ops). Use OpenClaw for sidebar chat (Super+Shift+A) and agent team; use Cursor for in-repo edits and MCP.
+- After Hypr/config changes, run `~/scripts/validate-configs.sh`.
+
 ## Code and config style
 
 - Prefer existing patterns; match SL1C3D-L4BS brand (colors, rounded pills, JetBrains Mono Nerd Font).

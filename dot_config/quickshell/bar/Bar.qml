@@ -933,6 +933,27 @@ Scope {
                             Row {
                                 spacing: 4
                                 anchors.verticalCenter: parent.verticalCenter
+                                Image { source: root.phosphorDir + "/robot.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
+                                Text {
+                                text: "AI (OpenClaw)"
+                                color: root.theme.accentPrimary
+                                font.pixelSize: 10
+                                font.family: "JetBrainsMono Nerd Font"
+                                MouseArea {
+                                    anchors.fill: parent
+                                    anchors.margins: -4
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        hubLauncher.command = [hubColumn.parent.home + "/.config/hypr/scripts/openclaw-sidebar.sh"]
+                                        hubLauncher.running = true
+                                        panelWindow.hubOpen = false
+                                    }
+                                }
+                                }
+                            }
+                            Row {
+                                spacing: 4
+                                anchors.verticalCenter: parent.verticalCenter
                                 Image { source: root.phosphorDir + "/magnifying-glass.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
                                 Text {
                                 text: "Fuzzel"
