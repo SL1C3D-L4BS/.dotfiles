@@ -1655,8 +1655,10 @@ Scope {
 
                 anchor.onAnchoring: {
                     if (!anchor.window || !timePill) return
-                    const p = timePill.mapToItem(anchor.window, 0, timePill.height)
-                    anchor.rect = Qt.rect(p.x, panelWindow.implicitHeight + 8, implicitWidth, implicitHeight)
+                    const win = anchor.window
+                    const pr = win.contentItem.mapFromItem(
+                        timePill, 0, timePill.height, timePill.width, timePill.height)
+                    anchor.rect = Qt.rect(pr.x, pr.y + 6, implicitWidth, implicitHeight)
                 }
 
                 GlassSurface {
@@ -1923,8 +1925,11 @@ Scope {
 
                 anchor.onAnchoring: {
                     if (!anchor.window || !timeDatePill) return
-                    const p = timeDatePill.mapToItem(anchor.window, timeDatePill.width + 6, timeDatePill.height)
-                    anchor.rect = Qt.rect(p.x, panelWindow.implicitHeight + 8, implicitWidth, implicitHeight)
+                    const win = anchor.window
+                    const pr = win.contentItem.mapFromItem(
+                        timeDatePill, 0, timeDatePill.height, timeDatePill.width, timeDatePill.height)
+                    // align left edge of popup with left edge of date pill
+                    anchor.rect = Qt.rect(pr.x, pr.y + 6, implicitWidth, implicitHeight)
                 }
 
                 GlassSurface {
