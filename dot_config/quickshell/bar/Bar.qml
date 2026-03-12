@@ -656,9 +656,9 @@ Scope {
             PopupWindow {
                 id: hubPopup
                 anchor.window: panelWindow
-                // Dropdown under the logo: fixed-size popup anchored to the logo MouseArea
-                implicitWidth: 380
-                implicitHeight: 520
+                // Premium OS Hub: two-column nav + card-based content (ML4W/Omarchy-style)
+                implicitWidth: 560
+                implicitHeight: 640
                 visible: panelWindow.hubOpen
                 color: "transparent"
 
@@ -666,7 +666,6 @@ Scope {
 
                 anchor.onAnchoring: {
                     if (anchor.window && leftSection) {
-                        // Position popup just under the logo pill, slightly offset down
                         var window = anchor.window
                         var pillRect = window.contentItem.mapFromItem(
                             leftSection, 0, leftSection.height,
@@ -678,7 +677,6 @@ Scope {
                     }
                 }
 
-                // ─── Card: glass surface + entrance animation (dropdown) ───────
                 GlassSurface {
                     id: hubCard
                     theme: root.theme
@@ -698,275 +696,325 @@ Scope {
                     }
 
                     property string home: root.homeDir
+                    property int hubSection: 0  // 0 Overview, 1 Control, 2 Developer, 3 Wallpapers, 4 System
 
-                    // Prevent scrim click from propagating when clicking card
                     MouseArea {
                         anchors.fill: parent
                         onClicked: { }
                     }
 
-                    Column {
-                        id: hubContentColumn
+                    Item {
                         anchors.fill: parent
-                        anchors.margins: 16
-                        spacing: 0
+                        focus: panelWindow.hubOpen
+                        Keys.onEscapePressed: panelWindow.hubOpen = false
 
-                        function filterHubModel(arr, query) {
-                            if (!arr) return []
-                            var q = (query || "").toLowerCase()
-                            if (!q) return arr
-                            var out = []
-                            for (var i = 0; i < arr.length; i++) {
-                                if (arr[i].type === "section") out.push(arr[i])
-                                else if (arr[i].label && arr[i].label.toLowerCase().indexOf(q) >= 0) out.push(arr[i])
-                            }
-                            return out
-                        }
-                        property var hubFilteredModel: filterHubModel(hubListView.hubModel, hubSearch ? hubSearch.text : "")
+                        Column {
+                            anchors.fill: parent
+                            anchors.margins: root.theme.spacingLg
+                            spacing: 0
 
-                        // Header: logo + title + close
-                        Row {
-                            width: parent.width - 32
-                            height: 40
-                            spacing: 10
-                            Item { width: 1; height: 1 }
-                            Image {
-                                source: "file:///home/the_architect/assets/icons/Logo-bar.svg"
-                                width: 20
-                                height: 20
-                                anchors.verticalCenter: parent.verticalCenter
-                                fillMode: Image.PreserveAspectFit
-                                smooth: true
-                                mipmap: true
-                            }
-                            Text {
-                                text: "SL1C3D-L4BS"
-                                color: root.theme.logoPurple
-                                font.pixelSize: 13
-                                font.family: root.theme.fontFamily
-                                font.weight: Font.DemiBold
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-                            Item { width: parent.width - 20 - 20 - closeBtn.width - 80; height: 1 }
-                            MouseArea {
-                                id: closeBtn
-                                width: 28
-                                height: 28
-                                anchors.verticalCenter: parent.verticalCenter
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: panelWindow.hubOpen = false
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: 6
-                                    color: parent.pressed ? root.theme.border : "transparent"
-                                    opacity: parent.containsMouse ? 0.6 : 0
-                                    Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
+                            // ─── Header: logo + title + close ───
+                            Row {
+                                width: parent.width - 32
+                                height: 44
+                                spacing: 10
+                                Image {
+                                    source: "file:///home/the_architect/assets/icons/Logo-bar.svg"
+                                    width: 22
+                                    height: 22
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    fillMode: Image.PreserveAspectFit
+                                    smooth: true
+                                    mipmap: true
                                 }
                                 Text {
-                                    anchors.centerIn: parent
-                                    text: "×"
-                                    color: root.theme.textMuted
-                                    font.pixelSize: 16
+                                    text: "OS Hub"
+                                    color: root.theme.logoPurple
+                                    font.pixelSize: 14
                                     font.family: root.theme.fontFamily
+                                    font.weight: Font.DemiBold
+                                    anchors.verticalCenter: parent.verticalCenter
                                 }
-                            }
-                        }
-
-                        Rectangle {
-                            width: parent.width - 32
-                            height: 1
-                            color: root.theme.border
-                            opacity: 0.5
-                        }
-                        Item { height: 10 }
-
-                        // Search: filter actions (command-palette style)
-                        Rectangle {
-                            width: parent.width - 32
-                            height: 32
-                            radius: 8
-                            color: root.theme.bgBase
-                            border.width: 1
-                            border.color: root.theme.border
-                            opacity: 0.9
-                            TextInput {
-                                id: hubSearch
-                                anchors.fill: parent
-                                anchors.leftMargin: 10
-                                anchors.rightMargin: 10
-                                verticalAlignment: Text.AlignVCenter
-                                color: root.theme.textPrimary
-                                font.pixelSize: 11
-                                font.family: root.theme.fontFamily
-                                // NOTE: Qt version used by Quickshell here does not support placeholderText/placeholderTextColor.
-                                // Keep it simple and rely on an empty field (no placeholder) for maximum compatibility.
-                            }
-                        }
-                        Item { height: 8 }
-
-                        // Action list: keyboard nav + hover
-                        ListView {
-                            id: hubListView
-                            width: parent.width - 32
-                            height: parent.height - 40 - 32 - 10 - 8 - 10
-                            clip: true
-                            focus: panelWindow.hubOpen
-                            keyNavigationWraps: true
-                            currentIndex: 0
-
-                            Timer {
-                                id: hubFocusTimer
-                                interval: 0
-                                repeat: false
-                                onTriggered: {
-                                    var arr = hubContentColumn.hubFilteredModel
-                                    if (!arr) return
-                                    for (var i = 0; i < arr.length; i++)
-                                        if (arr[i].type === "action") { hubListView.currentIndex = i; break }
-                                }
-                            }
-                            Connections {
-                                target: panelWindow
-                                function onHubOpenChanged() {
-                                    if (panelWindow.hubOpen) hubFocusTimer.start()
-                                }
-                            }
-
-                            property var hubModel: (function() {
-                                var h = hubCard.home
-                                return [
-                                    { type: "section", text: "CONTROL PLANE" },
-                                    { type: "action", label: "Validate configs", icon: "gear", command: ["ghostty", "-e", "bash", "-lc", h + "/scripts/validate-configs.sh; echo; echo 'Press Enter to close'; read"] },
-                                    { type: "action", label: "Reload Hypr", icon: "gear", command: ["sh", "-c", "hyprctl reload >/dev/null 2>&1 || true"] },
-                                    { type: "action", label: "AI Gateway (restart)", icon: "gear", command: ["sh", "-c", "systemctl --user restart openclaw-gateway.service >/dev/null 2>&1 || true"] },
-                                    { type: "action", label: "QuickSettings (AGS)", icon: "gear", command: ["ghostty", "-e", "bash", "-lc", h + "/.config/SL1C3D-L4BS/bin/sl1c3d-ags doctor; read"] },
-                                    { type: "section", text: "DEVELOPER" },
-                                    { type: "action", label: "~/dev — Yazi", icon: "folder-open", command: ["ghostty", "-e", "yazi", h + "/dev"] },
-                                    { type: "action", label: "~/dev — Terminal", icon: "terminal-window", command: ["ghostty", "-e", "bash", "-c", "cd " + h + "/dev && exec ~/.config/hypr/scripts/zellij-branded.sh"] },
-                                    { type: "action", label: "~/.config — Yazi", icon: "folder-open", command: ["ghostty", "-e", "yazi", h + "/.config"] },
-                                    { type: "action", label: "~/.config — Terminal", icon: "terminal-window", command: ["ghostty", "-e", "bash", "-c", "cd " + h + "/.config && exec ~/.config/hypr/scripts/zellij-branded.sh"] },
-                                    { type: "action", label: "~/assets — Yazi", icon: "folder-open", command: ["ghostty", "-e", "yazi", h + "/assets"] },
-                                    { type: "action", label: "~/assets — Terminal", icon: "terminal-window", command: ["ghostty", "-e", "bash", "-c", "cd " + h + "/assets && exec ~/.config/hypr/scripts/zellij-branded.sh"] },
-                                    { type: "section", text: "WALLPAPERS" },
-                                    { type: "action", label: "Open wallpapers folder", icon: "images-square", command: ["ghostty", "-e", "yazi", h + "/assets/wallpapers"] },
-                                    { type: "action", label: "Waypaper GUI", icon: "images-square", command: ["waypaper"] }
-                                ].concat(
-                                    ["sl1c3d-l4bs-01.png","sl1c3d-l4bs-02.png","sl1c3d-l4bs-03.png","sl1c3d-l4bs-04.png","sl1c3d-l4bs-05.png","sl1c3d-l4bs-06.png","sl1c3d-l4bs-07.png","sl1c3d-l4bs-08.png","sl1c3d-l4bs-09.png","sl1c3d-l4bs-10.png","sl1c3d-l4bs-11.png","sl1c3d-l4bs-12.png","sl1c3d-l4bs-13.png","sl1c3d-l4bs-14.png","sl1c3d-l4bs-15.png"].map(function(name) {
-                                        return { type: "action", label: "Set " + name, icon: "images-square", command: ["waypaper", "--wallpaper", h + "/assets/wallpapers/" + name, "--fill", "fill", "--monitor", "All", "--backend", "swaybg"] }
-                                    })
-                                ).concat([
-                                    { type: "section", text: "SYSTEM" },
-                                    { type: "action", label: "AI (OpenClaw)", icon: "cursor", command: [h + "/.config/hypr/scripts/openclaw-sidebar.sh"] },
-                                    { type: "action", label: "Fuzzel", icon: "magnifying-glass", command: ["fuzzel"] },
-                                    { type: "action", label: "Hypr config (nvim)", icon: "file-code", command: ["ghostty", "-e", "nvim", h + "/.config/hypr"] },
-                                    { type: "action", label: "Waypaper restore", icon: "images-square", command: ["waypaper", "--restore"] }
-                                ])
-                            })()
-
-                            model: hubContentColumn.hubFilteredModel
-                            delegate: Item {
-                                width: hubListView.width
-                                height: modelData.type === "section" ? 28 : 36
-                                property bool isSection: modelData.type === "section"
-                                property bool isAction: modelData.type === "action"
-                                property bool highlighted: hubListView.currentIndex === index && isAction
-
-                                Rectangle {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: isSection ? 0 : 6
-                                    anchors.rightMargin: isSection ? 0 : 6
-                                    anchors.topMargin: isSection ? 4 : 2
-                                    anchors.bottomMargin: isSection ? 4 : 2
-                                    radius: 6
-                                    color: highlighted ? root.theme.accentDim2 : (rowHover.containsMouse && isAction ? root.theme.border : "transparent")
-                                    opacity: highlighted ? 1 : (rowHover.containsMouse && isAction ? 0.5 : 0)
-                                    Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
-                                }
-
-                                Row {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: isSection ? 0 : 12
-                                    anchors.rightMargin: 12
-                                    spacing: 8
-                                    visible: isSection
-                                    Image {
-                                        width: 12; height: 12
-                                        source: root.phosphorDir + "/gear.svg"
-                                        fillMode: Image.PreserveAspectFit
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                    Text {
-                                        text: (modelData && modelData.text) ? modelData.text : ""
-                                        color: root.theme.textMuted
-                                        font.pixelSize: 9
-                                        font.family: root.theme.fontFamily
-                                        font.letterSpacing: 0.8
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                }
-
-                                Row {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 12
-                                    anchors.rightMargin: 12
-                                    spacing: 8
-                                    visible: isAction
-                                    Image {
-                                        width: 14
-                                        height: 14
-                                        source: root.phosphorDir + "/" + (modelData.icon || "gear") + ".svg"
-                                        fillMode: Image.PreserveAspectFit
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                    Text {
-                                        text: (modelData && modelData.label) ? modelData.label : ""
-                                        color: highlighted ? root.theme.accentPrimary : root.theme.textSecondary
-                                        font.pixelSize: 11
-                                        font.family: root.theme.fontFamily
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                }
-
+                                Item { width: parent.width - 22 - 80 - closeBtn.width - 20; height: 1 }
                                 MouseArea {
-                                    id: rowHover
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    visible: isAction
-                                    onClicked: {
-                                        if (isAction && modelData.command) {
-                                            hubLauncher.command = modelData.command
-                                            hubLauncher.running = true
-                                            panelWindow.hubOpen = false
+                                    id: closeBtn
+                                    width: 28
+                                    height: 28
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: panelWindow.hubOpen = false
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        radius: 6
+                                        color: parent.pressed ? root.theme.border : "transparent"
+                                        opacity: parent.containsMouse ? 0.6 : 0
+                                        Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
+                                    }
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "×"
+                                        color: root.theme.textMuted
+                                        font.pixelSize: 16
+                                        font.family: root.theme.fontFamily
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                width: parent.width - 32
+                                height: 1
+                                color: root.theme.border
+                                opacity: 0.5
+                            }
+                            Item { height: 12 }
+
+                            // ─── Two-column: Nav rail | Content ───
+                            Row {
+                                width: parent.width - 32
+                                height: parent.height - 44 - 1 - 12 - 12
+                                spacing: 16
+
+                                // Left: Nav rail (ML4W-style sidebar)
+                                Column {
+                                    width: 132
+                                    height: parent.height
+                                    spacing: 2
+
+                                    Repeater {
+                                        model: [
+                                            { id: 0, label: "Overview", icon: "house" },
+                                            { id: 1, label: "Control Plane", icon: "gear" },
+                                            { id: 2, label: "Developer", icon: "folder-open" },
+                                            { id: 3, label: "Wallpapers", icon: "images-square" },
+                                            { id: 4, label: "System", icon: "cursor" }
+                                        ]
+                                        delegate: MouseArea {
+                                            required property var modelData
+                                            width: 132
+                                            height: 36
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: hubCard.hubSection = modelData.id
+
+                                            Rectangle {
+                                                anchors.fill: parent
+                                                anchors.margins: 2
+                                                radius: root.theme.radiusPill
+                                                color: hubCard.hubSection === modelData.id ? root.theme.accentDim2 : (navHover.containsMouse ? root.theme.border : "transparent")
+                                                opacity: hubCard.hubSection === modelData.id ? 1 : (navHover.containsMouse ? 0.5 : 0)
+                                                Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                            }
+                                            Row {
+                                                anchors.fill: parent
+                                                anchors.leftMargin: 12
+                                                anchors.rightMargin: 12
+                                                spacing: 8
+                                                Image {
+                                                    width: 16
+                                                    height: 16
+                                                    source: root.phosphorDir + "/" + modelData.icon + ".svg"
+                                                    fillMode: Image.PreserveAspectFit
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                }
+                                                Text {
+                                                    text: modelData.label
+                                                    color: hubCard.hubSection === modelData.id ? root.theme.accentPrimary : root.theme.textSecondary
+                                                    font.pixelSize: 11
+                                                    font.family: root.theme.fontFamily
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                }
+                                            }
+                                            MouseArea {
+                                                id: navHover
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                propagateComposedEvents: true
+                                            }
                                         }
                                     }
-                                    onPressed: if (isAction) hubListView.currentIndex = index
                                 }
-                            }
 
-                            Keys.onUpPressed: {
-                                var arr = hubContentColumn.hubFilteredModel
-                                var idx = currentIndex
-                                do { idx = idx - 1 } while (idx >= 0 && arr[idx] && arr[idx].type !== "action")
-                                if (idx >= 0) currentIndex = idx
-                            }
-                            Keys.onDownPressed: {
-                                var arr = hubContentColumn.hubFilteredModel
-                                var idx = currentIndex
-                                do { idx = idx + 1 } while (idx < arr.length && arr[idx] && arr[idx].type !== "action")
-                                if (idx < arr.length) currentIndex = idx
-                            }
-                            Keys.onReturnPressed: {
-                                var arr = hubContentColumn.hubFilteredModel
-                                var d = arr[currentIndex]
-                                if (d && d.type === "action" && d.command) {
-                                    hubLauncher.command = d.command
-                                    hubLauncher.running = true
-                                    panelWindow.hubOpen = false
+                                // Right: Content stack (card-based panels)
+                                Item {
+                                    width: parent.width - 132 - 16
+                                    height: parent.height
+                                    clip: true
+
+                                    StackLayout {
+                                        anchors.fill: parent
+                                        currentIndex: hubCard.hubSection
+
+                                        // ─── Overview ───
+                                        Flickable {
+                                            id: contentOverviewFlick
+                                            contentWidth: contentOverview.width
+                                            contentHeight: contentOverview.height
+                                            clip: true
+                                            Column {
+                                                id: contentOverview
+                                                width: contentOverviewFlick.width
+                                                spacing: 12
+                                                Text {
+                                                    text: "Quick access"
+                                                    color: root.theme.textMuted
+                                                    font.pixelSize: 10
+                                                    font.family: root.theme.fontFamily
+                                                    font.letterSpacing: 0.8
+                                                }
+                                                Row {
+                                                    spacing: 8
+                                                    Repeater {
+                                                        model: [
+                                                            { label: "Validate configs", cmd: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/scripts/validate-configs.sh; echo; echo 'Press Enter to close'; read"] },
+                                                            { label: "Reload Hypr", cmd: ["sh", "-c", "hyprctl reload >/dev/null 2>&1 || true"] },
+                                                            { label: "Open AI", cmd: [hubCard.home + "/.config/hypr/scripts/openclaw-sidebar.sh"] }
+                                                        ]
+                                                        delegate: Rectangle {
+                                                            required property var modelData
+                                                            height: 32
+                                                            width: labelText.width + 20
+                                                            radius: root.theme.radiusPill
+                                                            color: overviewPill.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
+                                                            border.width: 1
+                                                            border.color: root.theme.border
+                                                            MouseArea {
+                                                                id: overviewPill
+                                                                anchors.fill: parent
+                                                                hoverEnabled: true
+                                                                cursorShape: Qt.PointingHandCursor
+                                                                onClicked: {
+                                                                    hubLauncher.command = modelData.cmd
+                                                                    hubLauncher.running = true
+                                                                    panelWindow.hubOpen = false
+                                                                }
+                                                            }
+                                                            Text {
+                                                                id: labelText
+                                                                anchors.centerIn: parent
+                                                                text: modelData.label
+                                                                color: root.theme.textPrimary
+                                                                font.pixelSize: 11
+                                                                font.family: root.theme.fontFamily
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                Item { height: 8 }
+                                                Text {
+                                                    text: "Edition: " + root.editionName
+                                                    color: root.theme.textMuted
+                                                    font.pixelSize: 10
+                                                    font.family: root.theme.fontFamily
+                                                }
+                                            }
+                                        }
+
+                                        // ─── Control Plane ───
+                                        Flickable {
+                                            id: contentControlFlick
+                                            contentWidth: contentControl.width
+                                            contentHeight: contentControl.height
+                                            clip: true
+                                            Column {
+                                                id: contentControl
+                                                width: contentControlFlick.width
+                                                spacing: 12
+                                                HubCard {
+                                                    theme: root.theme
+                                                    phosphorDir: root.phosphorDir
+                                                    title: "Control Plane"
+                                                    description: "Validate configs, reload Hyprland, restart services."
+                                                    actions: [
+                                                        { label: "Validate configs", icon: "gear", command: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/scripts/validate-configs.sh; echo; echo 'Press Enter to close'; read"] },
+                                                        { label: "Reload Hypr", icon: "gear", command: ["sh", "-c", "hyprctl reload >/dev/null 2>&1 || true"] },
+                                                        { label: "AI Gateway (restart)", icon: "gear", command: ["sh", "-c", "systemctl --user restart openclaw-gateway.service >/dev/null 2>&1 || true"] },
+                                                        { label: "QuickSettings (AGS)", icon: "gear", command: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/.config/SL1C3D-L4BS/bin/sl1c3d-ags doctor; read"] }
+                                                    ]
+                                                    launcher: hubLauncher
+                                                    onRun: { hubLauncher.command = cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                }
+                                            }
+                                        }
+
+                                        // ─── Developer ───
+                                        Flickable {
+                                            id: contentDeveloperFlick
+                                            contentWidth: contentDeveloper.width
+                                            contentHeight: contentDeveloper.height
+                                            clip: true
+                                            Column {
+                                                id: contentDeveloper
+                                                width: contentDeveloperFlick.width
+                                                spacing: 12
+                                                HubCard {
+                                                    theme: root.theme
+                                                    phosphorDir: root.phosphorDir
+                                                    title: "Developer"
+                                                    description: "Open paths in Yazi or terminal (Zellij)."
+                                                    pathRows: [
+                                                        { path: "~/dev", label: "dev" },
+                                                        { path: "~/.config", label: "config" },
+                                                        { path: "~/assets", label: "assets" }
+                                                    ]
+                                                    home: hubCard.home
+                                                    launcher: hubLauncher
+                                                    onRun: { hubLauncher.command = cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                }
+                                            }
+                                        }
+
+                                        // ─── Wallpapers ───
+                                        Flickable {
+                                            id: contentWallpapersFlick
+                                            contentWidth: contentWallpapers.width
+                                            contentHeight: contentWallpapers.height
+                                            clip: true
+                                            Column {
+                                                id: contentWallpapers
+                                                width: contentWallpapersFlick.width
+                                                spacing: 12
+                                                HubCard {
+                                                    theme: root.theme
+                                                    phosphorDir: root.phosphorDir
+                                                    title: "Wallpapers"
+                                                    description: "Set wallpaper or open Waypaper."
+                                                    home: hubCard.home
+                                                    launcher: hubLauncher
+                                                    wallpaperNames: ["sl1c3d-l4bs-01.png","sl1c3d-l4bs-02.png","sl1c3d-l4bs-03.png","sl1c3d-l4bs-04.png","sl1c3d-l4bs-05.png","sl1c3d-l4bs-06.png","sl1c3d-l4bs-07.png","sl1c3d-l4bs-08.png","sl1c3d-l4bs-09.png","sl1c3d-l4bs-10.png","sl1c3d-l4bs-11.png","sl1c3d-l4bs-12.png","sl1c3d-l4bs-13.png","sl1c3d-l4bs-14.png","sl1c3d-l4bs-15.png"]
+                                                    onRun: { hubLauncher.command = cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                }
+                                            }
+                                        }
+
+                                        // ─── System ───
+                                        Flickable {
+                                            id: contentSystemFlick
+                                            contentWidth: contentSystem.width
+                                            contentHeight: contentSystem.height
+                                            clip: true
+                                            Column {
+                                                id: contentSystem
+                                                width: contentSystemFlick.width
+                                                spacing: 12
+                                                HubCard {
+                                                    theme: root.theme
+                                                    phosphorDir: root.phosphorDir
+                                                    title: "System"
+                                                    description: "Launcher, AI, config editor."
+                                                    actions: [
+                                                        { label: "AI (OpenClaw)", icon: "cursor", command: [hubCard.home + "/.config/hypr/scripts/openclaw-sidebar.sh"] },
+                                                        { label: "Fuzzel", icon: "magnifying-glass", command: ["fuzzel"] },
+                                                        { label: "Hypr config (nvim)", icon: "file-code", command: ["ghostty", "-e", "nvim", hubCard.home + "/.config/hypr"] },
+                                                        { label: "Waypaper restore", icon: "images-square", command: ["waypaper", "--restore"] }
+                                                    ]
+                                                    launcher: hubLauncher
+                                                    onRun: { hubLauncher.command = cmd; hubLauncher.running = true; panelWindow.hubOpen = false }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                            Keys.onEscapePressed: panelWindow.hubOpen = false
                         }
-
                     }
                 }
             }
