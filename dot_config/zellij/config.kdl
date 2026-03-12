@@ -13,7 +13,7 @@ copy_on_select true
 scrollback_editor "nvim"
 scroll_buffer_size 10000
 layout_dir "/home/the_architect/.config/zellij/layouts"
-session_serialization true
+session_serialization false
 on_force_close "detach"
 show_startup_tips false
 show_release_notes false

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Start Zellij with SL1C3D-L4BS branding + random funny developer quote as session name.
-# Replaces default "implacable-tomato" style names.
+# Start Zellij with SL1C3D-L4BS branding: always a new fresh session, no dead ones kept.
+# Unique name per terminal (quote + PID) so we never attach to old; dead sessions cleared on start.
 
 QUOTES=(
 	"It compiles"
@@ -25,5 +25,9 @@ QUOTES=(
 	"LGTM"
 )
 
+# Clear all dead sessions so we never accumulate; then start one new session (unique name = always fresh)
+zellij delete-all-sessions -y 2>/dev/null || true
+
 QUOTE="${QUOTES[$((RANDOM % ${#QUOTES[@]}))]}"
-exec zellij -s "SL1C3D-L4BS — $QUOTE" "$@"
+SESSION_NAME="SL1C3D-L4BS — $QUOTE — $$"
+exec zellij -s "$SESSION_NAME" "$@"
