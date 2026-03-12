@@ -10,7 +10,7 @@ Item {
     property string iconName: "gear"
     signal clicked()
 
-    width: parent ? parent.width : 200
+    width: parent ? Math.max(parent.width, 220) : 220
     implicitHeight: subText ? 40 : 36
 
     MouseArea {
@@ -27,9 +27,10 @@ Item {
             Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
         }
         Row {
+            id: actionRow
             anchors.fill: parent
             anchors.leftMargin: 10
-            anchors.rightMargin: 10
+            anchors.rightMargin: 12
             spacing: 10
             Image {
                 width: 16
@@ -39,13 +40,19 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
             }
             Column {
+                id: labelColumn
+                width: Math.max(0, actionRow.width - 16 - 10)
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 0
+                clip: true
                 Text {
                     text: root.labelText
                     color: root.theme.textPrimary
                     font.pixelSize: 11
                     font.family: root.theme.fontFamily
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                    width: parent.width
                 }
                 Text {
                     visible: root.subText !== ""
@@ -53,9 +60,11 @@ Item {
                     color: root.theme.textMuted
                     font.pixelSize: 9
                     font.family: root.theme.fontFamily
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                    width: parent.width
                 }
             }
-            Item { width: 1; height: 1 }
         }
     }
 }

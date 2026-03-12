@@ -656,9 +656,9 @@ Scope {
             PopupWindow {
                 id: hubPopup
                 anchor.window: panelWindow
-                // Premium OS Hub: two-column nav + card-based content (ML4W/Omarchy-style)
-                implicitWidth: 560
-                implicitHeight: 640
+                // SL1C3D HUB: two-column nav + card-based content (ML4W/Omarchy-style), thinner modal
+                implicitWidth: 440
+                implicitHeight: 580
                 visible: panelWindow.hubOpen
                 color: "transparent"
 
@@ -728,7 +728,7 @@ Scope {
                                     mipmap: true
                                 }
                                 Text {
-                                    text: "OS Hub"
+                                    text: "SL1C3D HUB"
                                     color: root.theme.logoPurple
                                     font.pixelSize: 14
                                     font.family: root.theme.fontFamily
@@ -774,9 +774,9 @@ Scope {
                                 height: parent.height - 44 - 1 - 12 - 12
                                 spacing: 16
 
-                                // Left: Nav rail (ML4W-style sidebar)
+                                // Left: Nav rail (ML4W-style sidebar), narrower for thinner modal
                                 Column {
-                                    width: 132
+                                    width: 108
                                     height: parent.height
                                     spacing: 2
 
@@ -786,11 +786,11 @@ Scope {
                                             { id: 1, label: "Control Plane", icon: "gear" },
                                             { id: 2, label: "Developer", icon: "folder-open" },
                                             { id: 3, label: "Wallpapers", icon: "images-square" },
-                                            { id: 4, label: "System", icon: "cursor" }
+                                            { id: 4, label: "System", icon: "gear" }
                                         ]
                                         delegate: MouseArea {
                                             required property var modelData
-                                            width: 132
+                                            width: 108
                                             height: 36
                                             cursorShape: Qt.PointingHandCursor
                                             onClicked: hubCard.hubSection = modelData.id
@@ -805,12 +805,12 @@ Scope {
                                             }
                                             Row {
                                                 anchors.fill: parent
-                                                anchors.leftMargin: 12
-                                                anchors.rightMargin: 12
-                                                spacing: 8
+                                                anchors.leftMargin: 10
+                                                anchors.rightMargin: 10
+                                                spacing: 6
                                                 Image {
-                                                    width: 16
-                                                    height: 16
+                                                    width: 14
+                                                    height: 14
                                                     source: root.phosphorDir + "/" + modelData.icon + ".svg"
                                                     fillMode: Image.PreserveAspectFit
                                                     anchors.verticalCenter: parent.verticalCenter
@@ -818,9 +818,11 @@ Scope {
                                                 Text {
                                                     text: modelData.label
                                                     color: hubCard.hubSection === modelData.id ? root.theme.accentPrimary : root.theme.textSecondary
-                                                    font.pixelSize: 11
+                                                    font.pixelSize: 10
                                                     font.family: root.theme.fontFamily
                                                     anchors.verticalCenter: parent.verticalCenter
+                                                    elide: Text.ElideRight
+                                                    width: 108 - 10 - 10 - 14 - 6
                                                 }
                                             }
                                             MouseArea {
@@ -835,7 +837,7 @@ Scope {
 
                                 // Right: Content stack (card-based panels)
                                 Item {
-                                    width: parent.width - 132 - 16
+                                    width: parent.width - 108 - 16
                                     height: parent.height
                                     clip: true
 
@@ -950,6 +952,7 @@ Scope {
                                                         { label: "Reload Hypr", sub: "Apply config changes", icon: "gear", cmd: ["sh", "-c", "hyprctl reload >/dev/null 2>&1 || true"] }
                                                     ]
                                                     delegate: HubActionRow {
+                                                        width: contentControl.width
                                                         theme: root.theme
                                                         phosphorDir: contentControl.phosphorDir
                                                         labelText: modelData.label
@@ -973,6 +976,7 @@ Scope {
                                                         { label: "QuickSettings (AGS)", sub: "AGS doctor", icon: "gear", cmd: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/.config/SL1C3D-L4BS/bin/sl1c3d-ags doctor; read"] }
                                                     ]
                                                     delegate: HubActionRow {
+                                                        width: contentControl.width
                                                         theme: root.theme
                                                         phosphorDir: contentControl.phosphorDir
                                                         labelText: modelData.label
@@ -1154,6 +1158,7 @@ Scope {
                                                 width: contentWallpapersFlick.width
                                                 spacing: 12
                                                 HubCard {
+                                                    width: contentWallpapers.width
                                                     theme: root.theme
                                                     phosphorDir: root.phosphorDir
                                                     title: "Wallpapers"
@@ -1207,6 +1212,7 @@ Scope {
                                                         { label: "Fuzzel", sub: "App launcher", icon: "magnifying-glass", cmd: ["fuzzel"] }
                                                     ]
                                                     delegate: HubActionRow {
+                                                        width: contentSystem.width
                                                         theme: root.theme
                                                         phosphorDir: contentSystem.phosphorDir
                                                         labelText: modelData.label
@@ -1230,6 +1236,7 @@ Scope {
                                                         { label: "Waypaper restore", sub: "Restore saved wallpaper", icon: "images-square", cmd: ["waypaper", "--restore"] }
                                                     ]
                                                     delegate: HubActionRow {
+                                                        width: contentSystem.width
                                                         theme: root.theme
                                                         phosphorDir: contentSystem.phosphorDir
                                                         labelText: modelData.label
