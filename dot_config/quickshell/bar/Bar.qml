@@ -179,6 +179,34 @@ Scope {
         onTriggered: devTimerStateProc.running = true
     }
 
+    // Power menu identity pollers
+    Process {
+        id: pwrUserProc
+        command: ["sh", "-c", "echo \"$(whoami)|$(hostname -s)\""]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const p = text.trim().split("|")
+                if (panelWindow) {
+                    panelWindow.pwrUsername = p[0] || "user"
+                    panelWindow.pwrHostname = p[1] || "arch"
+                }
+            }
+        }
+    }
+    Process {
+        id: pwrTempProc
+        command: ["sh", "-c", "sensors 2>/dev/null | grep -m1 'Core 0' | awk '{print $3}' | tr -d '+°C' || echo ''"]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const t = text.trim()
+                if (panelWindow) panelWindow.pwrCpuTemp = t ? t + "°" : ""
+            }
+        }
+    }
+    Timer { interval: 10000; repeat: true; running: true; onTriggered: pwrTempProc.running = true }
+
     Variants {
         model: Quickshell.screens
 
@@ -191,6 +219,11 @@ Scope {
             property bool calendarOpen: false
             property bool focusOpen: false
             property bool powerMenuOpen: false
+            property string pwrUsername: ""
+            property string pwrHostname: ""
+            property string pwrUptime: ""
+            property string pwrCpuTemp: ""
+            property int    pwrConfirm: -1  // index of action awaiting confirm (-1 = none)
             property bool networkPopupOpen: false
             property bool volumeOsdVisible: false
             property real volumeOsdLevel: 0.0
@@ -866,65 +899,59 @@ Scope {
                     // ─── Power menu pill ──────────────────────────────────────
                     Rectangle {
                         id: powerPill
-                        height: 24
-                        width: 28
-                        radius: 8
-                        color: panelWindow.powerMenuOpen
-                            ? root.theme.accentDim2
-                            : (powerPillHover.containsMouse ? root.theme.bgBase : root.theme.bgBase)
+                        height: 28; width: 36; radius: 10
+                        color: panelWindow.powerMenuOpen ? Qt.rgba(0.9,0.2,0.2,0.15) : "transparent"
                         border.width: 1
-                        border.color: panelWindow.powerMenuOpen
-                            ? root.theme.accentPrimary
-                            : root.theme.border
-                        opacity: powerPillHover.containsMouse ? 1.0 : 0.85
-
+                        border.color: panelWindow.powerMenuOpen ? root.theme.accentRed : root.theme.border
+                        Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
                         Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
-                        Behavior on opacity      { NumberAnimation  { duration: root.theme.motionFastMs } }
-
+                        scale: pwrPillHover.containsMouse ? (pwrPillHover.pressed ? 0.92 : 1.06) : 1.0
+                        Behavior on scale { SpringAnimation { spring: 3.0; damping: 0.7 } }
                         Accessible.role: Accessible.Button
                         Accessible.name: "Power menu"
 
-                        Text {
+                        Image {
                             anchors.centerIn: parent
-                            text: "⏻"
-                            color: panelWindow.powerMenuOpen
-                                ? root.theme.accentPrimary
-                                : root.theme.textMuted
-                            font.pixelSize: 13
-                            font.family: root.theme.fontFamily
-                            Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                            source: root.phosphorDir + "/power.svg"
+                            width: 14; height: 14
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
+                            opacity: panelWindow.powerMenuOpen ? 1.0 : (pwrPillHover.containsMouse ? 0.9 : 0.6)
+                            Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
                         }
 
                         MouseArea {
-                            id: powerPillHover
+                            id: pwrPillHover
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: panelWindow.powerMenuOpen = !panelWindow.powerMenuOpen
+                            onClicked: {
+                                panelWindow.pwrConfirm = -1
+                                panelWindow.powerMenuOpen = !panelWindow.powerMenuOpen
+                            }
                         }
                     }
                 }
             }
 
-            // ─── Power menu dropdown popup ────────────────────────────────────
+            // ─── Power menu dropdown popup (masterclass) ──────────────────────
             PopupWindow {
                 id: powerMenuPopup
                 anchor.window: panelWindow
-                implicitWidth: 220
-                implicitHeight: powerMenuCol.implicitHeight + 24
+                implicitWidth: 264
+                implicitHeight: pwrOuterCol.implicitHeight + 24
                 visible: panelWindow.powerMenuOpen
                 color: "transparent"
 
-                onVisibleChanged: if (!visible) panelWindow.powerMenuOpen = false
+                onVisibleChanged: if (!visible) { panelWindow.powerMenuOpen = false; panelWindow.pwrConfirm = -1 }
 
                 anchor.onAnchoring: {
                     if (!anchor.window) return
                     const win = anchor.window
                     const pr = win.contentItem.mapFromItem(
                         powerPill, 0, powerPill.height, powerPill.width, powerPill.height)
-                    // align right edge of popup with right edge of pill
                     const x = pr.x + powerPill.width - implicitWidth
-                    anchor.rect = Qt.rect(x, pr.y + 6, implicitWidth, implicitHeight)
+                    anchor.rect = Qt.rect(x, pr.y + 8, implicitWidth, implicitHeight)
                 }
 
                 GlassSurface {
@@ -935,46 +962,68 @@ Scope {
                     radius: root.theme.radiusModal
                     clip: true
 
-                    scale:   panelWindow.powerMenuOpen ? 1.0 : 0.94
+                    scale:   panelWindow.powerMenuOpen ? 1.0 : 0.93
                     opacity: panelWindow.powerMenuOpen ? 1.0 : 0.0
                     Behavior on scale   { NumberAnimation { duration: root.theme.motionBaseMs; easing.type: Easing.OutCubic } }
                     Behavior on opacity { NumberAnimation { duration: root.theme.motionBaseMs } }
 
                     Keys.onEscapePressed: panelWindow.powerMenuOpen = false
                     focus: panelWindow.powerMenuOpen
-
                     MouseArea { anchors.fill: parent; onClicked: {} }
 
                     Column {
-                        id: powerMenuCol
-                        anchors {
-                            top: parent.top; left: parent.left; right: parent.right
-                            margins: 10
-                        }
-                        spacing: 2
+                        id: pwrOuterCol
+                        anchors { top: parent.top; left: parent.left; right: parent.right; margins: 12 }
+                        spacing: 0
 
-                        // ── Header ──────────────────────────────────────────────
+                        // ── User identity card ────────────────────────────────
                         Item {
-                            width: parent.width
-                            height: 36
+                            width: parent.width; height: 60
+                            Row {
+                                anchors { left: parent.left; verticalCenter: parent.verticalCenter }
+                                spacing: 12
 
-                            Text {
-                                anchors.left: parent.left
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: "Power"
-                                color: root.theme.logoPurple
-                                font.pixelSize: 13
-                                font.family: root.theme.fontFamily
-                                font.weight: Font.DemiBold
+                                // Avatar circle with initial
+                                Rectangle {
+                                    width: 38; height: 38; radius: 19
+                                    gradient: Gradient {
+                                        orientation: Gradient.Horizontal
+                                        GradientStop { position: 0.0; color: root.theme.logoPurple }
+                                        GradientStop { position: 1.0; color: root.theme.accentPrimary }
+                                    }
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: (panelWindow.pwrUsername || "U").slice(0,1).toUpperCase()
+                                        color: "white"
+                                        font.pixelSize: 16; font.weight: Font.Bold
+                                        font.family: root.theme.fontFamily
+                                    }
+                                }
+
+                                Column {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    spacing: 2
+                                    Text {
+                                        text: panelWindow.pwrUsername || "user"
+                                        color: root.theme.textPrimary
+                                        font.pixelSize: 13; font.weight: Font.DemiBold
+                                        font.family: root.theme.fontFamily
+                                    }
+                                    Text {
+                                        text: (panelWindow.pwrHostname || "arch") + " · up " + root.uptimeString
+                                        color: root.theme.textMuted
+                                        font.pixelSize: 9; font.family: root.theme.fontFamily
+                                    }
+                                }
                             }
 
-                            // Close ×
+                            // Close button top-right
                             MouseArea {
                                 id: pwrClose
-                                anchors.right: parent.right
-                                anchors.verticalCenter: parent.verticalCenter
+                                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
                                 width: 24; height: 24
                                 cursorShape: Qt.PointingHandCursor
+                                hoverEnabled: true
                                 onClicked: panelWindow.powerMenuOpen = false
                                 Rectangle {
                                     anchors.fill: parent; radius: 6
@@ -989,95 +1038,221 @@ Scope {
                             }
                         }
 
-                        // ── Divider ──────────────────────────────────────────────
-                        Rectangle {
-                            width: parent.width; height: 1
-                            color: root.theme.border; opacity: 0.5
+                        // ── Divider ───────────────────────────────────────────
+                        Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.5 }
+                        Item { width: 1; height: 6 }
+
+                        // ── SESSION group label ───────────────────────────────
+                        Text {
+                            text: "SESSION"
+                            color: root.theme.textMuted
+                            font.pixelSize: 8; font.letterSpacing: 1.2
+                            font.family: root.theme.fontFamily
+                            leftPadding: 4
                         }
                         Item { width: 1; height: 4 }
 
-                        // ── Power actions ────────────────────────────────────────
+                        // ── Session actions (Lock, Suspend, Logout) ───────────
                         Repeater {
                             model: [
-                                { label: "Lock",     icon: "⏾", sub: "Lock screen",          accent: root.theme.textMuted,    cmd: ["loginctl", "lock-session"] },
-                                { label: "Suspend",  icon: "󰒲", sub: "Sleep mode",            accent: root.theme.accentPrimary, cmd: ["systemctl", "suspend"] },
-                                { label: "Logout",   icon: "󰗽", sub: "End session",           accent: root.theme.accentPrimary, cmd: ["sh", "-c", "hyprctl dispatch exit"] },
-                                { label: "Reboot",   icon: "󰑓", sub: "Restart system",        accent: root.theme.accentOrange,  cmd: ["systemctl", "reboot"] },
-                                { label: "Shutdown", icon: "⏻", sub: "Power off",             accent: root.theme.accentRed,     cmd: ["systemctl", "poweroff"] }
+                                { label: "Lock",    sub: "Lock screen",  icon: "lock-simple",        accent: root.theme.textSecondary, hint: "Super+L",  dangerous: false, cmd: ["loginctl", "lock-session"] },
+                                { label: "Suspend", sub: "Sleep mode",   icon: "moon",               accent: root.theme.accentPrimary,  hint: "",         dangerous: false, cmd: ["systemctl", "suspend"] },
+                                { label: "Logout",  sub: "End session",  icon: "sign-out",           accent: root.theme.accentPrimary,  hint: "",         dangerous: false, cmd: ["sh", "-c", "hyprctl dispatch exit"] }
                             ]
-
-                            delegate: MouseArea {
+                            delegate: Item {
                                 required property var modelData
-                                id: pwrRow
-                                width: powerMenuCol.width
-                                height: 44
-                                cursorShape: Qt.PointingHandCursor
-                                hoverEnabled: true
-
-                                onClicked: {
-                                    panelWindow.powerMenuOpen = false
-                                    hubLauncher.command = modelData.cmd
-                                    hubLauncher.running = true
+                                required property int index
+                                id: sessionRow
+                                width: pwrOuterCol.width; height: 46
+                                property bool hov: sessionMa.containsMouse
+                                MouseArea {
+                                    id: sessionMa; anchors.fill: parent
+                                    hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        panelWindow.powerMenuOpen = false
+                                        hubLauncher.command = sessionRow.modelData.cmd
+                                        hubLauncher.running = true
+                                    }
                                 }
-
                                 Rectangle {
-                                    anchors.fill: parent
-                                    anchors.margins: 1
+                                    anchors { fill: parent; margins: 1 }
                                     radius: root.theme.radiusPill
-                                    color: pwrRow.containsMouse ? root.theme.accentDim2 : "transparent"
+                                    color: sessionRow.hov ? root.theme.accentDim2 : "transparent"
                                     Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
                                 }
-
                                 Row {
-                                    anchors {
-                                        left: parent.left; right: parent.right
-                                        verticalCenter: parent.verticalCenter
-                                        leftMargin: 10; rightMargin: 10
-                                    }
-                                    spacing: 12
+                                    anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 8; rightMargin: 8 }
+                                    spacing: 10
 
-                                    // Colored icon glyph
+                                    Rectangle {
+                                        width: 28; height: 28; radius: 8; anchors.verticalCenter: parent.verticalCenter
+                                        color: sessionRow.hov ? Qt.rgba(0.34,0.40,0.95,0.15) : Qt.rgba(1,1,1,0.04)
+                                        Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                        Image {
+                                            anchors.centerIn: parent; width: 14; height: 14
+                                            source: root.phosphorDir + "/" + sessionRow.modelData.icon + ".svg"
+                                            fillMode: Image.PreserveAspectFit; smooth: true
+                                        }
+                                    }
+                                    Column {
+                                        anchors.verticalCenter: parent.verticalCenter; spacing: 1
+                                        Text { text: sessionRow.modelData.label; color: root.theme.textPrimary; font.pixelSize: 12; font.weight: Font.Medium; font.family: root.theme.fontFamily }
+                                        Text { text: sessionRow.modelData.sub;   color: root.theme.textMuted;  font.pixelSize: 9;  font.family: root.theme.fontFamily }
+                                    }
+                                    Item { Layout.fillWidth: true; height: 1; width: pwrOuterCol.width - 28 - 10 - 120 }
                                     Text {
                                         anchors.verticalCenter: parent.verticalCenter
-                                        text: pwrRow.modelData.icon
-                                        color: pwrRow.modelData.accent
-                                        font.pixelSize: 16
-                                        font.family: root.theme.fontFamily
-                                        width: 20
-                                        horizontalAlignment: Text.AlignHCenter
+                                        text: sessionRow.modelData.hint
+                                        color: root.theme.border; font.pixelSize: 9; font.family: root.theme.fontFamily
+                                        visible: sessionRow.modelData.hint !== ""
                                     }
-
-                                    // Label + sub
-                                    Column {
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        spacing: 1
-                                        Text {
-                                            text: pwrRow.modelData.label
-                                            color: root.theme.textPrimary
-                                            font.pixelSize: 12
-                                            font.family: root.theme.fontFamily
-                                            font.weight: Font.Medium
-                                        }
-                                        Text {
-                                            text: pwrRow.modelData.sub
-                                            color: root.theme.textMuted
-                                            font.pixelSize: 10
-                                            font.family: root.theme.fontFamily
-                                        }
-                                    }
-
-                                    // Hover arrow
-                                    Item { width: parent.width - 20 - 12 - 100; height: 1 }
                                     Text {
                                         anchors.verticalCenter: parent.verticalCenter
                                         text: "›"
-                                        color: pwrRow.containsMouse
-                                            ? pwrRow.modelData.accent
-                                            : root.theme.border
-                                        font.pixelSize: 16
-                                        font.family: root.theme.fontFamily
+                                        color: sessionRow.hov ? sessionRow.modelData.accent : root.theme.border
+                                        font.pixelSize: 15; font.family: root.theme.fontFamily
                                         Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
                                     }
+                                }
+                            }
+                        }
+
+                        Item { width: 1; height: 8 }
+
+                        // ── Danger zone divider ───────────────────────────────
+                        Item {
+                            width: parent.width; height: 18
+                            Rectangle { anchors { left: parent.left; right: dangerLabel.left; verticalCenter: parent.verticalCenter; rightMargin: 6 }; height: 1; color: root.theme.accentRed; opacity: 0.25 }
+                            Text { id: dangerLabel; anchors { right: parent.right; verticalCenter: parent.verticalCenter }; text: "SYSTEM"; color: root.theme.accentRed; opacity: 0.6; font.pixelSize: 8; font.letterSpacing: 1.2; font.family: root.theme.fontFamily }
+                        }
+                        Item { width: 1; height: 4 }
+
+                        // ── Destructive actions (Reboot, Shutdown) w/ confirm ─
+                        Repeater {
+                            model: [
+                                { label: "Reboot",   sub: "Restart system", icon: "arrows-clockwise", accent: root.theme.accentOrange, cmd: ["systemctl", "reboot"],  confirmIdx: 3 },
+                                { label: "Shutdown", sub: "Power off",       icon: "power",            accent: root.theme.accentRed,    cmd: ["systemctl", "poweroff"], confirmIdx: 4 }
+                            ]
+                            delegate: Item {
+                                required property var modelData
+                                required property int index
+                                id: dangerRow
+                                width: pwrOuterCol.width; height: 50
+                                property bool hov: dangerMa.containsMouse
+                                property bool confirming: panelWindow.pwrConfirm === modelData.confirmIdx
+
+                                MouseArea {
+                                    id: dangerMa; anchors.fill: parent
+                                    hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (dangerRow.confirming) {
+                                            panelWindow.pwrConfirm = -1
+                                            panelWindow.powerMenuOpen = false
+                                            hubLauncher.command = dangerRow.modelData.cmd
+                                            hubLauncher.running = true
+                                        } else {
+                                            panelWindow.pwrConfirm = dangerRow.modelData.confirmIdx
+                                            pwrConfirmTimer.restart()
+                                        }
+                                    }
+                                }
+                                Timer {
+                                    id: pwrConfirmTimer
+                                    interval: 3000; repeat: false
+                                    onTriggered: if (panelWindow.pwrConfirm === dangerRow.modelData.confirmIdx) panelWindow.pwrConfirm = -1
+                                }
+
+                                // Confirm pulsing border
+                                Rectangle {
+                                    anchors { fill: parent; margins: 1 }
+                                    radius: root.theme.radiusPill
+                                    color: dangerRow.confirming
+                                        ? Qt.rgba(dangerRow.modelData.accent === root.theme.accentRed ? 0.9 : 0.8,
+                                                  dangerRow.modelData.accent === root.theme.accentRed ? 0.1 : 0.35, 0.1, 0.18)
+                                        : (dangerRow.hov ? root.theme.accentDim2 : "transparent")
+                                    border.width: dangerRow.confirming ? 1 : 0
+                                    border.color: dangerRow.modelData.accent
+                                    Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
+                                    Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+
+                                    SequentialAnimation on opacity {
+                                        loops: Animation.Infinite; running: dangerRow.confirming
+                                        NumberAnimation { to: 0.5; duration: 600 }
+                                        NumberAnimation { to: 1.0; duration: 600 }
+                                    }
+                                }
+
+                                Row {
+                                    anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 8; rightMargin: 8 }
+                                    spacing: 10
+
+                                    Rectangle {
+                                        width: 28; height: 28; radius: 8; anchors.verticalCenter: parent.verticalCenter
+                                        color: dangerRow.confirming
+                                            ? Qt.rgba(dangerRow.modelData.accent === root.theme.accentRed ? 0.9 : 0.8,
+                                                      dangerRow.modelData.accent === root.theme.accentRed ? 0.1 : 0.35, 0.1, 0.25)
+                                            : (dangerRow.hov ? Qt.rgba(0.9,0.2,0.1,0.15) : Qt.rgba(1,1,1,0.04))
+                                        Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                        Image {
+                                            anchors.centerIn: parent; width: 14; height: 14
+                                            source: root.phosphorDir + "/" + dangerRow.modelData.icon + ".svg"
+                                            fillMode: Image.PreserveAspectFit; smooth: true
+                                        }
+                                    }
+                                    Column {
+                                        anchors.verticalCenter: parent.verticalCenter; spacing: 2
+                                        Text {
+                                            text: dangerRow.confirming ? "Confirm " + dangerRow.modelData.label + "?" : dangerRow.modelData.label
+                                            color: dangerRow.confirming ? dangerRow.modelData.accent : root.theme.textPrimary
+                                            font.pixelSize: 12; font.weight: Font.Medium; font.family: root.theme.fontFamily
+                                            Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                        }
+                                        Text {
+                                            text: dangerRow.confirming ? "Click again to confirm · auto-cancel 3s" : dangerRow.modelData.sub
+                                            color: dangerRow.confirming ? Qt.rgba(1,0.5,0.3,0.8) : root.theme.textMuted
+                                            font.pixelSize: 9; font.family: root.theme.fontFamily
+                                            Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                        }
+                                    }
+                                    Item { height: 1; width: pwrOuterCol.width - 28 - 10 - 130 }
+                                    Text {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        text: dangerRow.confirming ? "⚠" : "›"
+                                        color: dangerRow.hov || dangerRow.confirming ? dangerRow.modelData.accent : root.theme.border
+                                        font.pixelSize: dangerRow.confirming ? 13 : 15; font.family: root.theme.fontFamily
+                                        Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                    }
+                                }
+                            }
+                        }
+
+                        Item { width: 1; height: 8 }
+
+                        // ── Status strip ─────────────────────────────────────
+                        Rectangle {
+                            width: parent.width; height: 28; radius: 8
+                            color: Qt.rgba(1,1,1,0.03); border.width: 1; border.color: root.theme.border
+                            Row {
+                                anchors.centerIn: parent; spacing: 16
+                                Text {
+                                    text: root.uptimeString !== "—" ? "⏱  " + root.uptimeString : ""
+                                    color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily
+                                    visible: root.uptimeString !== "—"
+                                }
+                                Text {
+                                    text: SystemInfo.memoryUsage !== "0%" ? "  " + SystemInfo.memoryUsage : ""
+                                    color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily
+                                    visible: SystemInfo.memoryUsage !== "0%"
+                                }
+                                Text {
+                                    text: SystemInfo.batteryLevelRaw > 0 ? "🔋 " + SystemInfo.batteryLevelRaw + "%" : ""
+                                    color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily
+                                    visible: SystemInfo.batteryLevelRaw > 0
+                                }
+                                Text {
+                                    text: panelWindow.pwrCpuTemp !== "" ? "🌡  " + panelWindow.pwrCpuTemp : ""
+                                    color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily
+                                    visible: panelWindow.pwrCpuTemp !== ""
                                 }
                             }
                         }
@@ -1285,12 +1460,12 @@ Scope {
 
                                     Repeater {
                                         model: [
-                                            { id: 0, label: "Overview",   icon: "squares-four",    accent: root.theme.accentPrimary },
-                                            { id: 1, label: "Media",      icon: "music-notes",     accent: root.theme.logoPurple },
-                                            { id: 2, label: "Developer",  icon: "terminal-window", accent: root.theme.accentPrimary },
-                                            { id: 3, label: "Wallpapers", icon: "images-square",   accent: root.theme.accentOrange },
-                                            { id: 4, label: "Control",    icon: "gear",            accent: root.theme.logoPurple },
-                                            { id: 5, label: "System",     icon: "keyboard",        accent: root.theme.accentGreen }
+                                            { id: 0, label: "Overview",   icon: "house",               accent: root.theme.accentPrimary },
+                                            { id: 1, label: "Media",      icon: "music-notes",         accent: root.theme.logoPurple },
+                                            { id: 2, label: "Developer",  icon: "terminal-window",     accent: root.theme.accentPrimary },
+                                            { id: 3, label: "Wallpapers", icon: "images-square",       accent: root.theme.accentOrange },
+                                            { id: 4, label: "Control",    icon: "sliders-horizontal",  accent: root.theme.logoPurple },
+                                            { id: 5, label: "System",     icon: "desktop-tower",       accent: root.theme.accentGreen }
                                         ]
                                         delegate: MouseArea {
                                             required property var modelData
@@ -1548,9 +1723,9 @@ Scope {
                                                         { label: "Terminal",  icon: "terminal-window", cmd: ["ghostty"] },
                                                         { label: "Files",     icon: "folder-open",     cmd: ["ghostty", "-e", "yazi"] },
                                                         { label: "Editor",    icon: "file-code",       cmd: ["ghostty", "-e", "nvim"] },
-                                                        { label: "Monitor",   icon: "cpu",             cmd: ["ghostty", "-e", "btop"] },
+                                                        { label: "Monitor",   icon: "gauge",           cmd: ["ghostty", "-e", "btop"] },
                                                         { label: "Music",     icon: "music-notes",     cmd: ["bash", "-c", hubCard.home + "/.config/hypr/scripts/spotifyd-toggle.sh"] },
-                                                        { label: "AI",        icon: "cursor",          cmd: [hubCard.home + "/.config/hypr/scripts/openclaw-sidebar.sh"] }
+                                                        { label: "AI",        icon: "robot",           cmd: [hubCard.home + "/.config/hypr/scripts/openclaw-sidebar.sh"] }
                                                     ]
                                                     delegate: MouseArea {
                                                         required property var modelData
@@ -2200,9 +2375,9 @@ Scope {
                                             Repeater {
                                                 model: [
                                                     { label: "Zsh",           sub: "~/.zshrc",              icon: "terminal-window", accent: "#b366ff", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.zshrc"] },
-                                                    { label: "Hyprland",      sub: "~/.config/hypr/",       icon: "gear",            accent: "#5865F2", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/hypr"] },
-                                                    { label: "Quickshell",    sub: "bar/Bar.qml",           icon: "squares-four",    accent: "#5865F2", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/quickshell/bar/Bar.qml"] },
-                                                    { label: "Zellij",        sub: "config.kdl",            icon: "terminal-window", accent: "#ffb86c", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/zellij/config.kdl"] },
+                                                    { label: "Hyprland",      sub: "~/.config/hypr/",       icon: "app-window",      accent: "#5865F2", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/hypr"] },
+                                                    { label: "Quickshell",    sub: "bar/Bar.qml",           icon: "layout",          accent: "#5865F2", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/quickshell/bar/Bar.qml"] },
+                                                    { label: "Zellij",        sub: "config.kdl",            icon: "grid-four",       accent: "#ffb86c", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/zellij/config.kdl"] },
                                                     { label: "Starship",      sub: "starship.toml",         icon: "sparkle",         accent: "#ff79c6", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/starship.toml"] },
                                                     { label: "Neovim",        sub: "~/.config/nvim/",       icon: "file-code",       accent: "#50fa7b", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/nvim"] },
                                                     { label: "Chezmoi apply", sub: "Sync & apply dotfiles", icon: "arrow-clockwise", accent: "#5865F2", cmd: ["ghostty", "-e", "bash", "-lc", "chezmoi apply && echo '\\n✓ Done'; read"] }
@@ -2388,8 +2563,8 @@ Scope {
                                             Repeater {
                                                 model: [
                                                     { label: "Validate configs",    sub: "Run all 53 checks",        icon: "check-circle",    cmd: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/scripts/validate-configs.sh; echo; echo 'Press Enter'; read"] },
-                                                    { label: "Reload Hyprland",     sub: "Apply hypr config",        icon: "arrow-clockwise", cmd: ["sh", "-c", "hyprctl reload >/dev/null 2>&1 || true"] },
-                                                    { label: "Restart Quickshell",  sub: "Reload bar",               icon: "squares-four",    cmd: ["sh", "-c", "pkill quickshell; sleep 0.5; quickshell &"] }
+                                                    { label: "Reload Hyprland",     sub: "Apply hypr config",        icon: "arrow-clockwise",         cmd: ["sh", "-c", "hyprctl reload >/dev/null 2>&1 || true"] },
+                                                    { label: "Restart Quickshell",  sub: "Reload bar",               icon: "arrow-counter-clockwise", cmd: ["sh", "-c", "pkill quickshell; sleep 0.5; quickshell &"] }
                                                 ]
                                                 delegate: HubActionRow {
                                                     required property var modelData
@@ -2402,10 +2577,10 @@ Scope {
                                             Text { text: "DISPLAY & CAPTURE"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
                                             Repeater {
                                                 model: [
-                                                    { label: "Screenshot (region)", sub: "Copy region to clipboard", icon: "camera",  cmd: ["sh", "-c", "grimblast copy area"] },
-                                                    { label: "Screenshot (window)", sub: "Copy active window",       icon: "camera",  cmd: ["sh", "-c", "grimblast copy active"] },
-                                                    { label: "Color picker",        sub: "Pick & copy hex color",    icon: "palette", cmd: ["sh", "-c", "hyprpicker -a"] },
-                                                    { label: "Toggle DND",          sub: "Mako do-not-disturb",      icon: "bell",    cmd: ["sh", "-c", "makoctl mode -t do-not-disturb"] }
+                                                    { label: "Screenshot (region)", sub: "Copy region to clipboard", icon: "camera",    cmd: ["sh", "-c", "grimblast copy area"] },
+                                                    { label: "Screenshot (window)", sub: "Copy active window",       icon: "selection", cmd: ["sh", "-c", "grimblast copy active"] },
+                                                    { label: "Color picker",        sub: "Pick & copy hex color",    icon: "palette",   cmd: ["sh", "-c", "hyprpicker -a"] },
+                                                    { label: "Toggle DND",          sub: "Mako do-not-disturb",      icon: "bell",      cmd: ["sh", "-c", "makoctl mode -t do-not-disturb"] }
                                                 ]
                                                 delegate: HubActionRow {
                                                     required property var modelData
@@ -2418,8 +2593,8 @@ Scope {
                                             Text { text: "SERVICES"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
                                             Repeater {
                                                 model: [
-                                                    { label: "AI Gateway (restart)", sub: "OpenClaw gateway", icon: "arrow-clockwise", cmd: ["sh", "-c", "systemctl --user restart openclaw-gateway.service >/dev/null 2>&1 || true"] },
-                                                    { label: "AGS doctor",           sub: "Quick settings",  icon: "gear",            cmd: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/.config/SL1C3D-L4BS/bin/sl1c3d-ags doctor; read"] }
+                                                    { label: "AI Gateway (restart)", sub: "OpenClaw gateway", icon: "robot",        cmd: ["sh", "-c", "systemctl --user restart openclaw-gateway.service >/dev/null 2>&1 || true"] },
+                                                    { label: "AGS doctor",           sub: "Quick settings",  icon: "stethoscope",  cmd: ["ghostty", "-e", "bash", "-lc", hubCard.home + "/.config/SL1C3D-L4BS/bin/sl1c3d-ags doctor; read"] }
                                                 ]
                                                 delegate: HubActionRow {
                                                     required property var modelData
