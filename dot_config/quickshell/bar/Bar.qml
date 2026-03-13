@@ -26,9 +26,6 @@ Scope {
     property int    devTimerSecsLeft: -1
     property int    devTimerTotal: 0
     property string editionName: "base"
-    property string pwrUsername: ""
-    property string pwrHostname: ""
-    property string pwrCpuTemp: ""
 
     Process {
         id: editionReadProc
@@ -190,8 +187,10 @@ Scope {
         stdout: StdioCollector {
             onStreamFinished: {
                 const p = text.trim().split("|")
-                root.pwrUsername = p[0] || "user"
-                root.pwrHostname = p[1] || "arch"
+                if (typeof panelWindow !== 'undefined' && panelWindow) {
+                    panelWindow.pwrUsername = p[0] || "user"
+                    panelWindow.pwrHostname = p[1] || "arch"
+                }
             }
         }
     }
@@ -202,7 +201,8 @@ Scope {
         stdout: StdioCollector {
             onStreamFinished: {
                 const t = text.trim()
-                root.pwrCpuTemp = t ? t + "°" : ""
+                if (typeof panelWindow !== 'undefined' && panelWindow)
+                    panelWindow.pwrCpuTemp = t ? t + "°" : ""
             }
         }
     }
@@ -220,7 +220,10 @@ Scope {
             property bool calendarOpen: false
             property bool focusOpen: false
             property bool powerMenuOpen: false
+            property string pwrUsername: ""
+            property string pwrHostname: ""
             property string pwrUptime: ""
+            property string pwrCpuTemp: ""
             property int    pwrConfirm: -1  // index of action awaiting confirm (-1 = none)
             property bool networkPopupOpen: false
             property bool volumeOsdVisible: false
@@ -291,6 +294,7 @@ Scope {
                                 height: 20
                                 fillMode: Image.PreserveAspectFit
                                 smooth: true
+                                mipmap: true
                             }
                         }
                     }
@@ -607,7 +611,7 @@ Scope {
                                     return root.phosphorDir + "/speaker-high.svg"
                                 }
                                 width: 14; height: 14
-                                fillMode: Image.PreserveAspectFit; smooth: true
+                                fillMode: Image.PreserveAspectFit; smooth: true; mipmap: true
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
@@ -807,6 +811,7 @@ Scope {
                                 height: 13
                                 fillMode: Image.PreserveAspectFit
                                 smooth: true
+                                mipmap: true
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
@@ -834,6 +839,7 @@ Scope {
                                 height: 13
                                 fillMode: Image.PreserveAspectFit
                                 smooth: true
+                                mipmap: true
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
@@ -984,7 +990,7 @@ Scope {
                                         font.family: root.theme.fontFamily
                                     }
                                     Text {
-                                        text: (root.pwrUsername || "the_architect") + "  @  " + (root.pwrHostname || "arch")
+                                        text: (panelWindow.pwrUsername || "the_architect") + "  @  " + (panelWindow.pwrHostname || "arch")
                                         color: root.theme.textSecondary
                                         font.pixelSize: 10; font.family: root.theme.fontFamily
                                     }
@@ -1239,9 +1245,9 @@ Scope {
                                     visible: SystemInfo.batteryLevelRaw > 0
                                 }
                                 Text {
-                                    text: root.pwrCpuTemp !== "" ? "🌡  " + root.pwrCpuTemp : ""
+                                    text: panelWindow.pwrCpuTemp !== "" ? "🌡  " + panelWindow.pwrCpuTemp : ""
                                     color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily
-                                    visible: root.pwrCpuTemp !== ""
+                                    visible: panelWindow.pwrCpuTemp !== ""
                                 }
                             }
                         }
@@ -1939,7 +1945,7 @@ Scope {
                                                             anchors.fill: parent; anchors.margins: 2
                                                             source: hubCard.mprisPlayer?.trackArtUrl ?? ""
                                                             fillMode: Image.PreserveAspectCrop
-                                                            smooth: true
+                                                            smooth: true; mipmap: true
                                                         }
                                                     }
                                                     Column {
@@ -2283,7 +2289,7 @@ Scope {
                                                             Image {
                                                                 anchors.verticalCenter: parent.verticalCenter
                                                                 source: root.phosphorDir + "/" + (modelData.icon || "terminal-window") + ".svg"
-                                                                width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true
+                                                                width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true; mipmap: true
                                                             }
                                                             Text {
                                                                 anchors.verticalCenter: parent.verticalCenter
@@ -2467,15 +2473,15 @@ Scope {
                                                             }
 
                                                             // Chevron — right
-                                                            Image {
-                                                                id: cfgChevron
-                                                                anchors.right: parent.right
-                                                                anchors.verticalCenter: parent.verticalCenter
-                                                                source: root.phosphorDir + "/caret-right.svg"
-                                                                width: 12; height: 12; fillMode: Image.PreserveAspectFit; smooth: true
-                                                                opacity: cfgDelegate.containsMouse ? 1.0 : 0.3
-                                                                Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
-                                                            }
+                                    Image {
+                                        id: cfgChevron
+                                        anchors.right: parent.right
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        source: root.phosphorDir + "/caret-right.svg"
+                                        width: 12; height: 12; fillMode: Image.PreserveAspectFit; smooth: true
+                                        opacity: cfgDelegate.containsMouse ? 1.0 : 0.3
+                                        Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
+                                    }
 
                                                             // Label + sub — fills between icon and chevron
                                                             Column {
@@ -2546,7 +2552,7 @@ Scope {
                                                                 anchors { fill: parent; margins: isSelected ? 3 : 2 }
                                                                 source: "file://" + hubCard.home + "/assets/wallpapers/" + modelData
                                                                 fillMode: Image.PreserveAspectCrop
-                                                                smooth: true
+                                                                smooth: true; mipmap: true
                                                                 layer.enabled: true
                                                                 layer.effect: null
                                                             }
@@ -2827,7 +2833,7 @@ Scope {
                                 Image {
                                     anchors.verticalCenter: parent.verticalCenter
                                     source: "file://" + root.homeDir + "/assets/icons/Logo-bar.svg"
-                                    width: 18; height: 18; fillMode: Image.PreserveAspectFit; smooth: true
+                                    width: 18; height: 18; fillMode: Image.PreserveAspectFit; smooth: true; mipmap: true
                                 }
                                 Column {
                                     anchors.verticalCenter: parent.verticalCenter; spacing: 2
@@ -3291,7 +3297,7 @@ Scope {
                                 Image {
                                     anchors.verticalCenter: parent.verticalCenter
                                     source: "file://" + root.homeDir + "/assets/icons/Logo-bar.svg"
-                                    width: 16; height: 16; fillMode: Image.PreserveAspectFit; smooth: true
+                                    width: 16; height: 16; fillMode: Image.PreserveAspectFit; smooth: true; mipmap: true
                                 }
                                 Row {
                                     anchors.verticalCenter: parent.verticalCenter; spacing: 3
@@ -3317,7 +3323,7 @@ Scope {
                                             }
                                             Rectangle {
                                                 anchors.fill: parent; radius: root.theme.radiusPill
-                                                color: panelWindow.calTab === calTabBtn.modelData.id ? Qt.rgba(0.70, 0.40, 1.0, 0.22) : "transparent"
+                                                color: panelWindow.calTab === calTabBtn.modelData.id ? Qt.rgba(0.70, 0.40, 1.0, 0.18) : "transparent"
                                                 border.width: 1
                                                 border.color: panelWindow.calTab === calTabBtn.modelData.id ? root.theme.logoPurple : "transparent"
                                                 Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
