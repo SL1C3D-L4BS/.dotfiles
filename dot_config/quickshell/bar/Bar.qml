@@ -1122,8 +1122,16 @@ Scope {
                         // ── Danger zone divider ───────────────────────────────
                         Item {
                             width: parent.width; height: 18
-                            Rectangle { anchors { left: parent.left; right: dangerLabel.left; verticalCenter: parent.verticalCenter; rightMargin: 6 }; height: 1; color: root.theme.accentRed; opacity: 0.25 }
-                            Text { id: dangerLabel; anchors { right: parent.right; verticalCenter: parent.verticalCenter }; text: "SYSTEM"; color: root.theme.accentRed; opacity: 0.6; font.pixelSize: 8; font.letterSpacing: 1.2; font.family: root.theme.fontFamily }
+                            Rectangle {
+                                anchors { left: parent.left; right: dangerLabel.left; verticalCenter: parent.verticalCenter; rightMargin: 6 }
+                                height: 1; color: root.theme.accentRed; opacity: 0.25
+                            }
+                            Text {
+                                id: dangerLabel
+                                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                                text: "SYSTEM"; color: root.theme.accentRed; opacity: 0.6
+                                font.pixelSize: 8; font.letterSpacing: 1.2; font.family: root.theme.fontFamily
+                            }
                         }
                         Item { width: 1; height: 4 }
 
