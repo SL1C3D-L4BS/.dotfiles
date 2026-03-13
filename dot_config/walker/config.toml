@@ -10,12 +10,13 @@ selection_wrap       = true
 exact_search_prefix  = "'"
 theme                = "sl1c3d"
 
-[ui]
+[shell]
 anchor_top    = true
 anchor_bottom = false
-anchor_left   = false
-anchor_right  = false
-margins       = { top = 8, left = 0, right = 0, bottom = 0 }
+anchor_left   = true
+anchor_right  = true
+# Top margin: bar height (44) + bar top margin (12) = 56 — Walker sits just below Quickshell bar
+margin_top    = 56
 
 [placeholders]
 "default"             = { input = "󰍉  Search",     list = "No results" }
@@ -38,7 +39,8 @@ quick_activate    = ["F1", "F2", "F3", "F4", "F5"]
 
 [providers]
 default     = ["desktopapplications", "calc", "runner", "websearch"]
-empty       = ["desktopapplications"]
+# No results when empty — single search bar until you type
+empty       = []
 max_results = 60
 
 [providers.max_results_provider]
