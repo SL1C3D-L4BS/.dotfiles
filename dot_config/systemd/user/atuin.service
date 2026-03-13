@@ -1,0 +1,14 @@
+[Unit]
+Description=Atuin shell history daemon
+Documentation=https://atuin.sh
+After=default.target
+
+[Service]
+ExecStart=/usr/bin/atuin daemon
+ExecStartPre=-/bin/mkdir -p /run/user/%U
+Restart=on-failure
+RestartSec=5s
+Environment=ATUIN_LOG=error
+
+[Install]
+WantedBy=default.target
