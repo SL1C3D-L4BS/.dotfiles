@@ -255,25 +255,8 @@ Scope {
                 anchors.topMargin: 0
                 anchors.bottomMargin: 0
 
-                Rectangle {
-                    id: barPill
-                    anchors.fill: parent
-                    anchors.leftMargin: 0
-                    anchors.rightMargin: 0
-                    anchors.topMargin: 0
-                    radius: 12
-                    color: root.theme.bgSurface
-                    layer.effect: null
-                }
-
-                Rectangle {
-                    anchors.fill: barPill
-                    anchors.margins: -4
-                    anchors.topMargin: 2
-                    z: -1
-                    radius: 14
-                    color: "#20000000"
-                }
+                // Bar is fully transparent — individual pills float on wallpaper.
+                // Hyprland layerrule ignore_alpha 0.25 means each pill gets its own blur footprint.
 
                 Item {
                     anchors.fill: parent
@@ -983,7 +966,7 @@ Scope {
                                 anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                                 spacing: 12
 
-                                // Avatar circle with initial
+                                // Avatar — brand initials with gradient
                                 Rectangle {
                                     width: 38; height: 38; radius: 19
                                     gradient: Gradient {
@@ -993,24 +976,29 @@ Scope {
                                     }
                                     Text {
                                         anchors.centerIn: parent
-                                        text: (panelWindow.pwrUsername || "U").slice(0,1).toUpperCase()
+                                        text: "SL"
                                         color: "white"
-                                        font.pixelSize: 16; font.weight: Font.Bold
+                                        font.pixelSize: 11; font.weight: Font.Bold
                                         font.family: root.theme.fontFamily
                                     }
                                 }
 
                                 Column {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 2
+                                    spacing: 3
                                     Text {
-                                        text: panelWindow.pwrUsername || "user"
-                                        color: root.theme.textPrimary
-                                        font.pixelSize: 13; font.weight: Font.DemiBold
+                                        text: "SL1C3D-L4BS"
+                                        color: root.theme.logoPurple
+                                        font.pixelSize: 12; font.weight: Font.DemiBold
                                         font.family: root.theme.fontFamily
                                     }
                                     Text {
-                                        text: (panelWindow.pwrHostname || "arch") + " · up " + root.uptimeString
+                                        text: (panelWindow.pwrUsername || "the_architect") + "  @  " + (panelWindow.pwrHostname || "arch")
+                                        color: root.theme.textSecondary
+                                        font.pixelSize: 10; font.family: root.theme.fontFamily
+                                    }
+                                    Text {
+                                        text: "up " + root.uptimeString
                                         color: root.theme.textMuted
                                         font.pixelSize: 9; font.family: root.theme.fontFamily
                                     }
@@ -1420,36 +1408,61 @@ Scope {
                             anchors.margins: root.theme.spacingLg
                             spacing: 0
 
-                            // ─── Header ──────────────────────────────────────
-                            Row {
-                                width: parent.width
-                                height: 44
-                                spacing: 10
-                                Image {
-                                    source: "file://" + hubCard.home + "/assets/icons/Logo-bar.svg"
-                                    width: 22; height: 22
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    fillMode: Image.PreserveAspectFit; smooth: true; mipmap: true
+                            // ─── Identity Header ─────────────────────────────
+                            Item {
+                                width: parent.width; height: 56
+                                Row {
+                                    anchors { left: parent.left; verticalCenter: parent.verticalCenter }
+                                    spacing: 12
+
+                                    // Gradient avatar
+                                    Rectangle {
+                                        width: 38; height: 38; radius: 19
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        gradient: Gradient {
+                                            orientation: Gradient.Horizontal
+                                            GradientStop { position: 0.0; color: root.theme.logoPurple }
+                                            GradientStop { position: 1.0; color: root.theme.accentPrimary }
+                                        }
+                                        Text {
+                                            anchors.centerIn: parent; text: "SL"
+                                            color: "white"; font.pixelSize: 11; font.weight: Font.Bold
+                                            font.family: root.theme.fontFamily
+                                        }
+                                    }
+
+                                    Column {
+                                        anchors.verticalCenter: parent.verticalCenter; spacing: 3
+                                        Text {
+                                            text: "SL1C3D-L4BS"
+                                            color: root.theme.logoPurple
+                                            font.pixelSize: 13; font.weight: Font.DemiBold; font.family: root.theme.fontFamily
+                                        }
+                                        Row {
+                                            spacing: 6
+                                            Text { text: "SL1C3D HUB"; color: root.theme.textMuted; font.pixelSize: 9; font.letterSpacing: 0.8; font.family: root.theme.fontFamily }
+                                            Text { text: "·"; color: root.theme.border; font.pixelSize: 9; font.family: root.theme.fontFamily }
+                                            Text { text: root.uptimeString; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily }
+                                        }
+                                    }
                                 }
-                                Text {
-                                    text: "SL1C3D HUB"
-                                    color: root.theme.logoPurple
-                                    font.pixelSize: 14; font.family: root.theme.fontFamily; font.weight: Font.DemiBold
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                                Item { Layout.fillWidth: true; width: parent.width - 22 - 90 - 28 - 20; height: 1 }
+
                                 MouseArea {
                                     id: closeBtn; width: 28; height: 28
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    cursorShape: Qt.PointingHandCursor
-                                    hoverEnabled: true
+                                    anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                                    cursorShape: Qt.PointingHandCursor; hoverEnabled: true
                                     onClicked: panelWindow.hubOpen = false
                                     Rectangle {
                                         anchors.fill: parent; radius: 6
                                         color: closeBtn.containsMouse ? root.theme.border : "transparent"
                                         Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
                                     }
-                                    Text { anchors.centerIn: parent; text: "×"; color: root.theme.textMuted; font.pixelSize: 18; font.family: root.theme.fontFamily }
+                                    Image {
+                                        anchors.centerIn: parent; source: root.phosphorDir + "/x.svg"
+                                        width: 11; height: 11; fillMode: Image.PreserveAspectFit; smooth: true
+                                        opacity: closeBtn.containsMouse ? 0.9 : 0.4
+                                        Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
+                                    }
                                 }
                             }
 
@@ -1700,22 +1713,36 @@ Scope {
                                                         Text { text: hubCard.mprisPlayer?.trackArtist || ""; color: root.theme.textMuted; font.pixelSize: 10; font.family: root.theme.fontFamily; elide: Text.ElideRight; width: parent.width }
                                                     }
                                                     Row {
-                                                        spacing: 4; anchors.verticalCenter: parent.verticalCenter
+                                                        spacing: 6; anchors.verticalCenter: parent.verticalCenter
                                                         Repeater {
-                                                            model: ["⏮", hubCard.mprisPlayer?.isPlaying ? "⏸" : "▶", "⏭"]
+                                                            model: [
+                                                                { icon: "skip-back",                                                                      action: 0 },
+                                                                { icon: hubCard.mprisPlayer?.isPlaying ?? false ? "pause" : "play",                        action: 1 },
+                                                                { icon: "skip-forward",                                                                   action: 2 }
+                                                            ]
                                                             delegate: MouseArea {
-                                                                required property string modelData
+                                                                required property var modelData
                                                                 required property int index
-                                                                width: 26; height: 26; cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                                width: 28; height: 28; cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                                                scale: containsMouse ? (pressed ? 0.88 : 1.1) : 1.0
+                                                                Behavior on scale { SpringAnimation { spring: 3.0; damping: 0.7 } }
                                                                 onClicked: {
                                                                     var p = hubCard.mprisPlayer
                                                                     if (!p) return
-                                                                    if      (index === 0 && p.canGoPrevious) p.previous()
-                                                                    else if (index === 1 && p.canTogglePlaying) p.togglePlaying()
-                                                                    else if (index === 2 && p.canGoNext)     p.next()
+                                                                    if      (modelData.action === 0 && p.canGoPrevious) p.previous()
+                                                                    else if (modelData.action === 1 && p.canTogglePlaying) p.togglePlaying()
+                                                                    else if (modelData.action === 2 && p.canGoNext)     p.next()
                                                                 }
-                                                                Rectangle { anchors.fill: parent; radius: 6; color: parent.containsMouse ? root.theme.accentDim2 : "transparent"; Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } } }
-                                                                Text { anchors.centerIn: parent; text: parent.modelData; color: root.theme.textPrimary; font.pixelSize: 12 }
+                                                                Rectangle {
+                                                                    anchors.fill: parent; radius: 8
+                                                                    color: parent.containsMouse ? root.theme.accentDim2 : "transparent"
+                                                                    Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                                }
+                                                                Image {
+                                                                    anchors.centerIn: parent
+                                                                    source: root.phosphorDir + "/" + parent.modelData.icon + ".svg"
+                                                                    width: 14; height: 14; fillMode: Image.PreserveAspectFit; smooth: true
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -2624,6 +2651,57 @@ Scope {
                                         Column {
                                             id: sysCol; width: parent.width; spacing: 12
 
+                                            // ── Live stats strip ─────────────────────────
+                                            Rectangle {
+                                                width: parent.width; height: 54; radius: 12
+                                                color: Qt.rgba(0.05,0.05,0.1,1)
+                                                border.width: 1; border.color: root.theme.border
+
+                                                Row {
+                                                    anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
+                                                    spacing: 0
+
+                                                    Repeater {
+                                                        model: [
+                                                            { label: "CPU",   value: SystemInfo.cpuUsage,     icon: "cpu",        color: root.theme.accentPrimary },
+                                                            { label: "RAM",   value: SystemInfo.memoryUsage,  icon: "memory",     color: root.theme.logoPurple },
+                                                            { label: "DISK",  value: Math.round(SystemInfo.diskUsageNum) + "%",  icon: "hard-drive", color: root.theme.accentGreen }
+                                                        ]
+                                                        delegate: Item {
+                                                            required property var modelData
+                                                            width: (sysCol.width - 24) / 3
+                                                            height: 54
+                                                            Column {
+                                                                anchors.centerIn: parent; spacing: 4
+                                                                Image {
+                                                                    anchors.horizontalCenter: parent.horizontalCenter
+                                                                    source: root.phosphorDir + "/" + modelData.icon + ".svg"
+                                                                    width: 16; height: 16; fillMode: Image.PreserveAspectFit; smooth: true
+                                                                }
+                                                                Text {
+                                                                    anchors.horizontalCenter: parent.horizontalCenter
+                                                                    text: modelData.value
+                                                                    color: modelData.color
+                                                                    font.pixelSize: 12; font.weight: Font.DemiBold; font.family: root.theme.fontFamily
+                                                                }
+                                                                Text {
+                                                                    anchors.horizontalCenter: parent.horizontalCenter
+                                                                    text: modelData.label
+                                                                    color: root.theme.textMuted; font.pixelSize: 8; font.letterSpacing: 0.8; font.family: root.theme.fontFamily
+                                                                }
+                                                            }
+                                                            // Vertical divider except last
+                                                            Rectangle {
+                                                                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                                                                width: 1; height: 28
+                                                                color: root.theme.border
+                                                                visible: modelData.label !== "DISK"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
                                             Text { text: "KEYBINDS"; color: root.theme.textMuted; font.pixelSize: 9; font.family: root.theme.fontFamily; font.letterSpacing: 1.0 }
                                             Repeater {
                                                 model: [
@@ -2731,22 +2809,29 @@ Scope {
                     MouseArea { anchors.fill: parent; onClicked: {} }
 
                     Column {
-                        anchors { top: parent.top; left: parent.left; right: parent.right; margins: 10 }
+                        anchors { top: parent.top; left: parent.left; right: parent.right; margins: 12 }
                         spacing: 0
 
-                        // ── Header ─────────────────────────────────────────────
+                        // ── Identity header ─────────────────────────────────────
                         Item {
-                            width: parent.width; height: 34
-                            Text {
-                                anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                                text: "Focus"
-                                color: root.theme.accentPrimary
-                                font.pixelSize: 13; font.weight: Font.DemiBold
-                                font.family: root.theme.fontFamily
+                            width: parent.width; height: 46
+                            Row {
+                                anchors { left: parent.left; verticalCenter: parent.verticalCenter }
+                                spacing: 10
+                                Image {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    source: "file://" + root.homeDir + "/assets/icons/Logo-bar.svg"
+                                    width: 18; height: 18; fillMode: Image.PreserveAspectFit; smooth: true; mipmap: true
+                                }
+                                Column {
+                                    anchors.verticalCenter: parent.verticalCenter; spacing: 2
+                                    Text { text: "SL1C3D-L4BS"; color: root.theme.logoPurple; font.pixelSize: 12; font.weight: Font.DemiBold; font.family: root.theme.fontFamily }
+                                    Text { text: "FOCUS  ·  TIME COMMAND CENTER"; color: root.theme.textMuted; font.pixelSize: 8; font.letterSpacing: 0.8; font.family: root.theme.fontFamily }
+                                }
                             }
                             MouseArea {
                                 id: focusCloseBtn
-                                anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
                                 width: 24; height: 24
                                 cursorShape: Qt.PointingHandCursor; hoverEnabled: true
                                 onClicked: panelWindow.focusOpen = false
@@ -2755,35 +2840,52 @@ Scope {
                                     color: focusCloseBtn.containsMouse ? root.theme.border : "transparent"
                                     Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
                                 }
-                                Text { anchors.centerIn: parent; text: "×"; color: root.theme.textMuted; font.pixelSize: 16; font.family: root.theme.fontFamily }
+                                Image {
+                                    anchors.centerIn: parent; source: root.phosphorDir + "/x.svg"
+                                    width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true
+                                    opacity: focusCloseBtn.containsMouse ? 0.9 : 0.4
+                                    Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
+                                }
                             }
                         }
 
                         Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.5 }
-                        Item { height: 10 }
+                        Item { height: 12 }
 
-                        // ── Large live clock ────────────────────────────────────
+                        // ── Large live clock ─────────────────────────────────────
                         Text {
-                            width: parent.width
-                            horizontalAlignment: Text.AlignHCenter
+                            width: parent.width; horizontalAlignment: Text.AlignHCenter
                             text: root.barTimeString + ":" + root.barSecondsString
                             color: root.theme.accentPrimary
-                            font.pixelSize: 39; font.weight: Font.Bold
-                            font.family: root.theme.fontFamily
+                            font.pixelSize: 42; font.weight: Font.Bold; font.family: root.theme.fontFamily
                         }
-                        Item { height: 2 }
+                        Item { height: 3 }
                         Text {
                             width: parent.width; horizontalAlignment: Text.AlignHCenter
                             text: root.barDayString + "  ·  " + root.barDateString
-                            color: root.theme.textMuted
-                            font.pixelSize: 11; font.family: root.theme.fontFamily
+                            color: root.theme.textMuted; font.pixelSize: 11; font.family: root.theme.fontFamily
                         }
 
-                        Item { height: 10 }
-                        Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.4 }
+                        Item { height: 12 }
+
+                        // ── DEV TIMER section divider ─────────────────────────
+                        Item {
+                            width: parent.width; height: 18
+                            Rectangle {
+                                anchors { left: parent.left; right: timerSectionLabel.left; verticalCenter: parent.verticalCenter; rightMargin: 8 }
+                                height: 1; color: root.theme.border; opacity: 0.5
+                            }
+                            Row {
+                                id: timerSectionLabel
+                                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                                spacing: 4
+                                Image { source: root.phosphorDir + "/timer.svg"; width: 9; height: 9; fillMode: Image.PreserveAspectFit; anchors.verticalCenter: parent.verticalCenter; opacity: 0.5 }
+                                Text { text: "DEV TIMER"; color: root.theme.textMuted; font.pixelSize: 8; font.letterSpacing: 1.0; font.family: root.theme.fontFamily }
+                            }
+                        }
                         Item { height: 8 }
 
-                        // ── Dev timer ring ─────────────────────────────────────
+                        // ── Dev timer ring + info ─────────────────────────────
                         Item {
                             width: parent.width; height: 76
 
@@ -2818,7 +2920,6 @@ Scope {
                                 }
                                 Component.onCompleted: requestPaint()
 
-                                // Center text in ring
                                 Column {
                                     anchors.centerIn: parent; spacing: 0
                                     Text {
@@ -2832,28 +2933,23 @@ Scope {
                                             return String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0")
                                         }
                                         color: root.devTimerSecsLeft > 0 ? timerRing.arcColor : root.theme.textMuted
-                                        font.pixelSize: 12; font.weight: Font.DemiBold
-                                        font.family: root.theme.fontFamily
+                                        font.pixelSize: 12; font.weight: Font.DemiBold; font.family: root.theme.fontFamily
                                     }
                                 }
                             }
 
                             Column {
-                                anchors { left: timerRing.right; leftMargin: 10; verticalCenter: parent.verticalCenter; right: parent.right }
-                                spacing: 4
+                                anchors { left: timerRing.right; leftMargin: 12; verticalCenter: parent.verticalCenter; right: parent.right }
+                                spacing: 5
                                 Text {
-                                    text: root.devTimerSecsLeft > 0 ? "DEV TIMER" : "NO ACTIVE TIMER"
-                                    color: root.theme.textMuted; font.pixelSize: 9; font.letterSpacing: 0.8
-                                    font.family: root.theme.fontFamily
-                                }
-                                Text {
-                                    text: root.devTimerLabel || "—"
-                                    color: root.theme.textPrimary; font.pixelSize: 12; font.weight: Font.Medium
-                                    font.family: root.theme.fontFamily; elide: Text.ElideRight; width: parent.width
+                                    text: root.devTimerLabel || "No active timer"
+                                    color: root.devTimerSecsLeft > 0 ? root.theme.textPrimary : root.theme.textMuted
+                                    font.pixelSize: 12; font.weight: Font.Medium; font.family: root.theme.fontFamily
+                                    elide: Text.ElideRight; width: parent.width
                                 }
                                 MouseArea {
                                     id: timerLaunchBtn
-                                    width: parent.width; height: 24
+                                    width: parent.width; height: 28
                                     cursorShape: Qt.PointingHandCursor; hoverEnabled: true
                                     onClicked: {
                                         panelWindow.focusOpen = false
@@ -2863,30 +2959,42 @@ Scope {
                                     }
                                     Rectangle {
                                         anchors.fill: parent; radius: root.theme.radiusPill
-                                        color: timerLaunchBtn.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
-                                        border.width: 1; border.color: root.theme.border
-                                        Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
-                                        Text {
-                                            anchors.centerIn: parent
-                                            text: root.devTimerSecsLeft > 0 ? "New timer" : "Start timer"
-                                            color: root.theme.accentPrimary; font.pixelSize: 10; font.family: root.theme.fontFamily
+                                        color: timerLaunchBtn.containsMouse ? root.theme.accentDim2 : Qt.rgba(0.05,0.05,0.1,1)
+                                        border.width: 1; border.color: timerLaunchBtn.containsMouse ? root.theme.accentPrimary : root.theme.border
+                                        Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
+                                        Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                        Row {
+                                            anchors.centerIn: parent; spacing: 6
+                                            Image { source: root.phosphorDir + "/timer.svg"; width: 11; height: 11; fillMode: Image.PreserveAspectFit; anchors.verticalCenter: parent.verticalCenter }
+                                            Text {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                text: root.devTimerSecsLeft > 0 ? "New timer" : "Start timer"
+                                                color: root.theme.accentPrimary; font.pixelSize: 10; font.family: root.theme.fontFamily
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
 
-                        Item { height: 8 }
-                        Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.4 }
+                        Item { height: 12 }
+
+                        // ── QUICK TIMER section divider ───────────────────────
+                        Item {
+                            width: parent.width; height: 18
+                            Rectangle {
+                                anchors { left: parent.left; right: quickTimerLabel.left; verticalCenter: parent.verticalCenter; rightMargin: 8 }
+                                height: 1; color: root.theme.border; opacity: 0.5
+                            }
+                            Text {
+                                id: quickTimerLabel
+                                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                                text: "QUICK TIMER"; color: root.theme.textMuted; font.pixelSize: 8; font.letterSpacing: 1.0; font.family: root.theme.fontFamily
+                            }
+                        }
                         Item { height: 8 }
 
-                        // ── Quick timers ───────────────────────────────────────
-                        Text {
-                            text: "QUICK TIMER"
-                            color: root.theme.textMuted; font.pixelSize: 9; font.letterSpacing: 0.8
-                            font.family: root.theme.fontFamily
-                        }
-                        Item { height: 6 }
+                        // ── Quick timer pills ─────────────────────────────────
                         Row {
                             width: parent.width; spacing: 6
                             Repeater {
@@ -2897,8 +3005,10 @@ Scope {
                                 delegate: MouseArea {
                                     required property var modelData
                                     id: qtBtn
-                                    width: (parent.width - 18) / 4; height: 24
+                                    width: (parent.width - 18) / 4; height: 30
                                     cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                    scale: containsMouse ? (pressed ? 0.92 : 1.04) : 1.0
+                                    Behavior on scale { SpringAnimation { spring: 3.0; damping: 0.7 } }
                                     onClicked: {
                                         var secs = modelData.mins * 60
                                         hubLauncher.command = ["bash", "-c",
@@ -2911,52 +3021,86 @@ Scope {
                                     }
                                     Rectangle {
                                         anchors.fill: parent; radius: root.theme.radiusPill
-                                        color: qtBtn.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
-                                        border.width: 1; border.color: root.theme.border
-                                        Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
-                                        Text { anchors.centerIn: parent; text: qtBtn.modelData.label; color: root.theme.accentPrimary; font.pixelSize: 11; font.family: root.theme.fontFamily }
+                                        color: qtBtn.containsMouse ? root.theme.accentDim2 : Qt.rgba(0.05,0.05,0.1,1)
+                                        border.width: 1; border.color: qtBtn.containsMouse ? root.theme.accentPrimary : root.theme.border
+                                        Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
+                                        Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                        Text { anchors.centerIn: parent; text: qtBtn.modelData.label; color: root.theme.accentPrimary; font.pixelSize: 11; font.weight: Font.Medium; font.family: root.theme.fontFamily }
                                     }
                                 }
                             }
                         }
 
-                        Item { height: 8 }
-                        Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.4 }
-                        Item { height: 8 }
+                        Item { height: 12 }
 
-                        // ── World clocks ───────────────────────────────────────
-                        Text {
-                            text: "WORLD CLOCKS"
-                            color: root.theme.textMuted; font.pixelSize: 9; font.letterSpacing: 0.8
-                            font.family: root.theme.fontFamily
-                        }
-                        Item { height: 6 }
-                        Item {
-                            width: parent.width; height: 22
-                            Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: "Local"; color: root.theme.textSecondary; font.pixelSize: 11; font.family: root.theme.fontFamily }
-                            Text { anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; text: root.barTimeString; color: root.theme.textPrimary; font.pixelSize: 13; font.weight: Font.DemiBold; font.family: root.theme.fontFamily }
-                        }
-                        Item {
-                            width: parent.width; height: 22
-                            Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: "UTC"; color: root.theme.textSecondary; font.pixelSize: 11; font.family: root.theme.fontFamily }
-                            Text { anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; text: root.tz2String; color: root.theme.logoPurple; font.pixelSize: 13; font.weight: Font.DemiBold; font.family: root.theme.fontFamily }
-                        }
-
-                        Item { height: 8 }
-                        Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.4 }
-                        Item { height: 8 }
-
-                        // ── Uptime ─────────────────────────────────────────────
+                        // ── WORLD CLOCKS section divider ──────────────────────
                         Item {
                             width: parent.width; height: 18
-                            Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: "UPTIME"; color: root.theme.textMuted; font.pixelSize: 9; font.letterSpacing: 0.8; font.family: root.theme.fontFamily }
-                            Text {
-                                anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                                text: root.uptimeString; color: root.theme.textSecondary; font.pixelSize: 10; font.family: root.theme.fontFamily
-                                elide: Text.ElideLeft; width: parent.width * 0.72; horizontalAlignment: Text.AlignRight
+                            Rectangle {
+                                anchors { left: parent.left; right: clockSectionLabel.left; verticalCenter: parent.verticalCenter; rightMargin: 8 }
+                                height: 1; color: root.theme.border; opacity: 0.5
+                            }
+                            Row {
+                                id: clockSectionLabel
+                                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                                spacing: 4
+                                Image { source: root.phosphorDir + "/globe.svg"; width: 9; height: 9; fillMode: Image.PreserveAspectFit; anchors.verticalCenter: parent.verticalCenter; opacity: 0.5 }
+                                Text { text: "WORLD CLOCKS"; color: root.theme.textMuted; font.pixelSize: 8; font.letterSpacing: 1.0; font.family: root.theme.fontFamily }
                             }
                         }
                         Item { height: 8 }
+
+                        // ── World clock rows ──────────────────────────────────
+                        Rectangle {
+                            width: parent.width; height: 56; radius: 10
+                            color: Qt.rgba(0.05,0.05,0.1,1); border.width: 1; border.color: root.theme.border
+                            Column {
+                                anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
+                                spacing: 0
+                                Item {
+                                    width: parent.width; height: 28
+                                    Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: "Local"; color: root.theme.textSecondary; font.pixelSize: 11; font.family: root.theme.fontFamily }
+                                    Text { anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; text: root.barTimeString + ":" + root.barSecondsString; color: root.theme.textPrimary; font.pixelSize: 13; font.weight: Font.DemiBold; font.family: root.theme.fontFamily }
+                                }
+                                Rectangle { width: parent.width; height: 1; color: root.theme.border; opacity: 0.4 }
+                                Item {
+                                    width: parent.width; height: 27
+                                    Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: "UTC"; color: root.theme.textSecondary; font.pixelSize: 11; font.family: root.theme.fontFamily }
+                                    Text { anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; text: root.tz2String; color: root.theme.logoPurple; font.pixelSize: 13; font.weight: Font.DemiBold; font.family: root.theme.fontFamily }
+                                }
+                            }
+                        }
+
+                        Item { height: 12 }
+
+                        // ── UPTIME section divider ────────────────────────────
+                        Item {
+                            width: parent.width; height: 18
+                            Rectangle {
+                                anchors { left: parent.left; right: uptimeSectionLabel.left; verticalCenter: parent.verticalCenter; rightMargin: 8 }
+                                height: 1; color: root.theme.border; opacity: 0.5
+                            }
+                            Row {
+                                id: uptimeSectionLabel
+                                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                                spacing: 4
+                                Image { source: root.phosphorDir + "/hourglass-simple.svg"; width: 9; height: 9; fillMode: Image.PreserveAspectFit; anchors.verticalCenter: parent.verticalCenter; opacity: 0.5 }
+                                Text { text: "UPTIME"; color: root.theme.textMuted; font.pixelSize: 8; font.letterSpacing: 1.0; font.family: root.theme.fontFamily }
+                            }
+                        }
+                        Item { height: 8 }
+
+                        Rectangle {
+                            width: parent.width; height: 30; radius: 10
+                            color: Qt.rgba(0.05,0.05,0.1,1); border.width: 1; border.color: root.theme.border
+                            Text {
+                                anchors.centerIn: parent
+                                text: root.uptimeString
+                                color: root.theme.textSecondary; font.pixelSize: 11; font.family: root.theme.fontFamily
+                            }
+                        }
+
+                        Item { height: 10 }
                     }
                 }
             }
@@ -2971,8 +3115,8 @@ Scope {
                 anchor.gravity: Edges.Bottom | Edges.Right
                 anchor.adjustment: PopupAdjustment.Flip
                 anchor.margins.top: 8
-                implicitWidth: 332
-                implicitHeight: panelWindow.calTab === "notes" ? 432 : 360
+                implicitWidth: 360
+                implicitHeight: panelWindow.calTab === "notes" ? 462 : 392
                 visible: panelWindow.calendarOpen
 
                 Behavior on implicitHeight { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
@@ -3130,43 +3274,66 @@ Scope {
                         anchors { top: parent.top; left: parent.left; right: parent.right; margins: 10 }
                         spacing: 0
 
-                        // ── Tab header ──────────────────────────────────────────
+                        // ── Identity + Tab header ───────────────────────────────
                         Item {
-                            width: parent.width; height: 34
+                            width: parent.width; height: 44
 
+                            // Brand strip left
                             Row {
-                                anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                                spacing: 3
-                                Repeater {
-                                    model: [{ id: "cal", label: "Calendar" }, { id: "notes", label: "Notes" }]
-                                    delegate: MouseArea {
-                                        required property var modelData
-                                        id: calTabBtn
-                                        width: calTabTxt.width + 18; height: 26
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: {
-                                            if (panelWindow.calTab === "notes" && modelData.id === "notes") return
-                                            if (modelData.id === "notes") {
-                                                calCard.loadNote(panelWindow.calSelectedDate)
-                                                calCard.refreshRecent()
+                                anchors { left: parent.left; verticalCenter: parent.verticalCenter }
+                                spacing: 8
+                                Image {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    source: "file://" + root.homeDir + "/assets/icons/Logo-bar.svg"
+                                    width: 16; height: 16; fillMode: Image.PreserveAspectFit; smooth: true; mipmap: true
+                                }
+                                Row {
+                                    anchors.verticalCenter: parent.verticalCenter; spacing: 3
+                                    Repeater {
+                                        model: [
+                                            { id: "cal",   label: "Calendar", icon: "calendar-blank" },
+                                            { id: "notes", label: "Notes",    icon: "note" }
+                                        ]
+                                        delegate: MouseArea {
+                                            required property var modelData
+                                            id: calTabBtn
+                                            width: calTabRow.width + 16; height: 28
+                                            cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                            scale: containsMouse ? 1.04 : 1.0
+                                            Behavior on scale { SpringAnimation { spring: 3.0; damping: 0.7 } }
+                                            onClicked: {
+                                                if (panelWindow.calTab === "notes" && modelData.id === "notes") return
+                                                if (modelData.id === "notes") {
+                                                    calCard.loadNote(panelWindow.calSelectedDate)
+                                                    calCard.refreshRecent()
+                                                }
+                                                panelWindow.calTab = modelData.id
                                             }
-                                            panelWindow.calTab = modelData.id
-                                        }
-                                        Rectangle {
-                                            anchors.fill: parent; radius: root.theme.radiusPill
-                                            color: panelWindow.calTab === calTabBtn.modelData.id ? root.theme.accentDim2 : "transparent"
-                                            border.width: 1
-                                            border.color: panelWindow.calTab === calTabBtn.modelData.id ? root.theme.logoPurple : "transparent"
-                                            Behavior on color       { ColorAnimation { duration: root.theme.motionFastMs } }
-                                            Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
-                                        }
-                                        Text {
-                                            id: calTabTxt
-                                            anchors.centerIn: parent
-                                            text: calTabBtn.modelData.label
-                                            color: panelWindow.calTab === calTabBtn.modelData.id ? root.theme.logoPurple : root.theme.textMuted
-                                            font.pixelSize: 11; font.weight: Font.Medium; font.family: root.theme.fontFamily
-                                            Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                            Rectangle {
+                                                anchors.fill: parent; radius: root.theme.radiusPill
+                                                color: panelWindow.calTab === calTabBtn.modelData.id ? root.theme.accentDim2 : "transparent"
+                                                border.width: 1
+                                                border.color: panelWindow.calTab === calTabBtn.modelData.id ? root.theme.logoPurple : "transparent"
+                                                Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                            }
+                                            Row {
+                                                id: calTabRow
+                                                anchors.centerIn: parent; spacing: 5
+                                                Image {
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    source: root.phosphorDir + "/" + calTabBtn.modelData.icon + ".svg"
+                                                    width: 11; height: 11; fillMode: Image.PreserveAspectFit; smooth: true
+                                                    opacity: panelWindow.calTab === calTabBtn.modelData.id ? 1.0 : 0.5
+                                                }
+                                                Text {
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    text: calTabBtn.modelData.label
+                                                    color: panelWindow.calTab === calTabBtn.modelData.id ? root.theme.logoPurple : root.theme.textMuted
+                                                    font.pixelSize: 11; font.weight: Font.Medium; font.family: root.theme.fontFamily
+                                                    Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -3174,7 +3341,7 @@ Scope {
 
                             MouseArea {
                                 id: calCloseBtn
-                                anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
                                 width: 24; height: 24
                                 cursorShape: Qt.PointingHandCursor; hoverEnabled: true
                                 onClicked: panelWindow.calendarOpen = false
@@ -3183,7 +3350,12 @@ Scope {
                                     color: calCloseBtn.containsMouse ? root.theme.border : "transparent"
                                     Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
                                 }
-                                Text { anchors.centerIn: parent; text: "×"; color: root.theme.textMuted; font.pixelSize: 16; font.family: root.theme.fontFamily }
+                                Image {
+                                    anchors.centerIn: parent; source: root.phosphorDir + "/x.svg"
+                                    width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true
+                                    opacity: calCloseBtn.containsMouse ? 0.9 : 0.4
+                                    Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
+                                }
                             }
                         }
 
@@ -3197,63 +3369,90 @@ Scope {
                             visible: panelWindow.calTab === "cal"
 
                             // Month navigation
-                            Row {
-                                width: parent.width; height: 28; spacing: 0
-
-                                MouseArea {
-                                    id: calPrevBtn; width: 28; height: 28
-                                    cursorShape: Qt.PointingHandCursor; hoverEnabled: true
-                                    onClicked: { calCard.viewMonth--; if (calCard.viewMonth < 0) { calCard.viewMonth = 11; calCard.viewYear-- } }
-                                    Rectangle { anchors.fill: parent; radius: 6; color: parent.containsMouse ? root.theme.accentDim2 : "transparent"; Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
-                                        Text { anchors.centerIn: parent; text: "‹"; color: root.theme.logoPurple; font.pixelSize: 16; font.family: root.theme.fontFamily }
+                            Item {
+                                width: parent.width; height: 36
+                                Row {
+                                    anchors { left: parent.left; verticalCenter: parent.verticalCenter }
+                                    spacing: 0
+                                    MouseArea {
+                                        id: calPrevBtn; width: 30; height: 30
+                                        cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                        onClicked: { calCard.viewMonth--; if (calCard.viewMonth < 0) { calCard.viewMonth = 11; calCard.viewYear-- } }
+                                        Rectangle {
+                                            anchors.fill: parent; radius: 8
+                                            color: parent.containsMouse ? root.theme.accentDim2 : "transparent"
+                                            Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                            Text { anchors.centerIn: parent; text: "‹"; color: root.theme.logoPurple; font.pixelSize: 16; font.family: root.theme.fontFamily }
+                                        }
                                     }
                                 }
-
-                                Text {
-                                    width: parent.width - 28 - 28 - 56
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    text: calCard.monthNames[calCard.viewMonth] + " " + calCard.viewYear
-                                    color: root.theme.textPrimary; font.pixelSize: 12; font.weight: Font.DemiBold
-                                    font.family: root.theme.fontFamily; horizontalAlignment: Text.AlignHCenter
-                                }
-
-                                MouseArea {
-                                    id: todayBtn; width: 44; height: 20; anchors.verticalCenter: parent.verticalCenter
-                                    cursorShape: Qt.PointingHandCursor; hoverEnabled: true
-                                    onClicked: {
-                                        var d = new Date()
-                                        calCard.viewYear = d.getFullYear(); calCard.viewMonth = d.getMonth()
-                                        panelWindow.calSelectedDate = calCard.dateKey(d.getFullYear(), d.getMonth(), d.getDate())
+                                Column {
+                                    anchors.centerIn: parent; spacing: 1
+                                    Text {
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        text: calCard.monthNames[calCard.viewMonth] + " " + calCard.viewYear
+                                        color: root.theme.textPrimary; font.pixelSize: 12; font.weight: Font.DemiBold
+                                        font.family: root.theme.fontFamily
                                     }
-                                    Rectangle { anchors.fill: parent; radius: root.theme.radiusPill; color: todayBtn.containsMouse ? root.theme.accentDim2 : root.theme.bgBase; border.width: 1; border.color: root.theme.border; Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
-                                        Text { anchors.centerIn: parent; text: "Today"; color: root.theme.accentPrimary; font.pixelSize: 9; font.family: root.theme.fontFamily }
+                                    Text {
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        text: {
+                                            var n = calCard.noteDays.filter(function(d) {
+                                                return d.startsWith(calCard.viewYear + "-" + String(calCard.viewMonth+1).padStart(2,"0"))
+                                            }).length
+                                            return n > 0 ? n + " note" + (n > 1 ? "s" : "") + " this month" : ""
+                                        }
+                                        color: root.theme.logoPurple; font.pixelSize: 8; font.family: root.theme.fontFamily
+                                        visible: text !== ""
                                     }
                                 }
-
-                                MouseArea {
-                                    id: calNextBtn; width: 28; height: 28
-                                    cursorShape: Qt.PointingHandCursor; hoverEnabled: true
-                                    onClicked: { calCard.viewMonth++; if (calCard.viewMonth > 11) { calCard.viewMonth = 0; calCard.viewYear++ } }
-                                    Rectangle { anchors.fill: parent; radius: 6; color: parent.containsMouse ? root.theme.accentDim2 : "transparent"; Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
-                                        Text { anchors.centerIn: parent; text: "›"; color: root.theme.logoPurple; font.pixelSize: 16; font.family: root.theme.fontFamily }
+                                Row {
+                                    anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                                    spacing: 4
+                                    MouseArea {
+                                        id: todayBtn; width: 44; height: 22
+                                        cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                        onClicked: {
+                                            var d = new Date()
+                                            calCard.viewYear = d.getFullYear(); calCard.viewMonth = d.getMonth()
+                                            panelWindow.calSelectedDate = calCard.dateKey(d.getFullYear(), d.getMonth(), d.getDate())
+                                        }
+                                        Rectangle {
+                                            anchors.fill: parent; radius: root.theme.radiusPill
+                                            color: todayBtn.containsMouse ? root.theme.accentDim2 : Qt.rgba(0.05,0.05,0.1,1)
+                                            border.width: 1; border.color: root.theme.border
+                                            Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                            Text { anchors.centerIn: parent; text: "Today"; color: root.theme.accentPrimary; font.pixelSize: 9; font.family: root.theme.fontFamily }
+                                        }
+                                    }
+                                    MouseArea {
+                                        id: calNextBtn; width: 30; height: 30
+                                        cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                        onClicked: { calCard.viewMonth++; if (calCard.viewMonth > 11) { calCard.viewMonth = 0; calCard.viewYear++ } }
+                                        Rectangle {
+                                            anchors.fill: parent; radius: 8
+                                            color: parent.containsMouse ? root.theme.accentDim2 : "transparent"
+                                            Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                            Text { anchors.centerIn: parent; text: "›"; color: root.theme.logoPurple; font.pixelSize: 16; font.family: root.theme.fontFamily }
+                                        }
                                     }
                                 }
                             }
 
-                            Item { height: 6 }
+                            Item { height: 4 }
 
                             // Day-of-week headers (W# col + Mon-Sun)
                             Row {
                                 spacing: 2
-                                Text { width: 22; text: "#"; color: root.theme.border; font.pixelSize: 8; font.family: root.theme.fontFamily; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter; height: 16 }
+                                Text { width: 20; text: "#"; color: root.theme.border; font.pixelSize: 8; font.family: root.theme.fontFamily; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter; height: 16 }
                                 Repeater {
-                                    model: ["M","T","W","T","F","S","S"]
+                                    model: ["Mo","Tu","We","Th","Fr","Sa","Su"]
                                     Text {
                                         required property string modelData
                                         required property int index
-                                        width: 34; height: 16; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                                        width: 46; height: 16; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
                                         text: modelData
-                                        color: index >= 5 ? root.theme.accentRed : root.theme.accentPrimary
+                                        color: index >= 5 ? Qt.rgba(1,0.33,0.33,0.8) : root.theme.accentPrimary
                                         font.pixelSize: 9; font.weight: Font.DemiBold; font.family: root.theme.fontFamily
                                     }
                                 }
@@ -3282,7 +3481,7 @@ Scope {
 
                                         // Week number cell
                                         Text {
-                                            width: 20; height: 28; verticalAlignment: Text.AlignVCenter; horizontalAlignment: Text.AlignHCenter
+                                            width: 20; height: 32; verticalAlignment: Text.AlignVCenter; horizontalAlignment: Text.AlignHCenter
                                             text: {
                                                 for (var c = 0; c < 7; c++) {
                                                     var i = weekRowItem.rowStart + c
@@ -3296,74 +3495,85 @@ Scope {
                                         }
 
                                         // 7 day cells
-                                        Repeater {
-                                            model: 7
-                                            delegate: Item {
-                                                required property int index
-                                                id: dayCell
-                                                width: 36; height: 28
+                                Repeater {
+                                    model: 7
+                                    delegate: Item {
+                                        required property int index
+                                        id: dayCell
+                                        width: 46; height: 32
 
-                                                property int  ci:       weekRowItem.rowStart + index
-                                                property bool blank:    ci < calGridCol.firstDay || ci >= calGridCol.firstDay + calGridCol.daysInMon
-                                                property int  dayNum:   blank ? 0 : (ci - calGridCol.firstDay + 1)
-                                                property bool isToday: {
-                                                    if (blank) return false
-                                                    var t = new Date()
-                                                    return dayNum === t.getDate() && calGridCol.gMonth === t.getMonth() && calGridCol.gYear === t.getFullYear()
-                                                }
-                                                property string dKey:   blank ? "" : calCard.dateKey(calGridCol.gYear, calGridCol.gMonth, dayNum)
-                                                property bool isSelected: !blank && dKey === panelWindow.calSelectedDate
-                                                property bool isWeekend: index >= 5
-                                                property bool hasNote:  !blank && calCard.noteDays.indexOf(dKey) >= 0
+                                        property int  ci:       weekRowItem.rowStart + index
+                                        property bool blank:    ci < calGridCol.firstDay || ci >= calGridCol.firstDay + calGridCol.daysInMon
+                                        property int  dayNum:   blank ? 0 : (ci - calGridCol.firstDay + 1)
+                                        property bool isToday: {
+                                            if (blank) return false
+                                            var t = new Date()
+                                            return dayNum === t.getDate() && calGridCol.gMonth === t.getMonth() && calGridCol.gYear === t.getFullYear()
+                                        }
+                                        property string dKey:   blank ? "" : calCard.dateKey(calGridCol.gYear, calGridCol.gMonth, dayNum)
+                                        property bool isSelected: !blank && dKey === panelWindow.calSelectedDate
+                                        property bool isWeekend: index >= 5
+                                        property bool hasNote:  !blank && calCard.noteDays.indexOf(dKey) >= 0
 
-                                                Rectangle {
-                                                    anchors.fill: parent; radius: 7
+                                        // Weekend tint
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            color: (!dayCell.blank && dayCell.isWeekend) ? Qt.rgba(1,0.33,0.33,0.04) : "transparent"
+                                            radius: 8
+                                        }
+
+                                        // Main cell background
+                                        Rectangle {
+                                            id: dayCellBg
+                                            anchors.centerIn: parent
+                                            width: 30; height: 30; radius: 15
+                                            color: {
+                                                if (dayCell.blank)       return "transparent"
+                                                if (dayCell.isToday)     return root.theme.accentPrimary
+                                                if (dayCell.isSelected)  return root.theme.accentDim2
+                                                if (dayCellMa.containsMouse) return root.theme.border
+                                                return "transparent"
+                                            }
+                                            border.width: (!dayCell.blank && dayCell.isSelected && !dayCell.isToday) ? 1 : 0
+                                            border.color: root.theme.accentPrimary
+                                            Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+
+                                            Column {
+                                                anchors.centerIn: parent; spacing: 2
+                                                Text {
+                                                    anchors.horizontalCenter: parent.horizontalCenter
+                                                    text: dayCell.blank ? "" : dayCell.dayNum
                                                     color: {
-                                                        if (dayCell.blank)       return "transparent"
-                                                        if (dayCell.isSelected)  return root.theme.accentDim2
-                                                        if (dayCellMa.containsMouse) return root.theme.border
-                                                        return "transparent"
+                                                        if (dayCell.blank)      return "transparent"
+                                                        if (dayCell.isToday)    return "white"
+                                                        if (dayCell.isSelected) return root.theme.accentPrimary
+                                                        if (dayCell.isWeekend)  return Qt.rgba(1,0.5,0.5,0.9)
+                                                        return root.theme.textSecondary
                                                     }
-                                                    border.width: (dayCell.isToday || dayCell.isSelected) && !dayCell.blank ? 1 : 0
-                                                    border.color: dayCell.isSelected ? root.theme.accentPrimary : root.theme.logoPurple
+                                                    font.pixelSize: 11; font.family: root.theme.fontFamily
+                                                    font.weight: (dayCell.isToday || dayCell.isSelected) ? Font.DemiBold : Font.Normal
                                                     Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
-
-                                                    Column {
-                                                        anchors.centerIn: parent; spacing: 2
-                                                        Text {
-                                                            anchors.horizontalCenter: parent.horizontalCenter
-                                                            text: dayCell.blank ? "" : dayCell.dayNum
-                                                            color: {
-                                                                if (dayCell.blank)      return "transparent"
-                                                                if (dayCell.isSelected) return root.theme.accentPrimary
-                                                                if (dayCell.isToday)    return root.theme.logoPurple
-                                                                if (dayCell.isWeekend)  return root.theme.textMuted
-                                                                return root.theme.textSecondary
-                                                            }
-                                                            font.pixelSize: 11; font.family: root.theme.fontFamily
-                                                            font.weight: (dayCell.isToday || dayCell.isSelected) ? Font.DemiBold : Font.Normal
-                                                            Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
-                                                        }
-                                                        Rectangle {
-                                                            anchors.horizontalCenter: parent.horizontalCenter
-                                                            width: 4; height: 4; radius: 2
-                                                            color: dayCell.isSelected ? root.theme.accentPrimary : root.theme.logoPurple
-                                                            visible: dayCell.hasNote
-                                                        }
-                                                    }
                                                 }
-
-                                                MouseArea {
-                                                    id: dayCellMa; anchors.fill: parent; hoverEnabled: true
-                                                    cursorShape: dayCell.blank ? Qt.ArrowCursor : Qt.PointingHandCursor
-                                                    onClicked: {
-                                                        if (dayCell.blank) return
-                                                        panelWindow.calSelectedDate = dayCell.dKey
-                                                        calCard.loadNote(dayCell.dKey)
-                                                    }
+                                                Rectangle {
+                                                    anchors.horizontalCenter: parent.horizontalCenter
+                                                    width: 4; height: 4; radius: 2
+                                                    color: dayCell.isToday ? "white" : (dayCell.isSelected ? root.theme.accentPrimary : root.theme.logoPurple)
+                                                    visible: dayCell.hasNote
                                                 }
                                             }
                                         }
+
+                                        MouseArea {
+                                            id: dayCellMa; anchors.fill: parent; hoverEnabled: true
+                                            cursorShape: dayCell.blank ? Qt.ArrowCursor : Qt.PointingHandCursor
+                                            onClicked: {
+                                                if (dayCell.blank) return
+                                                panelWindow.calSelectedDate = dayCell.dKey
+                                                calCard.loadNote(dayCell.dKey)
+                                            }
+                                        }
+                                    }
+                                }
                                     }
                                 }
                             }
@@ -3386,8 +3596,10 @@ Scope {
 
                             // Open notes for selected day
                             MouseArea {
-                                id: openNoteBtn; width: parent.width; height: 28
+                                id: openNoteBtn; width: parent.width; height: 32
                                 cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                scale: containsMouse ? 1.02 : 1.0
+                                Behavior on scale { SpringAnimation { spring: 3.0; damping: 0.7 } }
                                 onClicked: {
                                     calCard.loadNote(panelWindow.calSelectedDate)
                                     calCard.refreshRecent()
@@ -3395,12 +3607,14 @@ Scope {
                                 }
                                 Rectangle {
                                     anchors.fill: parent; radius: root.theme.radiusPill
-                                    color: openNoteBtn.containsMouse ? root.theme.accentDim2 : root.theme.bgBase
-                                    border.width: 1; border.color: root.theme.border
-                                    Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                    color: openNoteBtn.containsMouse ? root.theme.accentDim2 : Qt.rgba(0.05,0.05,0.1,1)
+                                    border.width: 1
+                                    border.color: openNoteBtn.containsMouse ? root.theme.logoPurple : root.theme.border
+                                    Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
+                                    Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
                                     Row {
-                                        anchors.centerIn: parent; spacing: 6
-                                        Text { anchors.verticalCenter: parent.verticalCenter; text: "✏"; color: root.theme.logoPurple; font.pixelSize: 11; font.family: root.theme.fontFamily }
+                                        anchors.centerIn: parent; spacing: 7
+                                        Image { anchors.verticalCenter: parent.verticalCenter; source: root.phosphorDir + "/pencil-simple.svg"; width: 12; height: 12; fillMode: Image.PreserveAspectFit; smooth: true }
                                         Text { anchors.verticalCenter: parent.verticalCenter; text: "Notes for " + (panelWindow.calSelectedDate || "today"); color: root.theme.textSecondary; font.pixelSize: 11; font.family: root.theme.fontFamily }
                                     }
                                 }
@@ -3415,55 +3629,71 @@ Scope {
 
                             // ── Header: date label + delete + save ─────────────
                             Item {
-                                width: parent.width; height: 28
+                                width: parent.width; height: 32
 
                                 Row {
-                                    anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; spacing: 4
-                                    Text { anchors.verticalCenter: parent.verticalCenter; text: "✏"; color: root.theme.logoPurple; font.pixelSize: 12; font.family: root.theme.fontFamily }
-                                    Text { anchors.verticalCenter: parent.verticalCenter; text: panelWindow.calSelectedDate || "Today"; color: root.theme.textMuted; font.pixelSize: 11; font.family: root.theme.fontFamily }
+                                    anchors { left: parent.left; verticalCenter: parent.verticalCenter }
+                                    spacing: 6
+                                    Image { anchors.verticalCenter: parent.verticalCenter; source: root.phosphorDir + "/pencil-simple.svg"; width: 13; height: 13; fillMode: Image.PreserveAspectFit; smooth: true }
+                                    Text { anchors.verticalCenter: parent.verticalCenter; text: panelWindow.calSelectedDate || "Today"; color: root.theme.textSecondary; font.pixelSize: 11; font.weight: Font.Medium; font.family: root.theme.fontFamily }
                                 }
 
                                 Row {
-                                    anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; spacing: 4
+                                    anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                                    spacing: 5
 
                                     // Delete button
                                     MouseArea {
-                                        id: deleteNoteBtn; width: 24; height: 22
+                                        id: deleteNoteBtn; width: 30; height: 28
                                         cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                        scale: containsMouse ? (pressed ? 0.9 : 1.06) : 1.0
+                                        Behavior on scale { SpringAnimation { spring: 3.0; damping: 0.7 } }
                                         onClicked: calCard.deleteNote()
                                         Rectangle {
-                                            anchors.fill: parent; radius: 6
-                                            color: deleteNoteBtn.containsMouse ? "#3a1010" : root.theme.bgBase
+                                            anchors.fill: parent; radius: root.theme.radiusPill
+                                            color: deleteNoteBtn.containsMouse ? "#3a1010" : Qt.rgba(0.05,0.05,0.1,1)
                                             border.width: 1; border.color: deleteNoteBtn.containsMouse ? root.theme.accentRed : root.theme.border
-                                            Behavior on color       { ColorAnimation { duration: root.theme.motionFastMs } }
+                                            Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
                                             Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
-                                            Text { anchors.centerIn: parent; text: "🗑"; font.pixelSize: 10; color: root.theme.accentRed }
+                                            Image { anchors.centerIn: parent; source: root.phosphorDir + "/trash-simple.svg"; width: 13; height: 13; fillMode: Image.PreserveAspectFit; smooth: true; opacity: deleteNoteBtn.containsMouse ? 1.0 : 0.6 }
                                         }
                                     }
 
                                     // Save button with dirty indicator
                                     MouseArea {
-                                        id: saveNoteBtn; width: 52; height: 22
+                                        id: saveNoteBtn; width: 62; height: 28
                                         cursorShape: Qt.PointingHandCursor; hoverEnabled: true
+                                        scale: containsMouse ? (pressed ? 0.9 : 1.04) : 1.0
+                                        Behavior on scale { SpringAnimation { spring: 3.0; damping: 0.7 } }
                                         onClicked: calCard.saveNote()
                                         Rectangle {
                                             anchors.fill: parent; radius: root.theme.radiusPill
                                             color: saveNoteBtn.containsMouse ? root.theme.accentPrimary
                                                  : calCard.noteDirty         ? root.theme.accentDim2
-                                                 : root.theme.bgBase
+                                                 : Qt.rgba(0.05,0.05,0.1,1)
                                             border.width: 1
                                             border.color: calCard.noteDirty ? root.theme.accentPrimary : root.theme.border
                                             Behavior on color        { ColorAnimation { duration: root.theme.motionFastMs } }
                                             Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
                                             Row {
-                                                anchors.centerIn: parent; spacing: 3
+                                                anchors.centerIn: parent; spacing: 4
                                                 Rectangle {
                                                     width: 5; height: 5; radius: 2.5
-                                                    color: root.theme.accentPrimary
+                                                    color: saveNoteBtn.containsMouse ? "white" : root.theme.accentPrimary
                                                     visible: calCard.noteDirty
                                                     anchors.verticalCenter: parent.verticalCenter
+                                                    SequentialAnimation on opacity {
+                                                        loops: Animation.Infinite; running: calCard.noteDirty
+                                                        NumberAnimation { to: 0.3; duration: 700 }
+                                                        NumberAnimation { to: 1.0; duration: 700 }
+                                                    }
                                                 }
-                                                Text { anchors.verticalCenter: parent.verticalCenter; text: "Save"; color: root.theme.textPrimary; font.pixelSize: 10; font.weight: Font.Medium; font.family: root.theme.fontFamily }
+                                                Text {
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    text: "Save"
+                                                    color: saveNoteBtn.containsMouse ? "white" : root.theme.textPrimary
+                                                    font.pixelSize: 11; font.weight: Font.Medium; font.family: root.theme.fontFamily
+                                                }
                                             }
                                         }
                                     }
@@ -3474,10 +3704,10 @@ Scope {
 
                             // ── Note editor ────────────────────────────────────
                             Rectangle {
-                                width: parent.width; height: 152; radius: 10
-                                color: root.theme.bgBase; clip: true
+                                width: parent.width; height: 182; radius: 10
+                                color: Qt.rgba(0.05,0.05,0.1,1); clip: true
                                 border.width: 1
-                                border.color: notesEditor.activeFocus ? root.theme.accentPrimary : root.theme.border
+                                border.color: notesEditor.activeFocus ? root.theme.accentPrimary : (calCard.noteDirty ? Qt.rgba(0.34,0.40,0.95,0.4) : root.theme.border)
                                 Behavior on border.color { ColorAnimation { duration: root.theme.motionFastMs } }
 
                                 Flickable {
@@ -3535,7 +3765,17 @@ Scope {
                                 }
                             }
 
-                            Item { height: 4 }
+                            // Character count
+                            Item {
+                                width: parent.width; height: 16
+                                Text {
+                                    anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                                    text: notesEditor.text.length + " chars"
+                                    color: root.theme.border; font.pixelSize: 9; font.family: root.theme.fontFamily
+                                }
+                            }
+
+                            Item { height: 2 }
 
                             // ── Toolbar ────────────────────────────────────────
                             Row {
