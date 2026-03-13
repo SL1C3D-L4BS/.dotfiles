@@ -33,10 +33,6 @@ output_path = "~/.config/hypr/hyprlock-colors.conf"
 input_path  = "~/.config/matugen/templates/swaync.template"
 output_path = "~/.config/swaync/matugen-colors.css"
 
-[templates.walker]
-input_path  = "~/.config/matugen/templates/walker.template"
-output_path = "~/.config/walker/themes/sl1c3d/colors.css"
-
 [templates.starship]
 input_path  = "~/.config/matugen/templates/starship.template"
 output_path = "~/.config/starship-colors.toml"
