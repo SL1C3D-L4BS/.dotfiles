@@ -23,12 +23,6 @@ fi
 # ─── Zellij: theme is loaded at startup; new sessions get matugen theme ──────
 # No live-reload possible; existing sessions keep current theme until restart.
 
-# ─── SDDM background: copy wallpaper to SDDM assets (requires sudo) ─────────
-# CURRENT_WALLPAPER=$(cat ~/.config/waypaper/config.ini 2>/dev/null | grep '^wallpaper' | cut -d= -f2 | xargs)
-# if [[ -f "$CURRENT_WALLPAPER" ]]; then
-#     sudo cp "$CURRENT_WALLPAPER" /usr/share/sddm/themes/sddm-astronaut-theme/Backgrounds/background.png 2>/dev/null || true
-# fi
-
 # ─── Walker: themes are CSS-file based; restart if currently open ─────────────
 pkill -HUP walker 2>/dev/null || true
 

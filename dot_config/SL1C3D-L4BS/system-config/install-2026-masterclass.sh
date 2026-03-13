@@ -2,6 +2,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # SL1C3D-L4BS 2026 Masterclass — Full install script
 # Run ONCE after base install. Installs all packages for the masterclass stack.
+# Login: getty autologin (TTY only — no display manager)
 # ─────────────────────────────────────────────────────────────────────────────
 
 set -euo pipefail
@@ -25,15 +26,11 @@ sudo pacman -S --noconfirm --needed age
 
 echo ""
 echo "── Phase 2: Dynamic theming ──────────────────────────────────────"
-sudo pacman -S --noconfirm --needed \
-  swaync \
-  sddm qt6-svg qt6-virtualkeyboard qt6-multimedia-ffmpeg
+sudo pacman -S --noconfirm --needed swaync
 
 echo ""
-echo "── Phase 2 (AUR): matugen, sddm-astronaut-theme ─────────────────"
-paru -S --noconfirm --needed \
-  matugen-bin \
-  sddm-astronaut-theme
+echo "── Phase 2 (AUR): matugen ────────────────────────────────────────"
+paru -S --noconfirm --needed matugen-bin
 
 echo ""
 echo "── Phase 3: Tool replacements ────────────────────────────────────"
@@ -82,16 +79,14 @@ paru -S --noconfirm --needed bluetui
 
 echo ""
 echo "── Phase 10: Browser (AUR) ───────────────────────────────────────"
-paru -S --noconfirm --needed \
-  zen-browser-bin
+paru -S --noconfirm --needed zen-browser-bin
 
 echo ""
-echo "── Phase 0: GTK/Qt theming (AUR) ────────────────────────────────"
+echo "── GTK/Qt theming (AUR) ─────────────────────────────────────────"
 paru -S --noconfirm --needed nwg-look
 
 echo ""
 echo "── Post-install: Enable services ────────────────────────────────"
-sudo systemctl enable sddm.service || echo "SDDM: will enable on reboot"
 sudo systemctl enable bluetooth.service || echo "Bluetooth: enable manually"
 systemctl --user enable --now kanshi.service 2>/dev/null || echo "kanshi: enable after Hyprland session"
 systemctl --user enable restic-backup.timer 2>/dev/null || true
@@ -113,19 +108,6 @@ if ! grep -q 'pam_gnome_keyring' /etc/pam.d/login 2>/dev/null; then
   echo "  Add these lines to /etc/pam.d/login:"
   echo "    auth     optional pam_gnome_keyring.so"
   echo "    session  optional pam_gnome_keyring.so auto_start"
-fi
-
-echo ""
-echo "── Post-install: SDDM astronaut theme ───────────────────────────"
-if [[ -d /usr/share/sddm/themes/sddm-astronaut-theme ]]; then
-  sudo cp ~/.config/SL1C3D-L4BS/system-config/sddm/sddm.conf \
-    /etc/sddm.conf.d/sddm.conf 2>/dev/null || \
-    sudo mkdir -p /etc/sddm.conf.d && \
-    sudo cp ~/.config/SL1C3D-L4BS/system-config/sddm/sddm.conf \
-    /etc/sddm.conf.d/sddm.conf
-  # Copy a wallpaper as SDDM background
-  sudo cp ~/assets/wallpapers/sl1c3d-l4bs-09.png \
-    /usr/share/sddm/themes/sddm-astronaut-theme/Backgrounds/background.png 2>/dev/null || true
 fi
 
 echo ""
