@@ -1,0 +1,120 @@
+/* Walker sl1c3d theme — SL1C3D-L4BS brand (2026) */
+/* Matugen colors injected to colors.css by the pipeline */
+@import url("colors.css");
+
+/* ─── Brand fallbacks (if matugen hasn't run yet) ────────────────────────── */
+@define-color bg      #0d0d0d;
+@define-color surface #1a1a1a;
+@define-color border  #2d2d2d;
+@define-color fg      #f8f8f2;
+@define-color fg_muted #909090;
+@define-color accent  #5865F2;
+@define-color on_accent #ffffff;
+@define-color match   #b366ff;
+
+* {
+  font-family: "JetBrains Mono Nerd Font";
+  all: unset;
+  box-sizing: border-box;
+}
+
+/* ─── Main window ────────────────────────────────────────────────────────── */
+window {
+  background: transparent;
+}
+
+#window {
+  background: alpha(@bg, 0.92);
+  border: 1px solid @border;
+  border-radius: 12px;
+  padding: 8px;
+  min-width: 560px;
+  box-shadow: 0 8px 32px alpha(black, 0.5);
+}
+
+/* ─── Search input ───────────────────────────────────────────────────────── */
+#input {
+  background: @surface;
+  color: @fg;
+  border: 1px solid @border;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: "JetBrains Mono Nerd Font";
+  font-size: 14px;
+  margin-bottom: 6px;
+  caret-color: @accent;
+}
+
+#input:focus {
+  border-color: @accent;
+  box-shadow: 0 0 0 1px alpha(@accent, 0.3);
+}
+
+/* ─── Results list ───────────────────────────────────────────────────────── */
+#results {
+  margin-top: 2px;
+}
+
+.item {
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: @fg;
+  font-size: 13px;
+}
+
+.item:selected,
+.item:hover {
+  background: alpha(@accent, 0.15);
+}
+
+.item:selected {
+  background: alpha(@accent, 0.2);
+}
+
+.item .name {
+  font-size: 13px;
+  color: @fg;
+}
+
+.item .desc,
+.item .sub {
+  font-size: 11px;
+  color: @fg_muted;
+  margin-top: 1px;
+}
+
+/* Matched characters highlight */
+.item .name match,
+.item .desc match {
+  color: @match;
+  font-weight: bold;
+}
+
+/* ─── Icon ───────────────────────────────────────────────────────────────── */
+.item .icon {
+  min-width: 24px;
+  min-height: 24px;
+  margin-right: 8px;
+}
+
+/* ─── Quick activate labels ──────────────────────────────────────────────── */
+.item .shortcut {
+  color: @fg_muted;
+  font-size: 11px;
+  margin-left: auto;
+  background: alpha(@border, 0.5);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
+scrollbar {
+  background: transparent;
+  width: 4px;
+}
+
+scrollbar slider {
+  background: alpha(@accent, 0.3);
+  border-radius: 4px;
+  min-height: 24px;
+}

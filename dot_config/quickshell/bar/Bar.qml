@@ -27,6 +27,31 @@ Scope {
     property int    devTimerTotal: 0
     property string editionName: "base"
 
+    // ── AI Panel (native OpenClaw sidebar) ────────────────────────────────
+    property bool aiPanelOpen: false
+
+    // ── swaync notification count ─────────────────────────────────────────
+    property int notificationCount: 0
+
+    Process {
+        id: notifCountProc
+        command: ["swaync-client", "--count"]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: function() {
+                const n = parseInt((text || "").trim())
+                root.notificationCount = isNaN(n) ? 0 : n
+            }
+        }
+    }
+
+    Timer {
+        interval: 3000
+        running: true
+        repeat: true
+        onTriggered: notifCountProc.running = true
+    }
+
     Process {
         id: editionReadProc
         command: ["sh", "-c", "cat \"$HOME/.config/SL1C3D-L4BS/state/edition.json\" 2>/dev/null || true"]

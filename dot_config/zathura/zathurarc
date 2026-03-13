@@ -1,0 +1,66 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# zathura — PDF/document viewer (SL1C3D-L4BS brand)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ─── Colors ───────────────────────────────────────────────────────────────────
+set default-bg             "#0d0d0d"
+set default-fg             "#f8f8f2"
+set statusbar-bg           "#1a1a1a"
+set statusbar-fg           "#f8f8f2"
+set inputbar-bg            "#1a1a1a"
+set inputbar-fg            "#f8f8f2"
+set notification-bg        "#1a1a1a"
+set notification-fg        "#f8f8f2"
+set notification-error-bg  "#ff5555"
+set notification-error-fg  "#0d0d0d"
+set notification-warning-bg "#f1fa8c"
+set notification-warning-fg "#0d0d0d"
+set highlight-color        "#5865F2"
+set highlight-active-color "#b366ff"
+set completion-bg          "#1a1a1a"
+set completion-fg          "#f8f8f2"
+set completion-highlight-bg "#2d2d2d"
+set completion-highlight-fg "#5865F2"
+set selection-fg           "#0d0d0d"
+set selection-bg           "#5865F2"
+
+# ─── Dark mode recolor (makes docs more readable) ─────────────────────────────
+set recolor                true
+set recolor-darkcolor      "#f8f8f2"
+set recolor-lightcolor     "#0d0d0d"
+set recolor-keephue        false
+
+# ─── Font ─────────────────────────────────────────────────────────────────────
+set font "JetBrains Mono Nerd Font 12"
+
+# ─── Behavior ─────────────────────────────────────────────────────────────────
+set incremental-search     true
+set window-title-basename  true
+set window-title-page      true
+set statusbar-basename     true
+set render-loading         true
+set scroll-page-aware      true
+set scroll-full-overlap    0.01
+set zoom-min               10
+set zoom-max               1000
+set pages-per-row          1
+
+# ─── SyncTeX (LaTeX preview integration) ──────────────────────────────────────
+# set synctex                true
+# set synctex-editor-command "nvim"
+
+# ─── Keybinds (vim-style) ─────────────────────────────────────────────────────
+map j  scroll down
+map k  scroll up
+map h  scroll left
+map l  scroll right
+map J  navigate next
+map K  navigate previous
+map d  scroll half-down
+map u  scroll half-up
+map f  toggle_fullscreen
+map r  reload
+map R  rotate rotate-cw
+map i  recolor
+map q  quit
+map <C-r> set recolor!

@@ -1,0 +1,34 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Satty — screenshot annotation tool (SL1C3D-L4BS)
+# https://github.com/gabm/Satty
+# ─────────────────────────────────────────────────────────────────────────────
+
+[general]
+# Close after copying without waiting for user to close window
+early-exit = true
+# Copy command for Wayland clipboard
+copy-command = "wl-copy"
+# Output path (supports strftime patterns)
+output-filename = "~/Pictures/Screenshots/satty-%Y%m%d-%H%M%S.png"
+# Save to disk when saving (Ctrl+S)
+save-after-copy = false
+# Start with toolbars hidden (press Tab to show)
+default-hide-toolbars = false
+# Initial tool when satty opens
+initial-tool = "pointer"
+# Annotation size multiplier (1.0 = default)
+annotation-size-factor = 2.0
+# Do not fill screen
+fullscreen = false
+
+[color-palette]
+# Brand palette for annotation colors
+first  = "#5865F2"    # accent
+second = "#b366ff"    # logo purple
+third  = "#ff5555"    # error red
+fourth = "#f8f8f2"    # fg white
+fifth  = "#50fa7b"    # success green
+
+[font]
+family = "JetBrains Mono Nerd Font"
+style  = "Regular"

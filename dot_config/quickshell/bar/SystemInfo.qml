@@ -13,6 +13,8 @@ Singleton {
     property real   ramUsageNum: 0
     property real   diskUsageNum: 0
     property string networkInfo: "Disconnected"
+    property int    wifiSignal: -1       // -1 = no wifi, 0-100 = signal strength
+    property string wifiIcon: "󰤭"       // no-wifi default
 
     // Sparkline history — last 30 samples (one per ~1.5s = ~45s window)
     property var cpuHistory: []
@@ -72,12 +74,27 @@ Singleton {
 
     Process {
         id: netProc
-        command: ["sh", "-c", "{ nmcli -t -f active,ssid dev wifi 2>/dev/null | awk -F: '$1==\"yes\" {print ($2 ? $2 : \"Wi‑Fi\"); exit}'; nmcli -t -f TYPE connection show --active 2>/dev/null | grep -qE '802-3-ethernet|ethernet' && echo 'Ethernet'; nmcli -t -f DEVICE,STATE device 2>/dev/null | awk -F: '$2~/connected/ && $1!~/^wl/ {print \"Ethernet\"; exit}'; nmcli -t connection show --active 2>/dev/null | head -1 | cut -d: -f1; echo 'Disconnected'; } | grep -m1 ."]
+        command: ["sh", "-c",
+            "{ nmcli -t -f active,ssid dev wifi 2>/dev/null | awk -F: '$1==\"yes\" {print ($2 ? $2 : \"Wi-Fi\"); exit}'; " +
+            "nmcli -t -f TYPE connection show --active 2>/dev/null | grep -qE '802-3-ethernet|ethernet' && echo 'Ethernet'; " +
+            "nmcli -t connection show --active 2>/dev/null | head -1 | cut -d: -f1; echo 'Disconnected'; } | grep -m1 .; " +
+            "nmcli -t -f active,signal dev wifi 2>/dev/null | awk -F: '$1==\"yes\" {print $2; exit}' || echo '-1'"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: function() {
-                const s = (text && text.trim()) ? text.trim() : ""
+                const lines = (text || "").trim().split("\n")
+                const s = lines[0] ? lines[0].trim() : ""
                 root.networkInfo = s || "Disconnected"
+                const sig = parseInt(lines[1] || "-1")
+                root.wifiSignal = isNaN(sig) ? -1 : sig
+                // Update wifi icon based on signal
+                if (root.wifiSignal < 0 || root.networkInfo === "Ethernet" || root.networkInfo === "Disconnected") {
+                    root.wifiIcon = root.networkInfo === "Ethernet" ? "󰈀" :
+                                    root.networkInfo === "Disconnected" ? "󰤭" : "󰤭"
+                } else if (root.wifiSignal >= 75) root.wifiIcon = "󰤨"
+                else if (root.wifiSignal >= 50) root.wifiIcon = "󰤥"
+                else if (root.wifiSignal >= 25) root.wifiIcon = "󰤢"
+                else root.wifiIcon = "󰤟"
             }
         }
     }

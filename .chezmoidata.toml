@@ -1,0 +1,26 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# SL1C3D-L4BS — Chezmoi data file (brand palette + machine defaults)
+# These values are available in all .tmpl config files as {{ .brand.accent }} etc.
+# Machine-specific overrides go in ~/.config/chezmoi/chezmoi.toml [data] section.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[brand]
+  bg      = "0d0d0d"
+  surface = "1a1a1a"
+  border  = "2d2d2d"
+  fg      = "f8f8f2"
+  accent  = "5865F2"
+  logo    = "b366ff"
+  error   = "ff5555"
+  success = "50fa7b"
+  warn    = "f1fa8c"
+  fgdim   = "e0e0e0"
+  muted   = "909090"
+  mid     = "404040"
+
+# Machine defaults — override per-machine in ~/.config/chezmoi/chezmoi.toml
+[machine]
+  edition         = "desktop"
+  font_size       = "13"
+  primary_monitor = "DP-3"
+  is_laptop       = false

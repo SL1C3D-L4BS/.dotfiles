@@ -6,8 +6,21 @@
 # [user]
 #   name = Your Name
 #   email = you@example.com
-#   signingKey = KEY_ID
+#   signingKey = <KEY_ID>   # from: gpg --list-secret-keys --keyid-format=long
 #   gpgsign = true
+
+# To enable GPG signing:
+# 1. gpg --quick-generate-key "Your Name <email>" default default 0
+# 2. gpg --list-secret-keys --keyid-format=long  → copy the key ID
+# 3. Uncomment and fill in above signingKey + gpgsign = true
+# 4. Add public key to GitHub: gpg --armor --export <KEY_ID> | gh gpg-key add
+# 5. Install pinentry for Wayland dialogs: sudo pacman -S pinentry-bemenu
+
+[gpg]
+  program = gpg2
+
+[commit]
+  # gpgSign = true    # uncomment after generating key
 
 # Delta pager for diffs (git-delta)
 [include]

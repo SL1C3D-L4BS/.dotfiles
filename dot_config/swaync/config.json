@@ -1,0 +1,50 @@
+{
+  "$schema": "/etc/xdg/swaync/configSchema.json",
+  "positionX": "right",
+  "positionY": "top",
+  "layer": "overlay",
+  "layer-shell": true,
+  "cssPriority": "application",
+  "control-center-layer": "top",
+  "control-center-margin-top": 8,
+  "control-center-margin-bottom": 8,
+  "control-center-margin-right": 8,
+  "control-center-margin-left": 0,
+  "control-center-width": 340,
+  "control-center-height": 0,
+  "notification-window-width": 360,
+  "timeout": 10,
+  "timeout-low": 5,
+  "timeout-critical": 0,
+  "fit-to-screen": true,
+  "relative-timestamps": true,
+  "notification-icon-size": 48,
+  "notification-body-image-height": 200,
+  "notification-body-image-width": 200,
+  "notification-inline-replies": false,
+  "hide-on-clear": false,
+  "hide-on-action": true,
+  "script-fail-notify": true,
+  "anchor-point": "top-right",
+  "widgets": [
+    "title",
+    "dnd",
+    "mpris",
+    "notifications"
+  ],
+  "widget-config": {
+    "title": {
+      "text": "Notifications",
+      "clear-all-button": true,
+      "button-text": "Clear All"
+    },
+    "dnd": {
+      "text": "Do Not Disturb"
+    },
+    "mpris": {
+      "image-size": 64,
+      "image-radius": 8
+    },
+    "notifications": {}
+  }
+}

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# SL1C3D-L4BS screenshot — grim + slurp, brand-integrated
-# Usage: screenshot.sh [region|full|region-copy|window]
-# Output: ~/Pictures/Screenshots/YYYYMMDD-HHMMSS.png
+# SL1C3D-L4BS screenshot — grim + slurp + satty (annotate before save/copy)
+# Usage: screenshot.sh [region|full|region-copy|window|annotate]
+# Output: ~/Pictures/Screenshots/satty-YYYYMMDD-HHMMSS.png
 # ─────────────────────────────────────────────────────────────────────────────
 
 set -euo pipefail
@@ -22,30 +22,51 @@ notify() {
 
 case "$MODE" in
     region)
-        if GEOM=$(slurp 2>/dev/null); then
-            grim -g "$GEOM" "$FILE"
-            notify "📸 Saved: $(basename "$FILE")"
+        # Region select → annotate with satty → save to file
+        if GEOM=$(slurp -d 2>/dev/null); then
+            grim -g "$GEOM" - | satty \
+                --filename - \
+                --output-filename "$FILE" \
+                --early-exit
+            notify "Saved: $(basename "$FILE")"
         fi
         ;;
     full)
-        grim "$FILE"
-        notify "📸 Full screenshot saved"
+        # Fullscreen → annotate → save
+        grim - | satty \
+            --filename - \
+            --output-filename "$FILE"
+        notify "Full screenshot saved"
         ;;
     region-copy)
-        if GEOM=$(slurp 2>/dev/null); then
-            grim -g "$GEOM" - | wl-copy
-            notify "📋 Region copied to clipboard"
+        # Region select → annotate → copy to clipboard (no file)
+        if GEOM=$(slurp -d 2>/dev/null); then
+            grim -g "$GEOM" - | satty \
+                --filename - \
+                --copy-command wl-copy \
+                --early-exit
+            notify "Region copied to clipboard"
         fi
         ;;
     window)
+        # Active window → annotate → save
         WIN=$(hyprctl activewindow -j 2>/dev/null)
         if [[ -n "$WIN" ]]; then
-            X=$(echo "$WIN" | python3 -c "import sys,json; d=json.load(sys.stdin)['at']; print(d[0])")
-            Y=$(echo "$WIN" | python3 -c "import sys,json; d=json.load(sys.stdin)['at']; print(d[1])")
-            W=$(echo "$WIN" | python3 -c "import sys,json; d=json.load(sys.stdin)['size']; print(d[0])")
-            H=$(echo "$WIN" | python3 -c "import sys,json; d=json.load(sys.stdin)['size']; print(d[1])")
-            grim -g "${X},${Y} ${W}x${H}" "$FILE"
-            notify "📸 Window screenshot saved"
+            X=$(echo "$WIN" | jq -r '.at[0]')
+            Y=$(echo "$WIN" | jq -r '.at[1]')
+            W=$(echo "$WIN" | jq -r '.size[0]')
+            H=$(echo "$WIN" | jq -r '.size[1]')
+            grim -g "${X},${Y} ${W}x${H}" - | satty \
+                --filename - \
+                --output-filename "$FILE" \
+                --early-exit
+            notify "Window screenshot saved"
+        fi
+        ;;
+    annotate)
+        # Direct annotation mode (pick file or paste from clipboard)
+        if GEOM=$(slurp -d 2>/dev/null); then
+            grim -g "$GEOM" - | satty --filename -
         fi
         ;;
 esac

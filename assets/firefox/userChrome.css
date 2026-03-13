@@ -1,0 +1,115 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Firefox userChrome.css — SL1C3D-L4BS brand (2026)
+   Works with both Firefox and Zen Browser.
+   Install: copy to ~/.mozilla/firefox/<profile>/chrome/userChrome.css
+   Enable: about:config → toolkit.legacyUserProfileCustomizations.stylesheets = true
+   ─────────────────────────────────────────────────────────────────────────────*/
+
+/* ── Root CSS variables: brand palette ───────────────────────────────────── */
+:root {
+  --sl-bg:        #0d0d0d;
+  --sl-surface:   #1a1a1a;
+  --sl-border:    #2d2d2d;
+  --sl-fg:        #f8f8f2;
+  --sl-fg-dim:    #e0e0e0;
+  --sl-muted:     #909090;
+  --sl-accent:    #5865F2;
+  --sl-logo:      #b366ff;
+  --sl-error:     #ff5555;
+  --sl-radius:    8px;
+
+  /* Override Firefox's default toolbar colors */
+  --toolbar-bgcolor:         var(--sl-bg)      !important;
+  --toolbar-color:           var(--sl-fg)      !important;
+  --toolbarbutton-hover-background: rgba(88, 101, 242, 0.15) !important;
+  --toolbarbutton-active-background: rgba(88, 101, 242, 0.3) !important;
+
+  /* Tab bar */
+  --tab-selected-bgcolor:    var(--sl-surface) !important;
+  --tab-selected-textcolor:  var(--sl-fg)      !important;
+
+  /* URL bar */
+  --urlbar-popup-bgcolor:    var(--sl-surface) !important;
+  --urlbar-popup-color:      var(--sl-fg)      !important;
+  --urlbar-box-bgcolor:      var(--sl-surface) !important;
+  --urlbar-box-focus-bgcolor: var(--sl-surface) !important;
+  --urlbar-box-hover-bgcolor: rgba(88, 101, 242, 0.1) !important;
+
+  /* Context menus */
+  --menupopup-color:         var(--sl-fg)      !important;
+  --menupopup-background:    var(--sl-surface) !important;
+  --menuitem-hover-background: rgba(88, 101, 242, 0.2) !important;
+}
+
+/* ── Main toolbar ─────────────────────────────────────────────────────────── */
+#navigator-toolbox {
+  border-bottom: 1px solid var(--sl-border) !important;
+}
+
+#nav-bar {
+  background: var(--sl-bg) !important;
+  border: none !important;
+  padding: 2px 4px !important;
+}
+
+/* ── URL bar ──────────────────────────────────────────────────────────────── */
+#urlbar-background {
+  background: var(--sl-surface) !important;
+  border: 1px solid var(--sl-border) !important;
+  border-radius: var(--sl-radius) !important;
+}
+
+#urlbar:focus-within #urlbar-background {
+  border-color: var(--sl-accent) !important;
+  box-shadow: 0 0 0 1px rgba(88, 101, 242, 0.3) !important;
+}
+
+/* ── Tab bar ──────────────────────────────────────────────────────────────── */
+#TabsToolbar {
+  background: var(--sl-bg) !important;
+  border-bottom: 1px solid var(--sl-border) !important;
+}
+
+.tabbrowser-tab {
+  border-radius: var(--sl-radius) var(--sl-radius) 0 0 !important;
+  color: var(--sl-fg-dim) !important;
+}
+
+.tabbrowser-tab[selected="true"] {
+  background: var(--sl-surface) !important;
+  color: var(--sl-fg) !important;
+  border-bottom: 2px solid var(--sl-accent) !important;
+}
+
+.tabbrowser-tab:hover:not([selected="true"]) {
+  background: rgba(88, 101, 242, 0.08) !important;
+  color: var(--sl-fg) !important;
+}
+
+/* ── Sidebar (Zen Browser / Tree Style Tabs) ──────────────────────────────── */
+#sidebar-box,
+#sidebar {
+  background: var(--sl-bg) !important;
+  color: var(--sl-fg) !important;
+  border-right: 1px solid var(--sl-border) !important;
+}
+
+/* ── Context menu ─────────────────────────────────────────────────────────── */
+menupopup,
+panel[type="autocomplete-richlistbox"] {
+  background: var(--sl-surface) !important;
+  border: 1px solid var(--sl-border) !important;
+  border-radius: var(--sl-radius) !important;
+  color: var(--sl-fg) !important;
+}
+
+menuitem:hover {
+  background: rgba(88, 101, 242, 0.2) !important;
+  border-radius: 4px !important;
+}
+
+/* ── Compact mode: reduce toolbar height ─────────────────────────────────── */
+#nav-bar .toolbarbutton-1 {
+  padding: 4px 6px !important;
+  border-radius: var(--sl-radius) !important;
+}

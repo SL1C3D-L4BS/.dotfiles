@@ -1,0 +1,65 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# swayimg — image viewer (SL1C3D-L4BS brand)
+# https://github.com/artemsen/swayimg
+# ─────────────────────────────────────────────────────────────────────────────
+
+[general]
+mode = viewer
+position = parent
+size = parent
+sigusr1 = none
+sigusr2 = none
+app_id = swayimg
+
+[viewer]
+window = #0d0d0d
+transparency = grid
+scale = optimal
+fixed = yes
+antialiasing = yes
+slideshow = no
+slideshow_time = 3
+
+[info]
+show = yes
+info_timeout = 5
+status_timeout = 3
+
+[info.viewer]
+top_left     = +name,+format,+filesize,+imagesize,+exif
+top_right    = none
+bottom_left  = index,frame
+bottom_right = scale,status
+
+[font]
+name = JetBrains Mono Nerd Font
+size = 14
+color = #f8f8f2
+shadow = #0d0d0d
+
+[list]
+order = alpha
+loop = yes
+recursive = no
+all = no
+
+[keys.viewer]
+F1               = help
+Escape           = quit
+q                = quit
+Left             = prev_file
+Right            = next_file
+Return           = next_file
+space            = next_file
+r                = rotate_cw
+R                = rotate_ccw
+f                = flip_vertical
+F                = flip_horizontal
+i                = info
+p                = parent_dir
+Shift+Delete     = exec rm '%'; next_file
+Home             = first_file
+End              = last_file
+= equals         = zoom_in
+- minus          = zoom_out
+BackSpace        = zoom_optimal

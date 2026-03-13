@@ -1,0 +1,70 @@
+// Zellij matugen theme — generated (source: zellij.template)
+// In zellij config.kdl: theme "matugen"
+themes {
+    matugen {
+        text_unselected {
+            base      {{colors.on_background.dark.red}} {{colors.on_background.dark.green}} {{colors.on_background.dark.blue}}
+            background {{colors.background.dark.red}} {{colors.background.dark.green}} {{colors.background.dark.blue}}
+            emphasis_0 {{colors.primary.dark.red}} {{colors.primary.dark.green}} {{colors.primary.dark.blue}}
+            emphasis_1 {{colors.on_surface_variant.dark.red}} {{colors.on_surface_variant.dark.green}} {{colors.on_surface_variant.dark.blue}}
+            emphasis_2 {{colors.outline.dark.red}} {{colors.outline.dark.green}} {{colors.outline.dark.blue}}
+            emphasis_3 {{colors.outline_variant.dark.red}} {{colors.outline_variant.dark.green}} {{colors.outline_variant.dark.blue}}
+        }
+        text_selected {
+            base      {{colors.on_surface.dark.red}} {{colors.on_surface.dark.green}} {{colors.on_surface.dark.blue}}
+            background {{colors.surface_container.dark.red}} {{colors.surface_container.dark.green}} {{colors.surface_container.dark.blue}}
+            emphasis_0 {{colors.primary.dark.red}} {{colors.primary.dark.green}} {{colors.primary.dark.blue}}
+            emphasis_1 {{colors.on_surface_variant.dark.red}} {{colors.on_surface_variant.dark.green}} {{colors.on_surface_variant.dark.blue}}
+            emphasis_2 {{colors.outline.dark.red}} {{colors.outline.dark.green}} {{colors.outline.dark.blue}}
+            emphasis_3 {{colors.outline_variant.dark.red}} {{colors.outline_variant.dark.green}} {{colors.outline_variant.dark.blue}}
+        }
+        ribbon_unselected {
+            base      {{colors.outline.dark.red}} {{colors.outline.dark.green}} {{colors.outline.dark.blue}}
+            background {{colors.surface_container.dark.red}} {{colors.surface_container.dark.green}} {{colors.surface_container.dark.blue}}
+            emphasis_0 {{colors.primary.dark.red}} {{colors.primary.dark.green}} {{colors.primary.dark.blue}}
+            emphasis_1 {{colors.on_surface.dark.red}} {{colors.on_surface.dark.green}} {{colors.on_surface.dark.blue}}
+            emphasis_2 {{colors.on_surface_variant.dark.red}} {{colors.on_surface_variant.dark.green}} {{colors.on_surface_variant.dark.blue}}
+            emphasis_3 {{colors.outline_variant.dark.red}} {{colors.outline_variant.dark.green}} {{colors.outline_variant.dark.blue}}
+        }
+        ribbon_selected {
+            base      {{colors.on_primary.dark.red}} {{colors.on_primary.dark.green}} {{colors.on_primary.dark.blue}}
+            background {{colors.primary.dark.red}} {{colors.primary.dark.green}} {{colors.primary.dark.blue}}
+            emphasis_0 {{colors.on_primary.dark.red}} {{colors.on_primary.dark.green}} {{colors.on_primary.dark.blue}}
+            emphasis_1 {{colors.on_surface.dark.red}} {{colors.on_surface.dark.green}} {{colors.on_surface.dark.blue}}
+            emphasis_2 {{colors.on_surface_variant.dark.red}} {{colors.on_surface_variant.dark.green}} {{colors.on_surface_variant.dark.blue}}
+            emphasis_3 {{colors.background.dark.red}} {{colors.background.dark.green}} {{colors.background.dark.blue}}
+        }
+        frame_unselected {
+            base      {{colors.outline_variant.dark.red}} {{colors.outline_variant.dark.green}} {{colors.outline_variant.dark.blue}}
+            background {{colors.background.dark.red}} {{colors.background.dark.green}} {{colors.background.dark.blue}}
+            emphasis_0 {{colors.primary.dark.red}} {{colors.primary.dark.green}} {{colors.primary.dark.blue}}
+            emphasis_1 {{colors.outline.dark.red}} {{colors.outline.dark.green}} {{colors.outline.dark.blue}}
+            emphasis_2 {{colors.on_surface_variant.dark.red}} {{colors.on_surface_variant.dark.green}} {{colors.on_surface_variant.dark.blue}}
+            emphasis_3 {{colors.surface_container.dark.red}} {{colors.surface_container.dark.green}} {{colors.surface_container.dark.blue}}
+        }
+        frame_selected {
+            base      {{colors.primary.dark.red}} {{colors.primary.dark.green}} {{colors.primary.dark.blue}}
+            background {{colors.background.dark.red}} {{colors.background.dark.green}} {{colors.background.dark.blue}}
+            emphasis_0 {{colors.primary.dark.red}} {{colors.primary.dark.green}} {{colors.primary.dark.blue}}
+            emphasis_1 {{colors.on_surface.dark.red}} {{colors.on_surface.dark.green}} {{colors.on_surface.dark.blue}}
+            emphasis_2 {{colors.on_surface_variant.dark.red}} {{colors.on_surface_variant.dark.green}} {{colors.on_surface_variant.dark.blue}}
+            emphasis_3 {{colors.surface_container.dark.red}} {{colors.surface_container.dark.green}} {{colors.surface_container.dark.blue}}
+        }
+        exit_code_success {
+            base      {{colors.primary.dark.red}} {{colors.primary.dark.green}} {{colors.primary.dark.blue}}
+            background {{colors.background.dark.red}} {{colors.background.dark.green}} {{colors.background.dark.blue}}
+            emphasis_0 {{colors.primary.dark.red}} {{colors.primary.dark.green}} {{colors.primary.dark.blue}}
+            emphasis_1 {{colors.tertiary.dark.red}} {{colors.tertiary.dark.green}} {{colors.tertiary.dark.blue}}
+            emphasis_2 {{colors.outline.dark.red}} {{colors.outline.dark.green}} {{colors.outline.dark.blue}}
+            emphasis_3 {{colors.outline_variant.dark.red}} {{colors.outline_variant.dark.green}} {{colors.outline_variant.dark.blue}}
+        }
+        exit_code_error {
+            base      {{colors.error.dark.red}} {{colors.error.dark.green}} {{colors.error.dark.blue}}
+            background {{colors.background.dark.red}} {{colors.background.dark.green}} {{colors.background.dark.blue}}
+            emphasis_0 {{colors.error.dark.red}} {{colors.error.dark.green}} {{colors.error.dark.blue}}
+            emphasis_1 {{colors.on_error.dark.red}} {{colors.on_error.dark.green}} {{colors.on_error.dark.blue}}
+            emphasis_2 {{colors.outline.dark.red}} {{colors.outline.dark.green}} {{colors.outline.dark.blue}}
+            emphasis_3 {{colors.outline_variant.dark.red}} {{colors.outline_variant.dark.green}} {{colors.outline_variant.dark.blue}}
+        }
+    }
+}

@@ -1,0 +1,66 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Matugen — SL1C3D-L4BS dynamic theming pipeline
+# Run: matugen image ~/assets/wallpapers/current.png -m dark
+# Waypaper hook: post_command = matugen image %wallpaper -m dark
+# ─────────────────────────────────────────────────────────────────────────────
+
+[config]
+reload_gtk_theme = false
+set_wallpaper    = false      # waypaper handles wallpaper switching
+post_hook        = "~/.config/matugen/post-hook.sh"
+
+# ─── Inject brand colors as custom keywords alongside Material You palette ───
+[config.custom_colors]
+brand_accent = { color = "#5865F2", blend = false }
+brand_logo   = { color = "#b366ff", blend = false }
+brand_error  = { color = "#ff5555", blend = false }
+brand_bg     = { color = "#0d0d0d", blend = false }
+
+# ─── Template → output mappings ──────────────────────────────────────────────
+[templates.ghostty]
+input_path  = "~/.config/matugen/templates/ghostty.template"
+output_path = "~/.config/ghostty/colors.conf"
+
+[templates.hypr_colors]
+input_path  = "~/.config/matugen/templates/hypr-colors.template"
+output_path = "~/.config/hypr/colors-dynamic.conf"
+
+[templates.hyprlock]
+input_path  = "~/.config/matugen/templates/hyprlock.template"
+output_path = "~/.config/hypr/hyprlock-colors.conf"
+
+[templates.swaync]
+input_path  = "~/.config/matugen/templates/swaync.template"
+output_path = "~/.config/swaync/matugen-colors.css"
+
+[templates.walker]
+input_path  = "~/.config/matugen/templates/walker.template"
+output_path = "~/.config/walker/themes/sl1c3d/colors.css"
+
+[templates.starship]
+input_path  = "~/.config/matugen/templates/starship.template"
+output_path = "~/.config/starship-colors.toml"
+
+[templates.zellij]
+input_path  = "~/.config/matugen/templates/zellij.template"
+output_path = "~/.config/zellij/themes/matugen.kdl"
+
+[templates.yazi]
+input_path  = "~/.config/matugen/templates/yazi.template"
+output_path = "~/.config/yazi/matugen-theme.toml"
+
+[templates.btop]
+input_path  = "~/.config/matugen/templates/btop.template"
+output_path = "~/.config/btop/themes/matugen.theme"
+
+[templates.quickshell]
+input_path  = "~/.config/matugen/templates/quickshell.template"
+output_path = "~/.config/quickshell/bar/MatugenTheme.qml"
+
+[templates.fzf]
+input_path  = "~/.config/matugen/templates/fzf.template"
+output_path = "~/.config/fzf/fzf-colors.sh"
+
+[templates.cava]
+input_path  = "~/.config/matugen/templates/cava.template"
+output_path = "~/.config/cava/colors.conf"

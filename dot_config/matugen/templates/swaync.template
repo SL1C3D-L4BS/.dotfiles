@@ -1,0 +1,12 @@
+/* swaync matugen colors — generated (source: swaync.template) */
+/* Imported in style.css: @import url("matugen-colors.css"); */
+@define-color bg        {{colors.background.dark.hex}};
+@define-color surface   {{colors.surface_container.dark.hex}};
+@define-color surface2  {{colors.surface_container_high.dark.hex}};
+@define-color accent    {{colors.primary.dark.hex}};
+@define-color on_accent {{colors.on_primary.dark.hex}};
+@define-color fg        {{colors.on_surface.dark.hex}};
+@define-color fg_muted  {{colors.outline.dark.hex}};
+@define-color border    {{colors.outline_variant.dark.hex}};
+@define-color error     {{colors.error.dark.hex}};
+@define-color success   {{colors.tertiary.dark.hex}};

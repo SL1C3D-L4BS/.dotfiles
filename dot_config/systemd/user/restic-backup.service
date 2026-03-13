@@ -1,0 +1,16 @@
+[Unit]
+Description=Restic backup — SL1C3D-L4BS
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/scripts/backup.sh
+StandardOutput=journal
+StandardError=journal
+
+# Ensure gnome-keyring is accessible
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus
+
+[Install]
+WantedBy=default.target

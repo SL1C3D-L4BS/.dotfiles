@@ -1,0 +1,44 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Chezmoi — SL1C3D-L4BS dotfiles (2026). Source state in ~/.local/share/chezmoi
+# This file is a template: chezmoi generates ~/.config/chezmoi/chezmoi.toml from it.
+# https://www.chezmoi.io/reference/configuration-file/
+# ─────────────────────────────────────────────────────────────────────────────
+
+sourceDir = "~/.local/share/chezmoi"
+dataDir = "~/.local/share/chezmoi"
+
+# ─── Age encryption for secrets committed to the repo ────────────────────────
+# Key lives at ~/.age/key.txt (generated once: age-keygen -o ~/.age/key.txt)
+# Public key is the recipient. Private key never leaves the machine.
+# To add an encrypted file: chezmoi add --encrypt <path>
+# To edit: chezmoi edit <path>
+encryption = "age"
+
+[age]
+    identity  = "~/.age/key.txt"
+    # recipient is machine-specific — set in ~/.config/chezmoi/chezmoi.toml after keygen:
+    # recipient = "age1xxxx..."
+
+[git]
+    autoAdd = true
+    autoCommit = true
+    autoPush = false
+    commitMessageTemplate = "chore(dotfiles): update"
+
+[merge]
+    strategy = "replace"
+
+[refresh]
+    exclude = ["private_*", "encrypted_*"]
+
+[cpu]
+    profile = "fast"
+
+# ─── Machine-specific data (overridden by local chezmoi.toml) ─────────────────
+# These are defaults; override in ~/.config/chezmoi/chezmoi.toml on each machine
+[data]
+    hostname    = "{{ .chezmoi.hostname }}"
+    edition     = "desktop"
+    font_size   = "13"
+    primary_monitor = "DP-3"
+    is_laptop   = false

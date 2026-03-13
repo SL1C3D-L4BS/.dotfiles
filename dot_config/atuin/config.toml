@@ -1,0 +1,57 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Atuin — SL1C3D-L4BS shell history (2026)
+# https://atuin.sh/docs/config/
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Database
+db_path      = "~/.local/share/atuin/history.db"
+key_path     = "~/.local/share/atuin/key"
+session_path = "~/.local/share/atuin/session"
+
+# Search behavior
+search_mode   = "fuzzy"       # prefix | fulltext | fuzzy | skim
+filter_mode   = "global"      # global | host | session | directory | workspace
+# Up-key in shell defaults to directory-scoped (most useful in practice)
+filter_mode_shell_up_key_binding = "directory"
+search_mode_shell_up_key_binding = "fuzzy"
+
+# History grouping
+workspaces = true             # auto workspace filter in git repos
+
+# UI
+style         = "compact"
+inline_height = 12
+show_preview  = true
+max_preview_height = 4
+show_help     = true
+enter_accept  = true          # single Enter executes (Tab to edit first)
+keymap_mode   = "emacs"
+
+exit_mode = "return-original"
+
+# Storage
+store_failed   = false        # don't save commands that errored
+secrets_filter = true         # auto-filter tokens, keys, passwords
+
+# Filter out sensitive commands from history
+history_filter = [
+  "^pass ",
+  "^gpg ",
+  "^age ",
+  "^op ",
+  "^ ",
+  "GITHUB_TOKEN",
+  "BEARER",
+  "SECRET",
+]
+
+[sync]
+records = true                # sync v2 (required for dotfiles sync)
+
+[daemon]
+enabled       = true
+autostart     = true
+sync_frequency = 300
+
+[theme]
+name = "sl1c3d"

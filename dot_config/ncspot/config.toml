@@ -1,0 +1,41 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# ncspot — TUI Spotify client (SL1C3D-L4BS brand)
+# https://github.com/hrkfdn/ncspot
+# Scratchpad: zjsp alias
+# ─────────────────────────────────────────────────────────────────────────────
+
+[theme]
+background         = "0d0d0d"
+primary            = "f8f8f2"
+secondary          = "909090"
+title              = "5865F2"
+playing            = "5865F2"
+playing_selected   = "b366ff"
+playing_bg         = "1a1a1a"
+highlight          = "f8f8f2"
+highlight_bg       = "2d2d2d"
+error              = "ff5555"
+error_bg           = "0d0d0d"
+statusbar          = "f8f8f2"
+statusbar_progress = "5865F2"
+statusbar_bg       = "1a1a1a"
+cmdline            = "f8f8f2"
+cmdline_bg         = "1a1a1a"
+search_match       = "b366ff"
+
+[keybindings]
+open               = "o"
+focus_search       = "/"
+quit               = "q"
+previous_track     = "p"
+next_track         = "n"
+play_pause         = " "
+volume_up          = "+"
+volume_down        = "-"
+seek_forwards      = "l"
+seek_backwards     = "h"
+save               = "s"
+delete             = "d"
+
+[backend]
+audio_backend = "pulseaudio"    # works with PipeWire-pulse compat layer

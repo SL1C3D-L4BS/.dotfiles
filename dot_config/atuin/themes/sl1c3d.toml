@@ -1,0 +1,37 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Atuin theme — SL1C3D-L4BS brand palette
+# https://atuin.sh/docs/config/theme
+# ─────────────────────────────────────────────────────────────────────────────
+
+[theme]
+name = "sl1c3d"
+
+[colors]
+# Base surfaces
+base           = "#0d0d0d"    # bg — deepest black
+mantle         = "#1a1a1a"    # surface — slightly elevated
+crust          = "#2d2d2d"    # border
+
+# Text
+text           = "#f8f8f2"    # fg — primary text
+subtext1       = "#e0e0e0"    # fgdim — secondary text
+subtext0       = "#909090"    # muted — tertiary / timestamps
+
+# UI accents
+blue           = "#5865F2"    # brand accent (Discord Blurple)
+mauve          = "#b366ff"    # logo purple
+red            = "#ff5555"    # error
+green          = "#50fa7b"    # success
+yellow         = "#f1fa8c"    # warn
+peach          = "#ffb86c"    # orange
+
+# Selection / highlights
+surface0       = "#1a1a1a"    # selection bg
+surface1       = "#2d2d2d"    # active line
+surface2       = "#404040"    # mid-tone
+overlay0       = "#909090"    # dimmed overlay
+overlay1       = "#e0e0e0"    # light overlay
+overlay2       = "#f8f8f2"    # full overlay
+
+# Prompt colors
+lavender       = "#5865F2"    # same as accent for consistency

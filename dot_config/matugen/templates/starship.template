@@ -1,0 +1,17 @@
+# Starship matugen color overrides — generated (source: starship.template)
+# Include at end of starship.toml: [palettes.brand] entries are overridden here
+# Add to starship.toml: palette = "matugen"
+
+[palettes.matugen]
+accent   = "{{colors.primary.dark.hex}}"
+logo     = "{{colors.tertiary.dark.hex}}"
+bg       = "{{colors.background.dark.hex}}"
+surface  = "{{colors.surface_container.dark.hex}}"
+border   = "{{colors.outline_variant.dark.hex}}"
+mid      = "{{colors.surface_container_high.dark.hex}}"
+fg       = "{{colors.on_background.dark.hex}}"
+fgdim    = "{{colors.on_surface_variant.dark.hex}}"
+muted    = "{{colors.outline.dark.hex}}"
+success  = "{{colors.tertiary.dark.hex}}"
+error    = "{{colors.error.dark.hex}}"
+warn     = "{{colors.secondary.dark.hex}}"

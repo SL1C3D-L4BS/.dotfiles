@@ -43,25 +43,11 @@ return {
   },
 
   -- ─── Indent guides ─────────────────────────────────────────────────────────
+  -- Replaced by snacks.nvim indent module (see plugins/snacks.lua)
+  -- Kept disabled here to avoid conflicts
   {
     "lukas-reineke/indent-blankline.nvim",
-    event = "BufReadPost",
-    main = "ibl",
-    opts = {
-      indent = {
-        char = "│",
-        tab_char = "│",
-      },
-      scope = {
-        enabled = true,
-        show_start = false,
-        show_end = false,
-        highlight = { "CursorLineNr" },
-      },
-      exclude = {
-        filetypes = { "dashboard", "NvimTree", "lazy", "mason", "help" },
-      },
-    },
+    enabled = false,
   },
 
   -- ─── Git signs in gutter ──────────────────────────────────────────────────
@@ -87,10 +73,11 @@ return {
   },
 
   -- ─── Better notifications + command-line UI ───────────────────────────────
+  -- nvim-notify replaced by snacks.notifier; noice kept for cmdline/lsp UI
   {
     "folke/noice.nvim",
     event = "VeryLazy",
-    dependencies = { "MunifTanjim/nui.nvim", "rcarriga/nvim-notify" },
+    dependencies = { "MunifTanjim/nui.nvim" },   -- nvim-notify removed
     opts = {
       lsp = {
         override = {

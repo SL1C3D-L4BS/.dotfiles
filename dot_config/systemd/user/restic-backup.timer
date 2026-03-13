@@ -1,0 +1,10 @@
+[Unit]
+Description=Nightly restic backup — SL1C3D-L4BS
+
+[Timer]
+OnCalendar=*-*-* 02:00:00     # 2am nightly
+Persistent=true                # run missed backup on next startup
+RandomizedDelaySec=900         # stagger by up to 15 min to avoid 2am spike
+
+[Install]
+WantedBy=timers.target

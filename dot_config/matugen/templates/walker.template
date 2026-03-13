@@ -1,0 +1,10 @@
+/* Walker matugen colors — generated (source: walker.template) */
+/* Imported in sl1c3d theme style.css */
+@define-color bg        {{colors.background.dark.hex}};
+@define-color surface   {{colors.surface_container.dark.hex}};
+@define-color border    {{colors.outline_variant.dark.hex}};
+@define-color fg        {{colors.on_surface.dark.hex}};
+@define-color fg_muted  {{colors.outline.dark.hex}};
+@define-color accent    {{colors.primary.dark.hex}};
+@define-color on_accent {{colors.on_primary.dark.hex}};
+@define-color match     {{colors.tertiary.dark.hex}};

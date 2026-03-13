@@ -298,6 +298,12 @@ alias zjpy='_zj_float "python3" 55% 45% 23% 25%'       # quick python REPL pill
 alias zjnm='_zj_float nmtui 58% 48% 21% 22%'           # network manager pill
 alias zjsc='_zj_float "nvim ~/scratch.md" 70% 65% 15% 16%'  # scratch notes pill
 alias zjht='_zj_float "htop" 70% 65% 15% 16%'          # htop fallback pill
+alias zjld='_zj_float lazydocker 82% 74% 9% 11%'       # Super+Shift+K → lazydocker pill
+alias zjsp='_zj_float ncspot 72% 65% 14% 14%'          # ncspot music pill
+
+# ─── Zellij IDE layout launchers ─────────────────────────────────────────────
+alias zjide='zellij --layout ide'                       # IDE: yazi + nvim + shell
+alias zjdev='zellij --layout dev'                       # Dev: yazi + nvim + splits
 
 # ─── Dotfiles: chezmoi + PATH ────────────────────────────────────────────────
 export PATH="$HOME/.local/bin:$HOME/.config/SL1C3D-L4BS/bin:$PATH"
@@ -309,3 +315,6 @@ fi
 
 # ─── Optional: refresh completion dump in background ─────────────────────────
 ( compdump 2>/dev/null & )
+
+# ─── Matugen FZF colors (dynamic theming pipeline) ───────────────────────────
+[[ -f ~/.config/fzf/fzf-colors.sh ]] && source ~/.config/fzf/fzf-colors.sh

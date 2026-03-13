@@ -1,0 +1,38 @@
+# Yazi matugen theme — generated (source: yazi.template)
+# In yazi.toml: [flavor] use = "matugen"
+# Or source this file from theme.toml
+
+[manager]
+cwd = { fg = "{{colors.primary.dark.hex}}" }
+
+hovered         = { fg = "{{colors.on_surface.dark.hex}}", bg = "{{colors.surface_container_high.dark.hex}}", bold = true }
+preview_hovered = { underline = true }
+
+find_keyword  = { fg = "{{colors.tertiary.dark.hex}}", bold = true, italic = true, underline = true }
+find_position = { fg = "{{colors.secondary.dark.hex}}", bg = "reset", bold = true, italic = true }
+
+marker_copied  = { fg = "{{colors.tertiary.dark.hex}}", bg = "{{colors.tertiary.dark.hex}}" }
+marker_cut     = { fg = "{{colors.error.dark.hex}}",    bg = "{{colors.error.dark.hex}}" }
+marker_marked  = { fg = "{{colors.secondary.dark.hex}}", bg = "{{colors.secondary.dark.hex}}" }
+marker_selected = { fg = "{{colors.primary.dark.hex}}", bg = "{{colors.primary.dark.hex}}" }
+
+[status]
+separator_open  = ""
+separator_close = ""
+
+mode_normal = { fg = "{{colors.on_primary.dark.hex}}", bg = "{{colors.primary.dark.hex}}", bold = true }
+mode_select = { fg = "{{colors.on_tertiary.dark.hex}}", bg = "{{colors.tertiary.dark.hex}}", bold = true }
+mode_unset  = { fg = "{{colors.on_surface.dark.hex}}", bg = "{{colors.surface_container.dark.hex}}", bold = true }
+
+[filetype]
+rules = [
+    { mime = "image/*",  fg = "{{colors.tertiary.dark.hex}}" },
+    { mime = "video/*",  fg = "{{colors.secondary.dark.hex}}" },
+    { mime = "audio/*",  fg = "{{colors.secondary.dark.hex}}" },
+    { mime = "application/zip",    fg = "{{colors.primary.dark.hex}}" },
+    { mime = "application/x-tar", fg = "{{colors.primary.dark.hex}}" },
+    { name = "*.md",  fg = "{{colors.tertiary.dark.hex}}" },
+    { name = "*.toml", fg = "{{colors.secondary.dark.hex}}" },
+    { name = "*.json", fg = "{{colors.secondary.dark.hex}}" },
+    { name = "*/",    fg = "{{colors.primary.dark.hex}}" },
+]

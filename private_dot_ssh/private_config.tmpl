@@ -1,0 +1,33 @@
+# SSH config — SL1C3D-L4BS (managed by chezmoi, private_config.tmpl)
+# Permissions: chmod 600 — auto-applied by chezmoi private_ prefix
+# Keys live locally; only the config structure is chezmoi-managed.
+
+# ─── GitHub ─────────────────────────────────────────────────────────────────
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+    AddKeysToAgent yes
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+
+{{ if not .machine.is_laptop -}}
+# ─── Workstation-specific hosts ─────────────────────────────────────────────
+# Add workstation-only SSH hosts here
+
+{{ end -}}
+# ─── Remote development servers (add per-machine or shared) ─────────────────
+# Host my-server
+#     HostName 192.168.1.x
+#     User the_architect
+#     IdentityFile ~/.ssh/id_ed25519
+#     ServerAliveInterval 60
+#     ProxyJump bastion
+
+# ─── Defaults for all hosts ──────────────────────────────────────────────────
+Host *
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+    AddKeysToAgent yes
+    IdentityAgent $SSH_AUTH_SOCK

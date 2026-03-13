@@ -1,0 +1,39 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# kanshi — dynamic display configuration (SL1C3D-L4BS)
+# Runs as a systemd user service; auto-detects connected outputs.
+# Get real output descriptions: kscreen-doctor --outputs | grep "output"
+# Or: wlr-randr
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ─── Workstation: dual monitor (HDMI portrait + DP landscape) ─────────────
+profile workstation {
+    output HDMI-A-1 enable mode 1920x1080@60Hz position 0,0 transform 270
+    output DP-3 enable mode 1920x1080@60Hz position 1080,0
+    exec notify-send "Display" "Workstation dual-monitor profile activated"
+}
+
+# ─── Laptop only (undocked) ───────────────────────────────────────────────
+profile laptop {
+    output eDP-1 enable mode preferred position 0,0 scale 1.5
+    exec notify-send "Display" "Laptop-only display profile activated"
+}
+
+# ─── Docked: external + laptop ────────────────────────────────────────────
+profile docked {
+    output eDP-1 enable mode preferred position 0,0 scale 1.5
+    output DP-3 enable mode preferred position 2560,0
+    exec notify-send "Display" "Docked profile activated (laptop + external)"
+}
+
+# ─── Docked (workstation connector names) ────────────────────────────────
+profile docked_workstation {
+    output HDMI-A-1 enable mode 1920x1080@60Hz position 0,0 transform 270
+    output DP-3 enable mode 1920x1080@60Hz position 1080,0
+    output eDP-1 disable
+    exec notify-send "Display" "Workstation docked profile activated"
+}
+
+# ─── Fallback: any connected output at preferred resolution ──────────────
+profile fallback {
+    output * enable mode preferred position auto
+}

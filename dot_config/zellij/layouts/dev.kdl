@@ -11,15 +11,20 @@ layout {
         }
     }
 
-    // Main coding tab: editor left, terminal right
+    // Main coding tab: Yazi sidebar + editor + terminal
     tab name="code" focus=true {
         pane split_direction="vertical" {
-            pane size="65%" name="editor" {
-                command "nvim"
+            pane size="20%" name="files" {
+                command "yazi"
             }
-            pane split_direction="horizontal" {
-                pane name="shell"
-                pane size="30%" name="run" command "zsh"
+            pane split_direction="vertical" {
+                pane size="65%" name="editor" {
+                    command "nvim"
+                }
+                pane split_direction="horizontal" {
+                    pane name="shell"
+                    pane size="30%" name="run" command "zsh"
+                }
             }
         }
     }
