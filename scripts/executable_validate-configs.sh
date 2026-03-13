@@ -52,9 +52,9 @@ grep -q 'hyprsunset' ~/.config/hypr/autostart.conf 2>/dev/null \
 grep -q 'dbus-update-activation-environment' ~/.config/hypr/autostart.conf 2>/dev/null \
   && ok "XDG portal env exported" \
   || fail "dbus-update-activation-environment missing from autostart"
-grep -q 'walker' ~/.config/hypr/programs.conf 2>/dev/null \
-  && ok "programs.conf: \$menu = walker" \
-  || fail "programs.conf: \$menu not set to walker"
+grep -q 'fuzzel' ~/.config/hypr/programs.conf 2>/dev/null \
+  && ok "programs.conf: \$menu = fuzzel" \
+  || fail "programs.conf: \$menu not set to fuzzel"
 grep -q 'swaync-client' ~/.config/hypr/binds.conf 2>/dev/null \
   && ok "swaync-client binds present" \
   || fail "swaync-client binds missing"
@@ -67,9 +67,7 @@ grep -q 'hyprpicker' ~/.config/hypr/binds.conf 2>/dev/null \
 grep -q 'wf-recorder\|record-toggle' ~/.config/hypr/binds.conf 2>/dev/null \
   && ok "wf-recorder bind present" \
   || fail "wf-recorder bind missing"
-grep -q 'walker.*launcher\|namespace launcher' ~/.config/hypr/layers.conf 2>/dev/null \
-  && skip "walker layer namespace check" "namespace confirmed 'launcher'" \
-  || skip "walker layer check" "runtime only"
+skip "launcher layer (Fuzzel)" "runtime only"
 echo ""
 
 # ─── Yazi ────────────────────────────────────────────────────────────────────
@@ -89,18 +87,13 @@ else
 fi
 echo ""
 
-# ─── Walker (replaces Fuzzel) ─────────────────────────────────────────────────
-echo "── Walker ───────────────────────────────────────────────────────"
-if command -v walker &>/dev/null; then
-  ok "walker installed: $(walker --version 2>/dev/null | head -1 || echo 'ok')"
-  test -f ~/.config/walker/config.toml && ok "config.toml" || fail "config.toml MISSING"
-  test -d ~/.config/walker/themes/sl1c3d && ok "sl1c3d theme dir" || fail "sl1c3d theme dir MISSING (chezmoi apply needed)"
-  if command -v python3 &>/dev/null && test -f ~/.config/walker/config.toml; then
-    python3 -c "import tomllib; tomllib.loads(open('$HOME/.config/walker/config.toml').read())" 2>/dev/null \
-      && ok "config.toml: valid TOML" || fail "config.toml: invalid TOML"
-  fi
+# ─── Fuzzel (launcher — thin minimal search bar) ───────────────────────────────
+echo "── Fuzzel ───────────────────────────────────────────────────────"
+if command -v fuzzel &>/dev/null; then
+  ok "fuzzel installed: $(fuzzel --version 2>/dev/null | head -1 || echo 'ok')"
+  test -f ~/.config/fuzzel/fuzzel.ini && ok "fuzzel.ini" || fail "fuzzel.ini MISSING"
 else
-  fail "walker not installed — run: paru -S walker-bin"
+  fail "fuzzel not installed — run: sudo pacman -S fuzzel"
 fi
 echo ""
 

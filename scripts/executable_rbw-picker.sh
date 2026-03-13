@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# SL1C3D-L4BS rbw-picker — Bitwarden credential picker via Walker/stdin
+# SL1C3D-L4BS rbw-picker — Bitwarden credential picker via Fuzzel
 # Keybind: Super+Shift+semicolon
-# Requires: rbw, walker, wl-copy
+# Requires: rbw, fuzzel, wl-copy
 # Setup: rbw config set email <your@email> && rbw login
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -16,7 +16,7 @@ fi
 # List credentials: "name [username]"
 SELECTION=$(rbw list --fields id,name,user 2>/dev/null \
     | awk -F'\t' 'NF>=2 { print $2 " [" ($3 != "" ? $3 : "no user") "]" "\t" $1 }' \
-    | walker --dmenu --prompt "󰌾 Password: " 2>/dev/null \
+    | fuzzel --dmenu --prompt "󰌾 Password: " 2>/dev/null \
     | awk -F'\t' '{print $2}')
 
 if [[ -z "$SELECTION" ]]; then

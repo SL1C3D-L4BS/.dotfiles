@@ -10,7 +10,7 @@ File manager	Super+F
 btop	Super+B
 Lazygit	Super+G
 Toggle float	Super+V
-Launcher	Super+Space
+Launcher (Fuzzel)	Super+Space
 Toggle split	Super+J
 Workspace 1–10	Super+1..0
 Move window to workspace	Super+Shift+1..0
