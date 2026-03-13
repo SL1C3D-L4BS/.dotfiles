@@ -599,22 +599,18 @@ Scope {
                             anchors.centerIn: parent
                             spacing: 6
 
-                            Text {
+                            Image {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: {
+                                source: {
                                     const sink = Pipewire.defaultAudioSink
-                                    if (!sink || !sink.audio || sink.audio.muted || sink.audio.volume <= 0) return "󰖁"
-                                    if (sink.audio.volume < 0.33) return "󰕿"
-                                    if (sink.audio.volume < 0.66) return "󰖀"
-                                    return "󰕾"
+                                    if (!sink || !sink.audio || sink.audio.muted || sink.audio.volume <= 0)
+                                        return root.phosphorDir + "/speaker-slash.svg"
+                                    if (sink.audio.volume < 0.50)
+                                        return root.phosphorDir + "/speaker-low.svg"
+                                    return root.phosphorDir + "/speaker-high.svg"
                                 }
-                                color: {
-                                    const sink = Pipewire.defaultAudioSink
-                                    if (!sink || !sink.audio || sink.audio.muted) return root.theme.textMuted
-                                    return root.theme.accentPrimary
-                                }
-                                font.pixelSize: 14
-                                font.family: root.theme.fontFamily
+                                width: 14; height: 14
+                                fillMode: Image.PreserveAspectFit; smooth: true; mipmap: true
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
@@ -721,7 +717,7 @@ Scope {
                                 spacing: 6
                                 Image {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    source: root.phosphorDir + "/network.svg"
+                                    source: root.phosphorDir + "/wifi-high.svg"
                                     width: 14
                                     height: 14
                                     fillMode: Image.PreserveAspectFit
@@ -1018,10 +1014,10 @@ Scope {
                                     color: pwrClose.containsMouse ? root.theme.border : "transparent"
                                     Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
                                 }
-                                Text {
+                                Image {
                                     anchors.centerIn: parent
-                                    text: "×"; color: root.theme.textMuted
-                                    font.pixelSize: 16; font.family: root.theme.fontFamily
+                                    source: root.phosphorDir + "/x.svg"
+                                    width: 11; height: 11; fillMode: Image.PreserveAspectFit; smooth: true
                                 }
                             }
                         }
@@ -1094,12 +1090,12 @@ Scope {
                                         color: root.theme.border; font.pixelSize: 9; font.family: root.theme.fontFamily
                                         visible: sessionRow.modelData.hint !== ""
                                     }
-                                    Text {
+                                    Image {
                                         anchors.verticalCenter: parent.verticalCenter
-                                        text: "›"
-                                        color: sessionRow.hov ? sessionRow.modelData.accent : root.theme.border
-                                        font.pixelSize: 15; font.family: root.theme.fontFamily
-                                        Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                        source: root.phosphorDir + "/caret-right.svg"
+                                        width: 12; height: 12; fillMode: Image.PreserveAspectFit; smooth: true
+                                        opacity: sessionRow.hov ? 1.0 : 0.3
+                                        Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
                                     }
                                 }
                             }
@@ -1211,12 +1207,14 @@ Scope {
                                         }
                                     }
                                     Item { height: 1; width: pwrOuterCol.width - 28 - 10 - 130 }
-                                    Text {
+                                    Image {
                                         anchors.verticalCenter: parent.verticalCenter
-                                        text: dangerRow.confirming ? "⚠" : "›"
-                                        color: dangerRow.hov || dangerRow.confirming ? dangerRow.modelData.accent : root.theme.border
-                                        font.pixelSize: dangerRow.confirming ? 13 : 15; font.family: root.theme.fontFamily
-                                        Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                        source: dangerRow.confirming
+                                            ? root.phosphorDir + "/warning-circle.svg"
+                                            : root.phosphorDir + "/caret-right.svg"
+                                        width: 12; height: 12; fillMode: Image.PreserveAspectFit; smooth: true
+                                        opacity: dangerRow.hov || dangerRow.confirming ? 1.0 : 0.3
+                                        Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
                                     }
                                 }
                             }
@@ -1360,12 +1358,12 @@ Scope {
                         stdout: StdioCollector {
                             onStreamFinished: {
                                 const colorMap = {
-                                    git:    { bg: "#0d1a0d", border: "#3d6b3d", color: "#73c991", icon: "" },
-                                    nvim:   { bg: "#091a2a", border: "#1a6b4a", color: "#57c7a5", icon: "" },
-                                    python: { bg: "#0a1020", border: "#254f7f", color: "#5fa8d3", icon: "" },
-                                    node:   { bg: "#0a1a0a", border: "#2d5a2d", color: "#68a063", icon: "" },
-                                    rust:   { bg: "#1a0a08", border: "#6b2820", color: "#ce4c2b", icon: "" },
-                                    go:     { bg: "#081520", border: "#00576f", color: "#00acd7", icon: "" }
+                                    git:    { bg: "#0d1a0d", border: "#3d6b3d", color: "#73c991", icon: "git-branch" },
+                                    nvim:   { bg: "#091a2a", border: "#1a6b4a", color: "#57c7a5", icon: "file-code" },
+                                    python: { bg: "#0a1020", border: "#254f7f", color: "#5fa8d3", icon: "brackets-curly" },
+                                    node:   { bg: "#0a1a0a", border: "#2d5a2d", color: "#68a063", icon: "tree-structure" },
+                                    rust:   { bg: "#1a0a08", border: "#6b2820", color: "#ce4c2b", icon: "code-block" },
+                                    go:     { bg: "#081520", border: "#00576f", color: "#00acd7", icon: "circles-three" }
                                 }
                                 const pills = []
                                 text.trim().split("\n").forEach(function(line) {
@@ -1373,7 +1371,7 @@ Scope {
                                     if (parts.length < 2 || !parts[1].trim()) return
                                     const name = parts[0].trim()
                                     const ver  = parts[1].trim()
-                                    const c = colorMap[name] || { bg: "#1a1a1a", border: "#444", color: "#f8f8f2", icon: "▸" }
+                                    const c = colorMap[name] || { bg: "#1a1a1a", border: "#444", color: "#f8f8f2", icon: "terminal-window" }
                                     pills.push({ name: name, ver: ver, bg: c.bg, border: c.border, color: c.color, icon: c.icon })
                                 })
                                 hubCard.runtimePills = pills
@@ -2219,8 +2217,9 @@ Scope {
                                                         anchors.left: parent.left
                                                         anchors.verticalCenter: parent.verticalCenter
                                                         spacing: 8
-                                                        Text {
-                                                            text: "⏱"; font.pixelSize: 14
+                                                        Image {
+                                                            source: root.phosphorDir + "/timer.svg"
+                                                            width: 14; height: 14; fillMode: Image.PreserveAspectFit; smooth: true
                                                             anchors.verticalCenter: parent.verticalCenter
                                                             SequentialAnimation on opacity {
                                                                 loops: Animation.Infinite; running: root.devTimerSecsLeft > 0
@@ -2278,14 +2277,25 @@ Scope {
                                                     model: hubCard.runtimePills
                                                     delegate: Rectangle {
                                                         required property var modelData
-                                                        height: 22; radius: 11; width: rtTxt.width + 18
+                                                        height: 24; radius: 12
+                                                        // Dynamic width: icon(12) + gap(4) + text + padding(20)
+                                                        width: rtRow.implicitWidth + 20
                                                         color: modelData.bg || root.theme.bgBase
                                                         border.width: 1; border.color: modelData.border || root.theme.border
-                                                        Text {
-                                                            id: rtTxt; anchors.centerIn: parent
-                                                            text: (modelData.icon || "") + " " + modelData.name + " " + modelData.ver
-                                                            color: modelData.color || root.theme.textPrimary
-                                                            font.pixelSize: 9; font.family: root.theme.fontFamily
+                                                        Row {
+                                                            id: rtRow
+                                                            anchors.centerIn: parent; spacing: 4
+                                                            Image {
+                                                                anchors.verticalCenter: parent.verticalCenter
+                                                                source: root.phosphorDir + "/" + (modelData.icon || "terminal-window") + ".svg"
+                                                                width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true; mipmap: true
+                                                            }
+                                                            Text {
+                                                                anchors.verticalCenter: parent.verticalCenter
+                                                                text: modelData.name + " " + modelData.ver
+                                                                color: modelData.color || root.theme.textPrimary
+                                                                font.pixelSize: 9; font.family: root.theme.fontFamily
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -2307,7 +2317,7 @@ Scope {
                                             Repeater {
                                                 model: [
                                                     { path: "~/dev",                  label: "dev",       sub: "~/dev",          icon: "folder-open",     git: true,  iconBg: "#0f1135", accent: "#5865F2" },
-                                                    { path: "~/.config",              label: ".config",   sub: "~/.config",      icon: "gear",            git: false, iconBg: "#251a00", accent: "#ffb86c" },
+                                                    { path: "~/.config",              label: ".config",   sub: "~/.config",      icon: "gear",            git: false, iconBg: "#1a1200", accent: "#ffb86c" },
                                                     { path: "~/.local/share/chezmoi", label: "dotfiles",  sub: "chezmoi source", icon: "git-branch",      git: true,  iconBg: "#0d2210", accent: "#50fa7b" },
                                                     { path: "~/scripts",              label: "scripts",   sub: "~/scripts",      icon: "terminal-window", git: false, iconBg: "#1a0820", accent: "#b366ff" },
                                                     { path: "~/assets",               label: "assets",    sub: "~/assets",       icon: "images-square",   git: false, iconBg: "#1a1015", accent: "#ff79c6" }
@@ -2415,7 +2425,7 @@ Scope {
                                                     { label: "Zellij",        sub: "config.kdl",            icon: "grid-four",       accent: "#ffb86c", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/zellij/config.kdl"] },
                                                     { label: "Starship",      sub: "starship.toml",         icon: "sparkle",         accent: "#ff79c6", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/starship.toml"] },
                                                     { label: "Neovim",        sub: "~/.config/nvim/",       icon: "file-code",       accent: "#50fa7b", cmd: ["ghostty", "-e", "nvim", hubCard.home + "/.config/nvim"] },
-                                                    { label: "Chezmoi apply", sub: "Sync & apply dotfiles", icon: "arrow-clockwise", accent: "#5865F2", cmd: ["ghostty", "-e", "bash", "-lc", "chezmoi apply && echo '\\n✓ Done'; read"] }
+                                                    { label: "Chezmoi apply", sub: "Sync & apply dotfiles", icon: "chezmoi-apply", accent: "#5865F2", cmd: ["ghostty", "-e", "bash", "-lc", "chezmoi apply && echo '\\n✓ Done'; read"] }
                                                 ]
                                                 delegate: MouseArea {
                                                     id: cfgDelegate
@@ -2462,13 +2472,13 @@ Scope {
                                                             }
 
                                                             // Chevron — right
-                                                            Text {
-                                                                id: cfgChevron
+                                                            Image {
                                                                 anchors.right: parent.right
                                                                 anchors.verticalCenter: parent.verticalCenter
-                                                                text: "›"; font.pixelSize: 16; font.family: root.theme.fontFamily
-                                                                color: cfgDelegate.containsMouse ? cfgDelegate.modelData.accent : root.theme.textMuted
-                                                                Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                                                source: root.phosphorDir + "/caret-right.svg"
+                                                                width: 12; height: 12; fillMode: Image.PreserveAspectFit; smooth: true
+                                                                opacity: cfgDelegate.containsMouse ? 1.0 : 0.3
+                                                                Behavior on opacity { NumberAnimation { duration: root.theme.motionFastMs } }
                                                             }
 
                                                             // Label + sub — fills between icon and chevron
@@ -3382,7 +3392,7 @@ Scope {
                                             anchors.fill: parent; radius: 8
                                             color: parent.containsMouse ? root.theme.accentDim2 : "transparent"
                                             Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
-                                            Text { anchors.centerIn: parent; text: "‹"; color: root.theme.logoPurple; font.pixelSize: 16; font.family: root.theme.fontFamily }
+                                            Image { anchors.centerIn: parent; source: root.phosphorDir + "/caret-left.svg"; width: 14; height: 14; fillMode: Image.PreserveAspectFit; smooth: true }
                                         }
                                     }
                                 }
@@ -3433,7 +3443,7 @@ Scope {
                                             anchors.fill: parent; radius: 8
                                             color: parent.containsMouse ? root.theme.accentDim2 : "transparent"
                                             Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
-                                            Text { anchors.centerIn: parent; text: "›"; color: root.theme.logoPurple; font.pixelSize: 16; font.family: root.theme.fontFamily }
+                                            Image { anchors.centerIn: parent; source: root.phosphorDir + "/caret-right.svg"; width: 14; height: 14; fillMode: Image.PreserveAspectFit; smooth: true }
                                         }
                                     }
                                 }
@@ -4023,9 +4033,14 @@ Scope {
                             Item { width: parent.width - networkCloseBtn.width - 60; height: 1 }
                             MouseArea {
                                 id: networkCloseBtn
-                                width: 18; height: 18; cursorShape: Qt.PointingHandCursor
+                                width: 20; height: 20; cursorShape: Qt.PointingHandCursor; hoverEnabled: true
                                 onClicked: panelWindow.networkPopupOpen = false
-                                Text { anchors.centerIn: parent; text: "✕"; color: root.theme.textMuted; font.pixelSize: 10; font.family: root.theme.fontFamily }
+                                Rectangle {
+                                    anchors.fill: parent; radius: 5
+                                    color: networkCloseBtn.containsMouse ? root.theme.border : "transparent"
+                                    Behavior on color { ColorAnimation { duration: root.theme.motionFastMs } }
+                                }
+                                Image { anchors.centerIn: parent; source: root.phosphorDir + "/x.svg"; width: 10; height: 10; fillMode: Image.PreserveAspectFit; smooth: true }
                             }
                         }
 
@@ -4038,7 +4053,7 @@ Scope {
                                 spacing: 8
                                 Image {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    source: root.phosphorDir + "/network.svg"
+                                    source: root.phosphorDir + "/wifi-high.svg"
                                     width: 14; height: 14; fillMode: Image.PreserveAspectFit; smooth: true
                                 }
                                 Column {
