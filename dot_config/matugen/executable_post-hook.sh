@@ -23,7 +23,4 @@ fi
 # ─── Zellij: theme is loaded at startup; new sessions get matugen theme ──────
 # No live-reload possible; existing sessions keep current theme until restart.
 
-# ─── Walker: themes are CSS-file based; restart if currently open ─────────────
-pkill -HUP walker 2>/dev/null || true
-
 echo "[matugen post-hook] Daemons signaled. Theme applied."

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
 # Validate SL1C3D-L4BS dotfile configs — 2026 Masterclass Stack
-# Tools: Hyprland, swaync, walker, satty, kanshi, matugen, Quickshell,
+# Tools: Hyprland, swaync, satty, kanshi, matugen, Quickshell,
 #        Neovim, Zellij, Ghostty, Starship, atuin, age, restic, bluez, rbw...
 # Run from anywhere; no sudo needed.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -207,7 +207,7 @@ if command -v matugen &>/dev/null; then
   test -f ~/.config/matugen/config.toml && ok "config.toml" || fail "config.toml MISSING (chezmoi apply needed)"
   test -d ~/.config/matugen/templates   && ok "templates dir" || fail "templates dir MISSING (chezmoi apply needed)"
   test -f ~/.config/matugen/post-hook.sh && ok "post-hook.sh" || fail "post-hook.sh MISSING (chezmoi apply needed)"
-  for tpl in ghostty hypr-colors hyprlock swaync walker starship zellij yazi btop quickshell fzf cava; do
+  for tpl in ghostty hypr-colors hyprlock swaync starship zellij yazi btop quickshell fzf cava; do
     test -f ~/.config/matugen/templates/${tpl}.template \
       && ok "template: ${tpl}" \
       || fail "template MISSING: ${tpl}.template (chezmoi apply needed)"

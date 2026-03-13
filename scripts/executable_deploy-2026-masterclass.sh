@@ -86,7 +86,6 @@ step "1b/7  Installing AUR packages"
 
 AUR_PKGS=(
   matugen-bin
-  walker-bin
   hyprpolkitagent
   bluetui
   lazydocker-bin
@@ -106,7 +105,6 @@ step "2/7  Removing legacy tools"
 
 LEGACY_PKGS=(
   mako            # replaced by swaync
-  fuzzel          # replaced by walker
   polkit-gnome    # replaced by hyprpolkitagent
   hyprpaper       # removed (using swww)
   sddm            # removed — TTY autologin only
@@ -306,7 +304,7 @@ git commit -m "$(cat <<'EOF'
 chore(dotfiles): 2026 masterclass stack deploy
 
 - matugen dynamic theming pipeline (12 templates)
-- swaync replaces mako, walker replaces fuzzel
+- swaync replaces mako, fuzzel launcher
 - hyprpolkitagent replaces polkit-gnome
 - satty screenshot annotation, kanshi monitor profiles
 - hyprsunset, wf-recorder, hyprpicker, OCR script

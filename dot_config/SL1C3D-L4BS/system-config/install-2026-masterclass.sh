@@ -42,9 +42,8 @@ sudo pacman -S --noconfirm --needed \
   hyprpicker
 
 echo ""
-echo "── Phase 3 (AUR): walker, hyprpolkitagent ─────────────────────────"
+echo "── Phase 3 (AUR): hyprpolkitagent ──────────────────────────────────"
 paru -S --noconfirm --needed \
-  walker-bin \
   hyprpolkitagent
 
 echo ""
