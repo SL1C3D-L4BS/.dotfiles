@@ -6,6 +6,7 @@
 
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -103,21 +104,17 @@ Item {
     PanelWindow {
         id: panel
         visible: root.visible_
-        width: 380
-        height: Screen.height - 80
-        anchors {
-            right: true
-            top: true
-            margins { top: 40; right: 8 }
-        }
+        implicitWidth: 380
+        implicitHeight: Screen.height - 80
+        anchors.right: true
+        anchors.top: true
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-        // Close on Escape
-        Keys.onEscapePressed: root.visible_ = false
-
         Rectangle {
             anchors.fill: parent
+            focus: true
+            Keys.onEscapePressed: root.visible_ = false
             color: root.theme.surfaceGlassStrong
             border.color: root.theme.border
             border.width: 1
@@ -280,7 +277,8 @@ Item {
 
                         // Auto-scroll to bottom
                         onHeightChanged: {
-                            scrollView.ScrollBar.vertical.position = 1.0 - scrollView.ScrollBar.vertical.size
+                            var vbar = scrollView.ScrollBar.vertical
+                            if (vbar) vbar.position = 1.0 - vbar.size
                         }
                     }
                 }

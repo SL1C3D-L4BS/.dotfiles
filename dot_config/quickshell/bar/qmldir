@@ -5,3 +5,5 @@ BrandTheme 1.0 BrandTheme.qml
 HubCard 1.0 HubCard.qml
 HubActionRow 1.0 HubActionRow.qml
 Bar 1.0 Bar.qml
+AIPanel 1.0 AIPanel.qml
+BluetoothWidget 1.0 BluetoothWidget.qml

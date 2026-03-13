@@ -4,10 +4,8 @@ import "bar"
 import "ui"
 
 Scope {
-    // Use MatugenTheme if available (matugen pipeline), else brand fallback
-    property var activeTheme: {
-        // Quickshell will use the file it finds; both export the same interface
-        return BrandTheme {}
+    BrandTheme {
+        id: activeTheme
     }
 
     Bar {
