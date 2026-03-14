@@ -51,6 +51,13 @@ window-vsync = true
 cursor-style = bar
 cursor-style-blink = true
 
+# Mouse: use for selection/copy/paste (don't send to apps like Zellij)
+mouse-reporting = false
+# Copy selected text on select; middle-click pastes selection clipboard
+copy-on-select = true
+# Right-click: copy selection or paste
+right-click-action = copy-or-paste
+
 # Shell integration
 shell-integration = zsh
 shell-integration-features = cursor,sudo,title

@@ -314,9 +314,9 @@ alias zjdev='zellij --layout dev'                       # Dev: yazi + nvim + spl
 # ─── Dotfiles: chezmoi + PATH ────────────────────────────────────────────────
 export PATH="$HOME/.local/bin:$HOME/.config/SL1C3D-L4BS/bin:$PATH"
 
-# ─── Fastfetch: system info on new interactive shell (not SSH) ───────────────
+# ─── Fastfetch: run in background so first prompt appears immediately ────────
 if [[ -o interactive ]] && [[ -z "$SSH_TTY" ]] && command -v fastfetch &>/dev/null; then
-  fastfetch
+  ( fastfetch 2>/dev/null & )
 fi
 
 # ─── Optional: refresh completion dump in background ─────────────────────────

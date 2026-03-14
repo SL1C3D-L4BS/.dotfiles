@@ -137,6 +137,8 @@ if command -v ghostty &>/dev/null; then
     && ok "font-thicken enabled" || fail "font-thicken not set"
   grep -q 'font-size = 13' ~/.config/ghostty/config 2>/dev/null \
     && ok "font-size = 13" || fail "font-size not 13"
+  grep -q 'mouse-reporting = false' ~/.config/ghostty/config 2>/dev/null \
+    && ok "mouse copy/paste (mouse-reporting off)" || skip "mouse copy/paste" "add mouse-reporting = false, copy-on-select = true"
 else
   fail "ghostty not installed"
 fi
