@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# SL1C3D-L4BS — Launch Firefox directly into default profile (no profile picker).
+# Uses default-release; if your profile has another name, change -P "default-release" below.
+set -euo pipefail
+exec /usr/bin/firefox -P "default-release" "$@"

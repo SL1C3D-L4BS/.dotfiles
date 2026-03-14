@@ -8,7 +8,8 @@
 set -euo pipefail
 
 export RESTIC_REPOSITORY="${RESTIC_REPOSITORY:-/mnt/backup/sl1c3d-l4bs}"
-export RESTIC_PASSWORD="$(secret-tool lookup service restic repo local 2>/dev/null)"
+RESTIC_PASSWORD="$(secret-tool lookup service restic repo local 2>/dev/null)"
+export RESTIC_PASSWORD
 
 if [[ -z "$RESTIC_PASSWORD" ]]; then
     echo "ERROR: Restic password not found in keyring."

@@ -1,0 +1,4 @@
+# SL1C3D-L4BS — Login shell: PATH for Firefox wrapper; preserve session env.
+[[ -d "$HOME/.local/bin" ]] && export PATH="$HOME/.local/bin:$PATH"
+[[ -n "${XDG_RUNTIME_DIR:-}" ]] && export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/ssh-agent.socket"
+export MOZ_ENABLE_WAYLAND=1
