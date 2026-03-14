@@ -63,8 +63,9 @@ return {
         per_filetype = {},
       },
 
+      -- Use Lua fuzzy to avoid Rust binary/trace errors (e.g. "failed to run" in sources)
       fuzzy = {
-        implementation = "prefer_rust_with_warning",
+        implementation = "lua",
       },
 
       signature = { enabled = true },
