@@ -1,0 +1,9 @@
+[Unit]
+Description=Daily check for Arch updates and notify (SL1C3D-L4BS)
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target

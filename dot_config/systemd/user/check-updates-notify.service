@@ -1,0 +1,11 @@
+[Unit]
+Description=Check Arch updates and notify if available (SL1C3D-L4BS)
+After=default.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/scripts/check-updates-notify.sh
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus
+
+[Install]
+WantedBy=default.target

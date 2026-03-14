@@ -44,6 +44,7 @@ For a new machine:
      systemctl --user daemon-reload
      systemctl --user enable quickshell.service swaync.service clipboard-history.service \
        swww.service wallpaper-restore.service hypridle.service theme-propagation.service
+     systemctl --user enable --now check-updates-notify.timer  # optional: daily update notify
      ```
    - Log in on TTY; Hyprland starts directly. Autostart runs env export then `systemctl --user start` for the daemon set.
 
