@@ -9,6 +9,12 @@ export VISUAL="nvim"
 export TERMINAL="ghostty"
 export BROWSER="firefox"
 
+# ─── Nix profile (before /usr/bin so nix-installed tools take precedence) ─────
+if [[ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]]; then
+  source "$HOME/.nix-profile/etc/profile.d/nix.sh"
+fi
+export PATH="$HOME/.nix-profile/bin:$PATH"
+
 # ─── Beautiful man pages via bat ─────────────────────────────────────────────
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 export MANRWIDTH=80

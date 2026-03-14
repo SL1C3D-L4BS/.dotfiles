@@ -1,3 +1,10 @@
-# nix/shells — devShell definitions (Phase 8)
+# nix/shells — devShell definitions
 
-Reserved for `nix develop` shell definitions. Phase 8 adds at least one devShell; flake.nix references these.
+Defines devShells for `nix develop`. Implemented in `default.nix`; wired in `../flake.nix`.
+
+- **default** — Full stack (all packages from `../home/packages.nix`).
+- **rust** — Default + rustc, cargo.
+- **node** — Default + npm, prettier.
+- **python** — Default + pip, black.
+
+Use: `nix develop .#default`, `nix develop .#rust`, etc. (from repo root: `nix develop ./nix#rust`).

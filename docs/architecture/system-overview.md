@@ -12,16 +12,35 @@ No behavior changes are introduced here; this document describes the **target ar
 
 ---
 
+### 0. Five-Part Stack (Canonical)
+
+The masterclass system is exactly five parts:
+
+| Part | Role | Owner |
+|------|------|--------|
+| **Host** | Kernel, base system, system packages | **Arch Linux (linux-zen)** — pacman/AUR |
+| **Session** | TTY autologin + systemd user units (Hyprland, bar, notifications, etc.) | **systemd user** + minimal Hyprland exec-once |
+| **Packages / devShells** | User toolchain, languages, LSPs, formatters, linters, dev environments | **Nix** (flake + profile + devShells) |
+| **Config / state** | Dotfiles, app config, theme state, generated state | **Chezmoi** (source `~/.local/share/chezmoi`) |
+| **Operations** | Doctor, validate, repair, benchmark, theme, edition, bootstrap, session | **sl1c3d** CLI |
+
+- **Host:** Arch/linux-zen; pacman owns session-core (Hyprland, PipeWire, portals, etc.) and host packages only.
+- **Session:** TTY-only; no display manager; durable daemons as systemd user units started from autostart.
+- **Nix:** All user-facing toolchain, languages, LSPs, formatters, linters, and `nix develop` shells. Configs remain in chezmoi.
+- **Chezmoi:** All config and state; no package installation (except via scripts that call pacman or Nix).
+- **sl1c3d:** Single operations surface; no ad-hoc scripts for health or apply.
+
+---
+
 ### 1. Layers and Ownership
 
-Based on the Phase 0 inventories, the workstation stack is structured as:
+Based on the Phase 0 inventories and the five-part stack above:
 
-- **Host OS (Arch Linux)**  
-  - Package manager: pacman/AUR.  
-  - Current owner for all installed packages (per Phase 0 package-source decisions).
-  - **Migration-capable:** yes (toward Nix in Phase 8).  
-  - **Responsible phase:** Phase 7 (host/arch scaffolding) and Phase 8 (Nix Mode A).  
-  - **Rollback:** uninstall Nix-provided packages and restore pacman/AUR packages per `docs/architecture/package-ownership.md` and migration ledger entries.
+- **Host OS (Arch Linux / linux-zen)**  
+  - Kernel: linux-zen. Package manager: pacman/AUR.  
+  - Owns **host** and **session-core** only (Hyprland, PipeWire, XDG portals, TTY/session components).  
+  - **Nix** owns user packages, toolchain, languages, LSPs, formatters, devShells (see below).  
+  - **Rollback:** uninstall Nix-provided packages and restore pacman/AUR per `docs/architecture/package-ownership.md` and migration ledger.
 
 - **Display & Audio stack**  
   - Hyprland compositor, PipeWire, WirePlumber, XDG Portals, dbus-broker/user D-Bus.  
@@ -30,21 +49,21 @@ Based on the Phase 0 inventories, the workstation stack is structured as:
   - **Responsible phase:** Phase 6 (systemd session).  
   - **Rollback:** revert unit changes and re-enable the previous Hyprland `exec-once`-based startup sequence recorded in Phase 0 inventory.
 
-- **Configuration layer (chezmoi source)**  
-  - Source-of-truth repo at `~/.local/share/chezmoi` (per README and Phase 0 inventory).  
-  - Owns all `dot_config/**` except explicitly-generated overlays (`edition.conf`, `host.conf`, tool state).  
-  - **Migration-capable:** yes (host/arch split, theme pipeline refactor, docs separation).  
-  - **Responsible phases:**  
-    - Phase 1 (docs repo-only, not deployed).  
-    - Phase 4 (theme source-of-truth).  
-    - Phase 7 (host/arch scaffolding).  
-  - **Rollback:** restore earlier chezmoi source tree from VCS and re-run `chezmoi apply` manually; no change in this document requires automated rollback.
+- **Packages and devShells (Nix)**  
+  - **Nix** owns user toolchain, languages, LSPs, formatters, linters; `nix profile install .#default` and `nix develop` (see `nix/`).  
+  - Configs for Nix-provided tools remain in **chezmoi**; Nix supplies binaries only.  
+  - PATH: Nix profile before `/usr/bin` so Nix wins for toolchain/languages.  
+  - **Rollback:** `nix profile uninstall` and reinstall via pacman/AUR per package-inventory.md.
 
-- **Operator surface (`sl1c3d` CLI)**  
-  - Future single entrypoint for doctor, validate, repair, benchmark, theme, edition, bootstrap, session (see plan §3 and Phase 0 decision artifacts).  
-  - **Migration-capable:** yes (currently wrappers; becoming a first-class CLI).  
-  - **Responsible phase:** Phase 3 (operator CLI).  
-  - **Rollback:** retain existing scripts and aliases; Phase 3 must keep compatibility shims so that reverting `sl1c3d` still leaves underlying scripts runnable.
+- **Configuration and state (chezmoi)**  
+  - Source-of-truth repo at `~/.local/share/chezmoi`. Owns all **config and state** (`dot_config/**`, scripts, theme tokens, generated state).  
+  - Does not install packages; bootstrap scripts invoke pacman or Nix.  
+  - **Rollback:** restore chezmoi source from VCS and re-run `chezmoi apply`.
+
+- **Operations (`sl1c3d` CLI)**  
+  - Single entrypoint: doctor, validate, repair, benchmark, theme, edition, bootstrap, session.  
+  - **Responsible phase:** Phase 3.  
+  - **Rollback:** retain underlying scripts; sl1c3d is a thin orchestrator.
 
 - **Theme system**  
   - Today: scattered QML, SCSS, Ghostty themes (see Phase 0 contradictions).  

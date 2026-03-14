@@ -10,44 +10,47 @@ It **does not** assume `chezmoi apply` on login; all configuration application i
 
 ---
 
-### 1. High-Level Sequence
+### 1. Five-Part Bootstrap Order
 
-For a new Arch machine:
+Stack: **Arch/linux-zen (host)** → **TTY + systemd user (session)** → **Nix (packages/devShells)** → **Chezmoi (config/state)** → **sl1c3d (operations)**.
 
-1. **Install base system and user account** according to Arch documentation.  
-2. **Install core tools via Arch packages**, following the scripts under `dot_config/SL1C3D-L4BS/system-config/` (Phase 7: `host/arch/` is the path of record; system-config remains the live source until artifacts are migrated with ledger entries — see `docs/architecture/migration-ledger.md`):
-   - Examples: `install-elite-stack.sh`, `install-dev-stack.sh`, `install-openclaw-ollama.sh`, `install-sysctl.sh`, `install-pacman-conf.sh`.
-3. **Install Nix (optional, Phase 8):**  
-   - Install Nix (e.g. DeterminateSystems installer or official).  
-   - From repo: `cd nix && nix profile install .#default` to install the CLI bundle, or `nix profile install .#neovim` etc. for individual packages. Configs remain in chezmoi; see `docs/architecture/package-ownership.md` for PATH precedence and duplicate-binary rules.
-4. **Install chezmoi** and clone the dotfiles repo into `~/.local/share/chezmoi` as described in `README.md`.  
-5. **Apply dotfiles explicitly**:
+For a new machine:
 
-   ```bash
-   chezmoi init --apply <REPO>
-   # or, for an existing clone:
-   chezmoi apply
-   ```
+1. **Host (Arch / linux-zen)**  
+   - Install base Arch; use **linux-zen** kernel if desired. Create user account.  
+   - Install **host and session-core only** via pacman/AUR (Hyprland, PipeWire, XDG portals, quickshell, swaync, ghostty, fuzzel, etc.). Use scripts under `dot_config/SL1C3D-L4BS/system-config/` (e.g. install scripts that pull session-core and host packages; do **not** install toolchain/languages from pacman — those come from Nix).  
+   - Configure getty autologin on TTY1 if needed.
 
-6. **Enable systemd user units (Phase 6 session daemons)** — run inside a graphical or user session so `systemctl --user` works:
+2. **Nix (packages + devShells)**  
+   - Install Nix (DeterminateSystems installer or official).  
+   - Clone the dotfiles repo (or ensure `nix/` is available). Then:
+     ```bash
+     cd ~/.local/share/chezmoi && nix profile install .#default
+     ```
+   - This installs toolchain, languages, LSPs, formatters, linters. Shell config (chezmoi) will prepend Nix profile to PATH so Nix wins. Use `nix develop` for project shells.
 
-   ```bash
-   systemctl --user daemon-reload
-   systemctl --user enable quickshell.service swaync.service clipboard-history.service \
-     swww.service wallpaper-restore.service hypridle.service theme-propagation.service
-   # Optional (AGS quarantine): systemctl --user enable ags.service
-   # Existing: openclaw-gateway.service, atuin.service, kanshi.service, restic-backup.timer
-   ```
+3. **Chezmoi (config / state)**  
+   - Install chezmoi (pacman/AUR or official script). Clone the dotfiles repo into `~/.local/share/chezmoi`.  
+   - Apply config and state:
+     ```bash
+     chezmoi init --apply <REPO>
+     # or: chezmoi apply
+     ```
+   - No `chezmoi apply` on login; apply is explicit only.
 
-   If you are not yet in a user session, run this after first login to Hyprland.
+4. **Session (TTY + systemd user units)**  
+   - Enable systemd user units (run in a user session so `systemctl --user` works):
+     ```bash
+     systemctl --user daemon-reload
+     systemctl --user enable quickshell.service swaync.service clipboard-history.service \
+       swww.service wallpaper-restore.service hypridle.service theme-propagation.service
+     ```
+   - Log in on TTY; Hyprland starts directly. Autostart runs env export then `systemctl --user start` for the daemon set.
 
-7. **Validate configuration**:
-
-   ```bash
-   ~/scripts/validate-configs.sh
-   ```
-
-8. **Log into Hyprland**; confirm that the Phase 0 do-not-break list is satisfied (bar, keybinds, launcher, OpenClaw sidebar, etc.). Session daemons (quickshell, swaync, clipboard, wallpaper, hypridle) start via systemd user units bound to `graphical-session.target`.
+5. **Operations (sl1c3d)**  
+   - Validate: `sl1c3d validate` (or `~/scripts/validate-configs.sh`).  
+   - Health: `sl1c3d doctor`.  
+   - Going forward: use `sl1c3d` for repair, benchmark, theme, edition, bootstrap, session — not ad-hoc scripts.
 
 This sequence deliberately avoids any automatic `chezmoi apply` at login.
 
@@ -67,7 +70,7 @@ Phase 6 has moved durable daemons to systemd user units. Session is **TTY-only**
   - Reapply dotfiles only after confirming the rollback steps.
 - **Bootstrap package rollback:** Each bootstrap run writes package lists to `~/.config/SL1C3D-L4BS/state/bootstrap/<timestamp>-<edition>/` (`pacman-qqe-before.txt`, and `aur-qe-before.txt` if paru/yay was used). To restore the pre-bootstrap package set, reinstall from those lists or revert manually (e.g. `pacman -S - < pacman-qqe-before.txt` for native packages; AUR per your helper).
 
-Bootstrap does not change package ownership policy; Arch remains the only package owner at this phase, consistent with Phase 0 decisions.
+Package ownership: **Arch** = host + session-core; **Nix** = user packages, toolchain, languages, LSPs, formatters, devShells. Rollback per `docs/architecture/package-inventory.md` and migration ledger.
 
 ---
 

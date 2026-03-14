@@ -8,6 +8,7 @@
     pkgs = nixpkgs.legacyPackages.${system};
     homePackages = import ./home/packages.nix pkgs;
     pathList = pkgs.lib.attrValues homePackages;
+    shells = import ./shells/default.nix pkgs pathList;
   in {
     packages.${system} = homePackages // {
       default = pkgs.buildEnv {
@@ -15,9 +16,6 @@
         paths = pathList;
       };
     };
-    devShells.${system}.default = pkgs.mkShell {
-      name = "sl1c3d-l4bs";
-      buildInputs = pathList;
-    };
+    devShells.${system} = shells;
   };
 }
