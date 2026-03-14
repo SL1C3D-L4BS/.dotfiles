@@ -19,6 +19,21 @@ echo "║            SL1C3D-L4BS Config Validation  2026              ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 
+# ─── Systemd user units (Phase 6 session daemons) ────────────────────────────
+echo "── Systemd user units (Phase 6) ─────────────────────────────────"
+for u in quickshell swaync clipboard-history swww wallpaper-restore hypridle theme-propagation; do
+  if test -f ~/.config/systemd/user/${u}.service; then
+    if systemctl --user is-enabled "${u}.service" &>/dev/null; then
+      ok "${u}.service (enabled)"
+    else
+      ok "${u}.service (present; enable: systemctl --user enable ${u}.service)"
+    fi
+  else
+    fail "${u}.service MISSING (chezmoi apply needed)"
+  fi
+done
+echo ""
+
 # ─── Hyprland ────────────────────────────────────────────────────────────────
 echo "── Hyprland ─────────────────────────────────────────────────────"
 for f in colors.conf monitors.conf env.conf programs.conf autostart.conf \
@@ -34,18 +49,18 @@ grep -q 'rounding = 12' ~/.config/hypr/general.conf 2>/dev/null \
 grep -q 'Bibata' ~/.config/hypr/env.conf 2>/dev/null \
   && ok "cursor theme set" \
   || fail "cursor theme not set in env.conf"
-grep -q 'swww-daemon' ~/.config/hypr/autostart.conf 2>/dev/null \
-  && ok "swww-daemon in autostart" \
-  || fail "swww-daemon missing from autostart"
-grep -q 'cliphist store' ~/.config/hypr/autostart.conf 2>/dev/null \
-  && ok "cliphist in autostart" \
-  || fail "cliphist missing from autostart"
+# Phase 6: durable daemons run as systemd user units; autostart is minimal glue only
 grep -q 'hyprpolkitagent' ~/.config/hypr/autostart.conf 2>/dev/null \
   && ok "hyprpolkitagent in autostart" \
   || fail "hyprpolkitagent missing from autostart (replace polkit-gnome)"
-grep -q 'swaync' ~/.config/hypr/autostart.conf 2>/dev/null \
-  && ok "swaync in autostart" \
-  || fail "swaync missing from autostart (replaces mako)"
+# swww/cliphist/swaync: Phase 6 (systemd units) takes precedence over legacy autostart
+if test -f ~/.config/systemd/user/quickshell.service && test -f ~/.config/systemd/user/swww.service; then
+  ok "session daemons as systemd user units (Phase 6)"
+elif grep -q 'swww-daemon\|swaync\|cliphist store' ~/.config/hypr/autostart.conf 2>/dev/null; then
+  ok "session daemons in autostart (legacy)"
+else
+  fail "session daemons: need either autostart or systemd user units (quickshell.service, swww.service, etc.)"
+fi
 grep -q 'hyprsunset' ~/.config/hypr/autostart.conf 2>/dev/null \
   && ok "hyprsunset in autostart" \
   || skip "hyprsunset autostart" "optional"

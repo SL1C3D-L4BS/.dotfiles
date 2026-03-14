@@ -1,0 +1,3 @@
+# Phase 4: generated runtime theme (Layer B) — do not commit
+# Generator writes to ~/.config/sl1c3d/theme.json; ignore if ever under repo
+dot_config/sl1c3d/theme.json

@@ -1,0 +1,14 @@
+[Unit]
+Description=AGS quicksettings panel (SL1C3D-L4BS, quarantine)
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ags run -d %h/.config/ags
+Restart=on-failure
+RestartSec=2
+# Doctor severity: informational (AGS quarantine)
+
+[Install]
+WantedBy=graphical-session.target

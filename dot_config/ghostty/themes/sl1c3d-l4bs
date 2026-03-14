@@ -1,11 +1,10 @@
-# SL1C3D-L4BS brand theme — full 16-color ANSI + cursor/selection
-# Use in config: theme = sl1c3d-l4bs (when in ghostty/themes) or theme = path/to/this/file
+# SL1C3D-L4BS brand theme — generated from theme.tokens.toml (Phase 4). Do not edit by hand.
+# Run: sl1c3d theme apply
 
-# ANSI (0–15): brand palette
 palette = 0=#0d0d0d
 palette = 1=#ff5555
 palette = 2=#50fa7b
-palette = 3=#f1fa8c
+palette = 3=#ffb86c
 palette = 4=#5865F2
 palette = 5=#5865F2
 palette = 6=#e0e0e0
@@ -13,7 +12,7 @@ palette = 7=#f8f8f2
 palette = 8=#2d2d2d
 palette = 9=#ff5555
 palette = 10=#50fa7b
-palette = 11=#f1fa8c
+palette = 11=#ffb86c
 palette = 12=#5865F2
 palette = 13=#5865F2
 palette = 14=#e0e0e0

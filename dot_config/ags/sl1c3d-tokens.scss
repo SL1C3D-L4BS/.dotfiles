@@ -1,9 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SL1C3D-L4BS design tokens — brand palette, glass, spacing, motion
-// Imported by style.scss and all AGS component stylesheets
+// SL1C3D-L4BS design tokens — generated from theme.tokens.toml (Phase 4)
+// Do not edit by hand. Run: sl1c3d theme apply
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ─── Brand palette ───────────────────────────────────────────────────────────
 $sl_bg_base:     #0d0d0d;
 $sl_bg_surface:  #1a1a1a;
 $sl_border:      #2d2d2d;
@@ -11,32 +10,24 @@ $sl_border_mid:  #404040;
 $sl_fg:          #f8f8f2;
 $sl_fg_dim:      #e0e0e0;
 $sl_fg_muted:    #909090;
-
 $sl_accent:      #5865F2;
 $sl_logo:        #b366ff;
 $sl_error:       #ff5555;
 $sl_success:     #50fa7b;
 $sl_warn:        #ffb86c;
-
-// ─── Glass surfaces ───────────────────────────────────────────────────────────
 $sl_surface_glass:       rgba(26, 26, 26, 0.72);
 $sl_surface_glass_strong: rgba(13, 13, 13, 0.86);
 $sl_scrim:               rgba(0, 0, 0, 0.45);
 $sl_border_glass:        rgba(88, 101, 242, 0.22);
 $sl_border_glass_logo:   rgba(179, 102, 255, 0.18);
-
-// ─── Layout ───────────────────────────────────────────────────────────────────
 $sl_radius_pill:  8px;
 $sl_radius_modal: 12px;
 $sl_radius_card:  10px;
-
 $sl_spacing_xs: 4px;
 $sl_spacing_sm: 8px;
 $sl_spacing_md: 12px;
 $sl_spacing_lg: 16px;
 $sl_spacing_xl: 24px;
-
-// ─── Motion ───────────────────────────────────────────────────────────────────
 $sl_motion_fast: 120ms;
 $sl_motion_base: 180ms;
-$sl_motion_slow: 280ms;
+$sl_motion_slow: 260ms;

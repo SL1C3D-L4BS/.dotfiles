@@ -1,0 +1,404 @@
+#!/usr/bin/env bash
+# SL1C3D-L4BS — sl1c3d operator CLI
+#
+# Phase 3: single operator surface for:
+#   - doctor (environment/dependency health)
+#   - validate (config contract checks)
+#   - repair (non-destructive by default; explicit --apply)
+#   - benchmark (stub until Phase 5)
+#   - theme (apply/inspect)
+#   - edition (delegates to sl1c3d-edition)
+#   - bootstrap (first-time setup entrypoint)
+#   - session (systemd user unit helpers)
+
+set -euo pipefail
+
+ROOT="${SL1C3D_ROOT:-$HOME/.local/share/chezmoi}"
+CFG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
+BIN_DIR="$CFG_DIR/SL1C3D-L4BS/bin"
+
+print_usage() {
+  cat <<'EOF'
+Usage:
+  sl1c3d doctor
+  sl1c3d validate
+  sl1c3d repair [--check] [--units] [--theme] [--apply]
+  sl1c3d benchmark
+  sl1c3d theme apply
+  sl1c3d theme inspect
+  sl1c3d edition set <edition>
+  sl1c3d edition get
+  sl1c3d edition list
+  sl1c3d edition apply
+  sl1c3d bootstrap
+  sl1c3d session status
+  sl1c3d session start
+  sl1c3d session stop
+EOF
+}
+
+log() {
+  printf '%s\n' "$*" >&2
+}
+
+doctor() {
+  local fatal=0
+  local degraded=0
+
+  echo "== sl1c3d doctor =="
+
+  if command -v pacman >/dev/null 2>&1; then
+    echo "[fatal] Arch base: pacman available"
+  else
+    echo "[fatal] Arch base: pacman missing"
+    fatal=1
+  fi
+
+  if command -v nix >/dev/null 2>&1; then
+    echo "[info] Nix: nix binary present"
+  else
+    echo "[info] Nix: not installed (acceptable before Phase 8)"
+  fi
+
+  if command -v chezmoi >/dev/null 2>&1; then
+    if chezmoi doctor >/dev/null 2>&1; then
+      echo "[info] chezmoi: doctor OK"
+    else
+      echo "[degraded] chezmoi: doctor reported issues"
+      degraded=1
+    fi
+  else
+    echo "[fatal] chezmoi: not installed"
+    fatal=1
+  fi
+
+  if command -v hyprland >/dev/null 2>&1; then
+    echo "[info] Hyprland: binary present"
+  else
+    echo "[fatal] Hyprland: binary missing"
+    fatal=1
+  fi
+
+  if command -v quickshell >/dev/null 2>&1; then
+    echo "[info] Quickshell: binary present"
+  else
+    echo "[degraded] Quickshell: binary missing"
+    degraded=1
+  fi
+
+  if command -v swaync >/dev/null 2>&1; then
+    echo "[info] swaync: binary present"
+  else
+    echo "[degraded] swaync: binary missing"
+    degraded=1
+  fi
+
+  if command -v pipestatus >/dev/null 2>&1; then :; fi
+
+  if command -v hyprctl >/dev/null 2>&1 && [ -f "$CFG_DIR/hypr/hyprland.conf" ]; then
+    if hyprctl --config "$CFG_DIR/hypr/hyprland.conf" check >/dev/null 2>&1; then
+      echo "[info] Hyprland config: syntax OK"
+    else
+      echo "[fatal] Hyprland config: syntax check failed"
+      fatal=1
+    fi
+  else
+    echo "[info] Hyprland config: syntax check skipped (hyprctl or config missing)"
+  fi
+
+  if systemctl --user status quickshell.service >/dev/null 2>&1; then
+    echo "[info] systemd: quickshell.service present"
+  else
+    echo "[info] systemd: quickshell.service not configured (expected in later phases)"
+  fi
+
+  if command -v curl >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+    if curl -fsS http://127.0.0.1:18789/healthz | jq . >/dev/null 2>&1; then
+      echo "[info] OpenClaw gateway: healthy"
+    else
+      echo "[degraded] OpenClaw gateway: unreachable or unhealthy"
+      degraded=1
+    fi
+  else
+    echo "[info] OpenClaw gateway: health check skipped (curl/jq not present)"
+  fi
+
+  if [ "$fatal" -ne 0 ]; then
+    echo "Result: FATAL issues detected"
+    exit 1
+  fi
+
+  if [ "$degraded" -ne 0 ]; then
+    echo "Result: DEGRADED (no fatal issues)"
+    exit 0
+  fi
+
+  echo "Result: OK (no fatal or degraded issues)"
+}
+
+validate_cmd() {
+  local script="$HOME/scripts/validate-configs.sh"
+  if [ ! -x "$script" ]; then
+    log "validate: script not found or not executable: $script"
+    exit 1
+  fi
+  "$script"
+}
+
+repair() {
+  local check_only=0
+  local do_units=0
+  local do_theme=0
+  local do_apply=0
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --check) check_only=1 ;;
+      --units) do_units=1 ;;
+      --theme) do_theme=1 ;;
+      --apply) do_apply=1 ;;
+      *) log "Unknown flag to repair: $1"; exit 2 ;;
+    esac
+    shift
+  done
+
+  echo "== sl1c3d repair =="
+  echo "  mode:"
+  echo "    check_only: $check_only"
+  echo "    units:      $do_units"
+  echo "    theme:      $do_theme"
+  echo "    apply:      $do_apply"
+
+  echo ""
+  echo "Planned actions:"
+
+  if [ "$do_units" -eq 1 ]; then
+    echo "  - systemd user units: ensure key services enabled/started (Phase 6 will define exact set)"
+  fi
+  if [ "$do_theme" -eq 1 ]; then
+    echo "  - theme: regenerate runtime and consumer artifacts (Phase 4 pipeline)"
+  fi
+  if [ "$do_units" -eq 0 ] && [ "$do_theme" -eq 0 ]; then
+    echo "  - no scoped actions selected (use --units and/or --theme)"
+  fi
+
+  if [ "$do_theme" -eq 1 ]; then
+    theme_gen="$CFG_DIR/SL1C3D-L4BS/theme/generate.sh"
+    if [ -x "$theme_gen" ]; then
+      echo ""
+      echo "Running theme generator..."
+      export SL1C3D_SOURCE_DIR="$ROOT"
+      "$theme_gen" "$ROOT"
+    else
+      log "Theme generator not found: $theme_gen"
+      exit 1
+    fi
+  fi
+
+  if [ "$do_apply" -eq 0 ]; then
+    echo ""
+    echo "No changes applied (default non-destructive mode)."
+    exit 0
+  fi
+
+  echo ""
+  echo "Preflight (chezmoi diff):"
+  if command -v chezmoi >/dev/null 2>&1; then
+    chezmoi diff || true
+  else
+    log "chezmoi not installed; cannot show diff"
+  fi
+
+  if [ "$check_only" -eq 1 ]; then
+    echo ""
+    echo "--check specified: not applying changes even with --apply."
+    exit 0
+  fi
+
+  echo ""
+  echo "Applying changes:"
+
+  if command -v chezmoi >/dev/null 2>&1; then
+    chezmoi apply
+  else
+    log "chezmoi not installed; cannot apply"
+    exit 1
+  fi
+
+  if [ "$do_units" -eq 1 ]; then
+    echo "  (units) systemd user units may be updated in later phases."
+  fi
+}
+
+benchmark_cmd() {
+  local bench_script="$ROOT/ci/startup-bench.sh"
+  local fail=0
+  # Phase 0 baselines and hard-fail (+20%): shell 0.095s, nvim 54.8ms, validate 0.822s
+  local -r SHELL_HARDFAIL=0.095 NVIM_HARDFAIL=54.8 VALIDATE_HARDFAIL=0.822
+  echo "== sl1c3d benchmark =="
+  if [ ! -x "$bench_script" ]; then
+    log "Benchmark script not found or not executable: $bench_script"
+    exit 1
+  fi
+  local output
+  output=$("$bench_script" "$ROOT" 2>/dev/null) || true
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    local name="${line%%	*}"
+    local val="${line#*	}"
+    echo "  $name: $val"
+    case "$name" in
+      shell_startup)
+        if ! awk -v v="$val" -v m="$SHELL_HARDFAIL" 'BEGIN { exit (v+0 <= m+0) ? 0 : 1 }' 2>/dev/null; then
+          echo "    EXCEEDED hard-fail threshold: ${SHELL_HARDFAIL}s"
+          fail=1
+        fi
+        ;;
+      nvim_startup_ms)
+        if ! awk -v v="$val" -v m="$NVIM_HARDFAIL" 'BEGIN { exit (v+0 <= m+0) ? 0 : 1 }' 2>/dev/null; then
+          echo "    EXCEEDED hard-fail threshold: ${NVIM_HARDFAIL}ms"
+          fail=1
+        fi
+        ;;
+      validate_configs)
+        if ! awk -v v="$val" -v m="$VALIDATE_HARDFAIL" 'BEGIN { exit (v+0 <= m+0) ? 0 : 1 }' 2>/dev/null; then
+          echo "    EXCEEDED hard-fail threshold: ${VALIDATE_HARDFAIL}s"
+          fail=1
+        fi
+        ;;
+    esac
+  done <<< "$output"
+  if [ "$fail" -eq 1 ]; then
+    echo "Result: HARD-FAIL (one or more surfaces exceeded threshold)"
+    exit 1
+  fi
+  echo "Result: OK (within thresholds)"
+}
+
+theme_cmd() {
+  local sub="${1:-}"
+  local theme_gen="$CFG_DIR/SL1C3D-L4BS/theme/generate.sh"
+  local tokens_file="$ROOT/theme.tokens.toml"
+  local runtime_json="${XDG_CONFIG_HOME:-$HOME/.config}/sl1c3d/theme.json"
+  case "$sub" in
+    apply)
+      if [ ! -f "$tokens_file" ]; then
+        log "Canonical theme source not found: $tokens_file"
+        exit 1
+      fi
+      if [ ! -x "$theme_gen" ]; then
+        log "Theme generator not found or not executable: $theme_gen"
+        exit 1
+      fi
+      export SL1C3D_SOURCE_DIR="$ROOT"
+      "$theme_gen" "$ROOT"
+      ;;
+    inspect)
+      echo "Canonical theme source (Layer A): $tokens_file"
+      echo "Runtime theme JSON (Layer B):     $runtime_json"
+      if [ -f "$runtime_json" ]; then
+        echo ""
+        echo "Resolved tokens (excerpt):"
+        if command -v jq >/dev/null 2>&1; then
+          jq -r 'to_entries | map("  \(.key): \(.value)") | .[]' "$runtime_json" 2>/dev/null | head -40
+        else
+          head -30 "$runtime_json"
+        fi
+      else
+        echo "  (run sl1c3d theme apply to generate)"
+      fi
+      ;;
+    *)
+      log "Usage: sl1c3d theme {apply|inspect}"
+      exit 2
+      ;;
+  esac
+}
+
+edition_cmd() {
+  local sub="${1:-}"
+  shift || true
+  local edition_bin="$BIN_DIR/sl1c3d-edition.sh"
+  if [ ! -x "$edition_bin" ]; then
+    edition_bin="sl1c3d-edition"
+  fi
+  if ! command -v "$edition_bin" >/dev/null 2>&1; then
+    log "edition helper not found: sl1c3d-edition"
+    exit 1
+  fi
+  "$edition_bin" "$sub" "$@"
+}
+
+bootstrap_cmd() {
+  echo "sl1c3d bootstrap (Phase 3 stub)"
+  echo "  Intended responsibilities:"
+  echo "    - Install Nix when desired (Phase 8)."
+  echo "    - Run chezmoi init/apply explicitly."
+  echo "    - Invoke host bootstrap scripts under dot_config/SL1C3D-L4BS/system-config/."
+  echo "    - Enable required systemd user units."
+}
+
+session_cmd() {
+  local sub="${1:-}"
+  shift || true
+  case "$sub" in
+    status)
+      systemctl --user list-units --type=service
+      ;;
+    start)
+      log "session start helper (Phase 3 stub) — use systemctl --user start <unit> for now."
+      ;;
+    stop)
+      log "session stop helper (Phase 3 stub) — use systemctl --user stop <unit> for now."
+      ;;
+    *)
+      log "Usage: sl1c3d session {status|start|stop}"
+      exit 2
+      ;;
+  esac
+}
+
+cmd="${1:-}"
+case "$cmd" in
+  doctor)
+    shift
+    doctor "$@"
+    ;;
+  validate)
+    shift
+    validate_cmd "$@"
+    ;;
+  repair)
+    shift
+    repair "$@"
+    ;;
+  benchmark)
+    shift
+    benchmark_cmd "$@"
+    ;;
+  theme)
+    shift
+    theme_cmd "$@"
+    ;;
+  edition)
+    shift
+    edition_cmd "$@"
+    ;;
+  bootstrap)
+    shift
+    bootstrap_cmd "$@"
+    ;;
+  session)
+    shift
+    session_cmd "$@"
+    ;;
+  ""|-h|--help|help)
+    print_usage
+    ;;
+  *)
+    log "Unknown command: ${cmd:-<none>}"
+    print_usage
+    exit 2
+    ;;
+esac
+

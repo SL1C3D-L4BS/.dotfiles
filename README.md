@@ -85,15 +85,31 @@ Existing install: `chezmoi apply` from anywhere (source = `~/.local/share/chezmo
 | Action | Command |
 |--------|--------|
 | Edit in source | `chezmoi edit ~/.zshrc` |
-| Edit + apply | `chezmoi edit --watch ~/.zshrc` |
 | Preview | `chezmoi diff` |
-| Apply all | `chezmoi apply` |
+| Apply all | `chezmoi apply` (run explicitly when you are ready) |
 | Add new file | `chezmoi add ~/.config/foo/bar.conf` |
 | Re-add target | `chezmoi re-add ~/.zshrc` |
 
 Alias: `cm` = chezmoi (in `.zshrc`).
 
 **Customization:** To add personal Hyprland keybinds or settings without editing the repo, edit `~/.config/hypr/custom.conf` (sourced last). To keep your edits across `chezmoi apply`, run `chezmoi forget ~/.config/hypr/custom.conf` after editing. One-command install uses `get.sh` from the repo; document your repo URL in the one-liner for new users.
+
+---
+
+## Operator CLI (sl1c3d)
+
+The `sl1c3d` CLI is the workstation operator surface for SL1C3D-L4BS:
+
+- `sl1c3d doctor` — environment and dependency health (severity: fatal / degraded / informational).
+- `sl1c3d validate` — runs `~/scripts/validate-configs.sh` for config contract checks.
+- `sl1c3d repair` — default non-destructive repair with explicit `--apply` mode.
+- `sl1c3d benchmark` — benchmark entrypoint (Phase 5).
+- `sl1c3d theme` — theme apply/inspect entrypoint (Phase 4).
+- `sl1c3d edition` — delegates to `sl1c3d-edition` (set/get/list/apply).
+- `sl1c3d bootstrap` — first-time workstation setup (Nix, chezmoi, host bootstrap).
+- `sl1c3d session` — optional helpers around systemd user units.
+
+`sl1c3d` installs under `~/.config/SL1C3D-L4BS/bin/` and is exposed on `PATH` by the shell configuration managed in this repo.
 
 ---
 

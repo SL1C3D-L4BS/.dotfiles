@@ -3,3 +3,5 @@
 *.bak
 .git/
 .openclaw/**
+# Masterclass: repo-only documentation (not deployed to $HOME)
+docs/

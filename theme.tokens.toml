@@ -1,0 +1,59 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# SL1C3D-L4BS — Canonical theme tokens (Layer A)
+# Single source of truth. All consumer outputs are generated from this file.
+# Motion: fast=120ms, normal=180ms, slow=260ms.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[colors]
+bg = "#0d0d0d"
+surface = "#1a1a1a"
+border = "#2d2d2d"
+border_dim = "#404040"
+fg = "#f8f8f2"
+fg_dim = "#e0e0e0"
+fg_muted = "#909090"
+accent = "#5865F2"
+accent_dim = "#5865F299"
+accent_dim2 = "#5865F266"
+logo = "#b366ff"
+error = "#ff5555"
+success = "#50fa7b"
+warn = "#ffb86c"
+# Glass (with alpha)
+surface_glass = "#961a1a1a"
+surface_glass_strong = "#bd0d0d0d"
+scrim = "#59000000"
+border_glass = "#385865F2"
+
+[spacing]
+xs = 4
+sm = 8
+md = 12
+lg = 16
+xl = 24
+
+[radius]
+pill = 8
+modal = 12
+card = 10
+
+[motion]
+fast_ms = 120
+normal_ms = 180
+slow_ms = 260
+
+[typography]
+font_family = "JetBrainsMono Nerd Font"
+font_size_base = 13
+
+[semantic]
+# UI roles (alias to colors)
+background = "bg"
+surface_role = "surface"
+text_primary = "fg"
+text_secondary = "fg_dim"
+text_muted = "fg_muted"
+primary = "accent"
+danger = "error"
+success_role = "success"
+warning = "warn"

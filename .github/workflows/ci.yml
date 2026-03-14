@@ -1,0 +1,68 @@
+name: SL1C3D-L4BS CI (Headless)
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  secret-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run secret audit
+        run: |
+          chmod +x ci/secret-audit.sh
+          ci/secret-audit.sh "$PWD"
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install shellcheck and lua tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck lua-check || true
+      - name: Run lint
+        run: |
+          chmod +x ci/lint.sh
+          ci/lint.sh "$PWD"
+
+  docs-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install markdownlint
+        run: |
+          npm install -g markdownlint-cli || true
+      - name: Run docs lint
+        run: |
+          chmod +x ci/docs-lint.sh
+          ci/docs-lint.sh "$PWD"
+
+  render-sanity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install basic tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep jq || true
+      - name: Run render-sanity
+        run: |
+          chmod +x ci/render-sanity.sh
+          ci/render-sanity.sh "$PWD"
+
+  nix-flake-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+      - name: Nix flake check
+        run: cd nix && nix flake check
+
