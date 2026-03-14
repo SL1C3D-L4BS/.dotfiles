@@ -49,7 +49,7 @@ Current path: Hyprland autostart (exec-once quickshell)
 Target path: dot_config/systemd/user/quickshell.service
 Current owner: Hyprland autostart.conf (chezmoi-managed)
 Target owner: systemd user (unit described in chezmoi)
-Responsible phase: Phase 6 (UWSM + systemd session)
+Responsible phase: Phase 6 (systemd session, TTY-only)
 Rollback commands:
   - Disable quickshell.service for the user.
   - Restore the Phase 0 exec-once quickshell line in autostart.conf.

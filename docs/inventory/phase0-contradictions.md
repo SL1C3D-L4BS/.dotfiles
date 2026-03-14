@@ -4,65 +4,31 @@ This document records contradictions between the **current live behavior** and t
 
 ---
 
-### 1. Session Management: `exec-once` vs UWSM + systemd Units
+### 1. Session Management — RESOLVED (Phase 6, TTY-only)
 
-- **Observed:**
-  - Hyprland `autostart.conf` launches most durable daemons via `exec-once`:
-    - `quickshell`, `swaync`, `wl-paste --watch cliphist store`, `swww-daemon`, `waypaper --restore`, `hypridle`, `ags`, XDG portals starter, `hyprsunset`, and `chezmoi apply`.
-  - Startup sequencing relies on `sleep` calls (1–3 seconds) instead of explicit unit ordering.
-  - UWSM (`uwsm`) is not installed.
-- **Target (Masterclass):**
-  - UWSM-managed session with durable daemons as systemd user units bound to `graphical-session.target`, minimal `exec-once`, and no sleep-based sequencing.
-- **Contradiction:**
-  - The current system violates the “minimal `exec-once` / systemd-owned daemons” model and has no UWSM presence yet.
+- **Target (Masterclass, updated):** TTY-only session; no UWSM. Durable daemons as systemd user units; started from `autostart.conf` via `systemctl --user start`. Minimal exec-once. No `chezmoi apply` on login.
+- **Status:** Implemented. See `autostart.conf` and `dot_config/systemd/user/*.service`.
 
 ---
 
-### 2. `chezmoi apply` on Login
+### 2. `chezmoi apply` on Login — RESOLVED
 
-- **Observed:**
-  - `autostart.conf` runs:
-
-    ```ini
-    exec-once = chezmoi apply
-    ```
-
-  - This makes every session start implicitly mutate the home directory and configs.
-- **Target (Masterclass):**
-  - **No `chezmoi apply` on login or session startup.**
-  - Chezmoi apply is restricted to explicit operator flows (`sl1c3d repair --apply`, bootstrap, manual runs).
-- **Contradiction:**
-  - Current behavior directly conflicts with the Masterclass requirement and increases risk during login.
+- **Target:** No `chezmoi apply` on login; explicit operator flows only.
+- **Status:** Resolved. `autostart.conf` no longer runs `chezmoi apply`.
 
 ---
 
-### 3. Theme Source-of-Truth vs Scattered Theme Artifacts
+### 3. Theme Source-of-Truth — RESOLVED (Phase 4)
 
-- **Observed:**
-  - Theme data is scattered across:
-    - QML (`BrandTheme.qml`).
-    - SCSS for Quickshell and AGS.
-    - Ghostty theme files.
-    - Possibly `.chezmoidata` and other templates.
-  - There is no single canonical `theme.tokens.toml` or equivalent file documented as the unique token source.
-- **Target (Masterclass):**
-  - **One canonical theme source in the repo** (tokens file or `.chezmoidata` section).
-  - Generated runtime theme JSON (`~/.config/sl1c3d/theme.json`) as Layer B.
-  - All consumers (QML, SCSS, Hyprland, Ghostty) as Layer C outputs from a single generator.
-- **Contradiction:**
-  - The current stack does not yet enforce a canonical theme token source or a single authoritative generator.
+- **Target:** One canonical `theme.tokens.toml`; generated `~/.config/sl1c3d/theme.json`; single generator via `sl1c3d theme apply`.
+- **Status:** Resolved. See `theme.tokens.toml`, `dot_config/SL1C3D-L4BS/theme/generate.py`, and design-system docs.
 
 ---
 
-### 4. Docs Location vs Repo-Only Architecture Docs
+### 4. Docs Location — RESOLVED (Phase 1)
 
-- **Observed:**
-  - Existing documentation under `dot_config/SL1C3D-L4BS/docs/` lives inside the chezmoi-managed `dot_config` tree and is deployed into `$HOME` with the rest of `dot_config`.
-- **Target (Masterclass):**
-  - A **top-level `docs/` directory** at repo root, explicitly **not** deployed via chezmoi.
-  - Docs are repo-only; runtime machines read them via README, CLI help, or external viewers.
-- **Contradiction:**
-  - Current docs live in a path that is treated as runtime config, not as pure repo-only documentation.
+- **Target:** Top-level `docs/` repo-only; not deployed via chezmoi.
+- **Status:** Resolved. `docs/` exists at repo root and is in `.chezmoiignore`.
 
 ---
 
@@ -103,17 +69,12 @@ This document records contradictions between the **current live behavior** and t
 
 ---
 
-### 8. UWSM Absence vs UWSM-First Design
+### 8. UWSM — RESOLVED (Out of Scope)
 
-- **Observed:**
-  - UWSM (`uwsm`) is not installed.
-  - Session management and environment export rely on Hyprland `exec-once` and `dbus-update-activation-environment`.
-- **Target (Masterclass):**
-  - UWSM as first-class session architecture, owning session entry and environment initialization.
-- **Contradiction:**
-  - The live system operates on a non-UWSM session model while the plan assumes UWSM as the end-state authority.
+- **Decision:** UWSM is **out of scope**. Session is **TTY-only**; no display manager; no UWSM. Environment export and session daemon startup are handled in `autostart.conf` as documented in `phase0-decisions.md` §2.
+- **Status:** No contradiction; architecture is TTY-only by design.
 
 ---
 
-These contradictions are **expected** at Phase 0. They provide the concrete gap analysis that Phase 1–10 must close, with each migration recorded in the future architecture docs, migration ledger, and package-ownership definitions.
+Remaining contradictions (5–7) are intentional gaps closed in later phases (Nix, AGS quarantine, migration ledger). Resolved items (1–4, 8) reflect current implemented state.
 

@@ -16,7 +16,7 @@ At Phase 1, all installed packages remain Arch-hosted; this file defines how cla
 Per the Masterclass plan, the stack is partitioned into six classes:
 
 1. **Session-core**  
-   - Examples: Hyprland, UWSM, PipeWire, WirePlumber, XDG Portals, dbus-broker, login/display-manager components closely tied to the desktop session.
+   - Examples: Hyprland, PipeWire, WirePlumber, XDG Portals, dbus-broker, TTY/session components closely tied to the desktop session.
 
 2. **UI-support**  
    - Examples: Quickshell, swaync, AGS, Ghostty, Yazi, Fuzzel, Mako, Waypaper, wallpaper tools, theme engines, session-adjacent GUIs.

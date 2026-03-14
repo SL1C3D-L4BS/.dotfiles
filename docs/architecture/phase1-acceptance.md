@@ -28,7 +28,7 @@ This document records the Phase 1 acceptance results and any remaining tensions.
 
 **Requirement 3 — Every target or migration claim maps to a responsible phase.**
 
-- Architecture targets (UWSM session, theme consolidation, Nix Mode A, AGS quarantine) are mapped to phases 3–10 in:
+- Architecture targets (TTY-only session + systemd user units, theme consolidation, Nix Mode A, AGS quarantine) are mapped to phases 3–10 in:
   - `docs/architecture/system-overview.md`  
   - `docs/architecture/ownership-matrix.md`  
   - `docs/architecture/package-ownership.md`
@@ -53,9 +53,9 @@ This document records the Phase 1 acceptance results and any remaining tensions.
 Phase 1 documents **describe** the target architecture while Phase 0 describes current reality. The main contradictions (also listed in `phase0-contradictions.md`) are:
 
 - **Session model:**  
-  - Phase 0: Hyprland `exec-once` + sleeps; no UWSM installed.  
-  - Architecture docs: describe UWSM-managed sessions and systemd user units anchored on `graphical-session.target`.  
-  - Status: intentional gap; implementation deferred to Phase 6.
+  - Phase 0: Hyprland `exec-once` + sleeps.  
+  - Architecture docs: describe TTY-only session and systemd user units (no UWSM); daemons started from autostart via `systemctl --user start`.  
+  - Status: implemented in Phase 6.
 
 - **Theme ownership:**  
   - Phase 0: scattered theme sources.  

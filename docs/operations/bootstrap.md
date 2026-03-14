@@ -3,7 +3,7 @@
 This bootstrap guide is aligned with:
 
 - Phase 0 inventory and install paths: `docs/inventory/phase0-inventory.md`
-- Phase 0 decisions (package sources, session targets, UWSM entry): `docs/inventory/phase0-decisions.md`
+- Phase 0 decisions (package sources, session targets, TTY-only): `docs/inventory/phase0-decisions.md`
 - Phase 0 do-not-break list: `docs/inventory/phase0-do-not-break.md`
 
 It **does not** assume `chezmoi apply` on login; all configuration application is explicit.
@@ -53,14 +53,9 @@ This sequence deliberately avoids any automatic `chezmoi apply` at login.
 
 ---
 
-### 2. UWSM Integration (Target Architecture)
+### 2. Session Model (TTY-Only)
 
-Phase 6 has moved durable daemons to systemd user units; the session is still started by the existing login path (e.g. TTY or DM). When UWSM is introduced:
-
-- Install and configure UWSM via Arch packages.  
-- Configure the login manager or TTY to use **`uwsm start hyprland.desktop`** as the entry path (per `docs/inventory/phase0-decisions.md`).  
-- User units are already enabled as in step 5 above; UWSM will activate `graphical-session.target` and thus start all durable daemons.  
-- **dbus-broker** is recommended on Arch with UWSM (Hyprland wiki).
+Phase 6 has moved durable daemons to systemd user units. Session is **TTY-only** (no UWSM, no display manager). User logs in on TTY; Hyprland starts directly. `autostart.conf` runs `dbus-update-activation-environment` and portal start, then `systemctl --user start` for the durable-daemon set. User units are enabled in step 5 above.
 
 ---
 

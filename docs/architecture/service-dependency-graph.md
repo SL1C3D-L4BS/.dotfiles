@@ -3,7 +3,7 @@
 This document formalizes service dependencies using:
 
 - Phase 0 runtime inventory: `docs/inventory/phase0-inventory.md`
-- Phase 0 decisions (session targets, durable-daemon set, `uwsm finalize`): `docs/inventory/phase0-decisions.md`
+- Phase 0 decisions (session targets, durable-daemon set, TTY-only): `docs/inventory/phase0-decisions.md`
 - Phase 0 contradictions: `docs/inventory/phase0-contradictions.md`
 
 It is descriptive for Phase 1 and binding for later phases.
@@ -46,7 +46,7 @@ Existing units (Phase 0 inventory):
 
 Phase 6 implementation: units under `dot_config/systemd/user/` with exact `[Unit]`/`[Service]` entries. Per-unit semantics (unit type, enable default, restart policy, doctor severity) are documented below.
 
-**UWSM session entry path (Phase 0 binding):** TTY: `uwsm start hyprland.desktop`. DM: UWSM-managed Hyprland desktop entry equivalent. **App launch rule:** use `uwsm app --` for autostarted session apps and bind-launched desktop apps when UWSM is active.
+**Session entry (Phase 0 binding):** TTY-only; no UWSM. User logs in on TTY; Hyprland starts directly. Session daemons are started from `autostart.conf` via `systemctl --user start` for the durable-daemon set.
 
 ---
 
@@ -57,7 +57,7 @@ High-level dependencies, all in the **user** systemd scope:
 - `graphical-session-pre.target`
   - Prepares environment and sockets for the session.
   - **Dependencies (Wants/After):**
-    - Environment export and any UWSM finalize hooks.
+    - Environment export (handled in autostart.conf on TTY).
 
 - `graphical-session.target`
   - Main anchor for session daemons.
@@ -98,7 +98,7 @@ High-level dependencies, all in the **user** systemd scope:
 
 All session daemon units use `PartOf=graphical-session.target` and `WantedBy=graphical-session.target` so they start with the session and stop when it ends. Portal startup remains in Hyprland `exec-once` (dbus-update-activation-environment + `systemctl --user start xdg-desktop-portal-hyprland xdg-desktop-portal`) until a dedicated portal-bootstrap unit is introduced.
 
-**UWSM / D-Bus:** On Arch, `dbus-broker` is recommended when using UWSM (see Hyprland wiki). Ensure no durable daemon is launched as a child of the compositor; they run as user units.
+**D-Bus:** Ensure no durable daemon is launched as a child of the compositor; they run as user units. On Arch, `dbus-broker` is optional.
 
 ---
 

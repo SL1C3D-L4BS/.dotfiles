@@ -34,7 +34,7 @@ Avoid committing changes that:
 When contributing:
 
 - Keep your work within the currently active phases.  
-- If a change belongs to a later phase (e.g. Nix integration, UWSM session wiring, theme generator), document it under `docs/architecture/` and defer implementation until that phase is active.
+- If a change belongs to a later phase (e.g. Nix integration, theme generator), document it under `docs/architecture/` and defer implementation until that phase is active.
 
 Every target or migration claim in code or docs should:
 

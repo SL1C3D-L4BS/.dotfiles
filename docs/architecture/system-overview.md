@@ -26,8 +26,8 @@ Based on the Phase 0 inventories, the workstation stack is structured as:
 - **Display & Audio stack**  
   - Hyprland compositor, PipeWire, WirePlumber, XDG Portals, dbus-broker/user D-Bus.  
   - **Session targets:** `graphical-session-pre.target`, `graphical-session.target`, `xdg-desktop-autostart.target` (Phase 0 exact session targets).  
-  - **Migration-capable:** yes (introduction of UWSM and revised user units).  
-  - **Responsible phase:** Phase 6 (UWSM + systemd session).  
+  - **Migration-capable:** yes (revised user units; TTY-only, no UWSM).  
+  - **Responsible phase:** Phase 6 (systemd session).  
   - **Rollback:** revert unit changes and re-enable the previous Hyprland `exec-once`-based startup sequence recorded in Phase 0 inventory.
 
 - **Configuration layer (chezmoi source)**  
@@ -72,16 +72,15 @@ From `phase0-inventory.md`, the current session model is:
 
 From `phase0-decisions.md`, the target session model is:
 
-- **UWSM-managed Hyprland**, with:
-  - Entry path: `uwsm start hyprland.desktop`.
-  - Session environment finalization handled by UWSM instead of manual `dbus-update-activation-environment`.
-  - Durable daemons as systemd user units bound to `graphical-session.target` and `graphical-session-pre.target`.
+- **TTY-only session** (no UWSM; no display manager). User logs in on TTY; Hyprland starts directly.
+- **Environment export** in `autostart.conf`: `dbus-update-activation-environment` and portal start; then `systemctl --user start` for the durable-daemon set (because on TTY login `graphical-session.target` is not auto-activated).
+- **Durable daemons** as systemd user units (quickshell, swaync, clipboard, wallpaper, hypridle, theme propagation, etc.); started from autostart or bound to `graphical-session.target` where applicable.
 - **No `chezmoi apply` at login**; apply occurs only via explicit operator flows.
 
-**Migration-capable:** yes — this is a planned change in behavior.
+**Migration-capable:** yes — implemented in Phase 6.
 
 - **Responsible phase:** Phase 6.  
-- **Rollback:** disable or mask new user units and restore the Phase 0 `autostart.conf` (kept under version control) if the UWSM model proves unstable; the do-not-break list ensures Hyprland login and bar remain functional during such a rollback.
+- **Rollback:** disable or mask new user units and restore the previous `autostart.conf` from version control; the do-not-break list ensures Hyprland login and bar remain functional.
 
 ---
 
@@ -107,7 +106,7 @@ Phase 1 corrects this by introducing a **top-level `docs/` directory in the repo
 
 Every major architectural target from the Masterclass plan is mapped to a phase and a rollback stance:
 
-- **UWSM session with systemd user units bound to exact session targets**  
+- **TTY-only session with systemd user units** (no UWSM)  
   - Phase 6; rollback by restoring Phase 0 `autostart.conf` and disabling new units.
 
 - **Theme three-layer model with canonical repo tokens and single generator**  

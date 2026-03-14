@@ -23,39 +23,22 @@ All future user units that represent durable session daemons (quickshell, swaync
 
 ---
 
-### 2. Exact UWSM Entry Path
+### 2. Session Entry Path (TTY-Only, No UWSM)
 
-UWSM (`uwsm`) is **not installed** in the live environment at Phase 0 (`command -v uwsm` fails), but the Masterclass plan requires UWSM as the target session orchestrator.
+**Binding decision:** Session is **TTY-only**; UWSM is **out of scope**. No display manager; no UWSM.
 
-**Binding decision (target architecture for Phase 6):**
+- **Entry path:** User logs in on TTY (e.g. getty autologin on TTY1); Hyprland is started directly (e.g. from `.xinitrc`-style or direct `Hyprland` exec). Session entry is **not** `uwsm start hyprland.desktop` — UWSM is not used.
+- **Environment export:** `autostart.conf` continues to run `dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=Hyprland` and portal start; no separate "finalize" step. Session daemons are started from `autostart.conf` via `systemctl --user start …` for the durable-daemon set, because on TTY login `graphical-session.target` is not automatically activated.
 
-- **TTY entry path (primary):**
-  - `uwsm start hyprland.desktop`
-- **Display-manager (DM) entry path (when present):**
-  - UWSM-managed desktop entry for Hyprland, equivalent to the above command.
-
-This makes **`uwsm start hyprland.desktop`** the **single canonical UWSM entry path** for future configuration and documentation, regardless of the current (non-UWSM) login mechanism.
+All documentation and Phase 6 implementation assume this TTY-only, no-UWSM model.
 
 ---
 
-### 3. Exact `uwsm finalize` Decision
+### 3. (Reserved — Formerly uwsm finalize)
 
-Phase 0 must decide whether explicit `uwsm finalize` handling will be required in this stack.
+Not used. Environment export is handled in `autostart.conf` as in §2. No UWSM; no finalize step.
 
-Observed behavior:
-
-- `dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=Hyprland` is currently used in `autostart.conf` to push Wayland/session environment into user systemd.
-- UWSM is not yet installed, so there is no live `uwsm finalize` behavior to inspect.
-
-**Binding decision (for target UWSM architecture):**
-
-- **`uwsm finalize` is required.**
-- **Placement:** after the compositor is ready, bound to the `graphical-session-pre.target`/`graphical-session.target` transition. In practice:
-  - UWSM will manage exporting the Wayland environment; `autostart.conf` must eventually stop calling `dbus-update-activation-environment` directly.
-  - Any explicit finalize hook (if UWSM requires one in this configuration) must be documented under the boot/session lifecycle docs in Phase 1 and wired as a **systemd user unit** or UWSM hook, not as a bare `exec-once`.
-
-Until UWSM is installed and configured, this remains a **forward-looking binding**: future implementation work must either (a) confirm that UWSM supersedes manual env export and document “no explicit `uwsm finalize` needed” while keeping this section updated, or (b) implement and document an explicit finalize step consistent with this decision.
-
+---
 ---
 
 ### 4. Exact Durable-Daemon Migration Set
@@ -130,7 +113,7 @@ Many tools can be installed either via Arch (pacman/AUR) or Nix. At Phase 0, the
 
 **Binding decision for Phase 0 (until Phase 8):**
 
-- **Session core (Hyprland, UWSM once introduced, Wayland portals, PipeWire stack):**
+- **Session core (Hyprland, Wayland portals, PipeWire stack):**
   - **Source:** Arch (pacman/AUR).
   - Rationale: tightly coupled to host and display stack; easier debug and alignment with Arch wiki guidance.
 - **UI support (quickshell, swaync, Ghostty, Yazi, Fuzzel, Mako, Waypaper, AGS):**
