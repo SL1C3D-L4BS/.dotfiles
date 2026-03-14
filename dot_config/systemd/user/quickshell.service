@@ -1,14 +1,12 @@
 [Unit]
 Description=Quickshell bar (SL1C3D-L4BS)
-After=graphical-session.target
-PartOf=graphical-session.target
+After=default.target
 
 [Service]
 Type=simple
 ExecStart=/usr/bin/quickshell
 Restart=on-failure
 RestartSec=2
-# Doctor severity: fatal (bar missing)
 
 [Install]
-WantedBy=graphical-session.target
+WantedBy=default.target

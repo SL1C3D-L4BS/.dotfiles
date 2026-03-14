@@ -1,14 +1,12 @@
 [Unit]
 Description=hypridle idle/lock (SL1C3D-L4BS)
-After=graphical-session.target
-PartOf=graphical-session.target
+After=default.target
 
 [Service]
 Type=simple
 ExecStart=/usr/bin/hypridle
 Restart=on-failure
 RestartSec=2
-# Doctor severity: degraded (mandatory by default unless documented blocker)
 
 [Install]
-WantedBy=graphical-session.target
+WantedBy=default.target

@@ -1,14 +1,12 @@
 [Unit]
 Description=Waypaper restore last wallpaper (SL1C3D-L4BS)
-After=graphical-session.target swww.service
-PartOf=graphical-session.target
+After=default.target swww.service
 Wants=swww.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=/usr/bin/waypaper --restore
-# Doctor severity: degraded
 
 [Install]
-WantedBy=graphical-session.target
+WantedBy=default.target
