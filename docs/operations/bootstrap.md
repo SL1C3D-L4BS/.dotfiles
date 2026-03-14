@@ -70,6 +70,18 @@ Phase 6 has moved durable daemons to systemd user units; the session is still st
   - Re-run `~/scripts/validate-configs.sh` to confirm config integrity.  
   - Use `chezmoi diff` and VCS history to revert recent changes to the chezmoi source.  
   - Reapply dotfiles only after confirming the rollback steps.
+- **Bootstrap package rollback:** Each bootstrap run writes package lists to `~/.config/SL1C3D-L4BS/state/bootstrap/<timestamp>-<edition>/` (`pacman-qqe-before.txt`, and `aur-qe-before.txt` if paru/yay was used). To restore the pre-bootstrap package set, reinstall from those lists or revert manually (e.g. `pacman -S - < pacman-qqe-before.txt` for native packages; AUR per your helper).
 
 Bootstrap does not change package ownership policy; Arch remains the only package owner at this phase, consistent with Phase 0 decisions.
+
+---
+
+### 4. Fullstack 1–4 execution (short path)
+
+Minimal path to apply config, ensure edition, validate, and confirm the Control Plane hub and glass tokens:
+
+1. **Apply config:** `chezmoi apply` or one-command install via `get.sh` (get.sh runs `sl1c3d-edition set base` if `~/.config/hypr/edition.conf` is missing).
+2. **Ensure edition (if not using get.sh):** If `~/.config/hypr/edition.conf` is missing, run `~/.config/SL1C3D-L4BS/bin/sl1c3d-edition set base`. Optionally run `~/.config/SL1C3D-L4BS/system-config/bootstrap.sh --edition base` to install packages and enable services from the edition manifest.
+3. **Validate:** `~/scripts/validate-configs.sh` and `~/scripts/run-golden-suite.sh` (or `sl1c3d validate`).
+4. **Session check:** Start Hyprland; open the bar logo (Control Plane Hub) and AGS quicksettings (e.g. Super+I) to confirm glass styling and design tokens.
 

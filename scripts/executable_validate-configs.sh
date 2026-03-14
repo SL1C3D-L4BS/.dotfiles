@@ -173,6 +173,10 @@ fi
 test -f ~/.config/ags/app.ts && ok "app.ts" || fail "app.ts MISSING"
 test -f ~/.config/ags/widget/QuickSettings.tsx && ok "QuickSettings.tsx" || fail "QuickSettings.tsx MISSING"
 test -f ~/.config/ags/style.scss && ok "style.scss" || fail "style.scss MISSING"
+test -f ~/.config/ags/sl1c3d-tokens.scss && ok "sl1c3d-tokens.scss (Fullstack 1-4)" || fail "sl1c3d-tokens.scss MISSING"
+grep -q 'surfaceGlass\|motionFastMs' ~/.config/quickshell/bar/BrandTheme.qml 2>/dev/null \
+  && ok "BrandTheme.qml: glass/motion tokens (Fullstack 1-4)" \
+  || fail "BrandTheme.qml: surfaceGlass/motionFastMs missing"
 grep -q 'qs-panel' ~/.config/ags/style.scss 2>/dev/null \
   && ok "QS panel styles present" || fail "QS panel styles missing"
 echo ""

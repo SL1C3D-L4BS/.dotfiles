@@ -5,6 +5,7 @@ This ledger is the single place to record migrations between paths and owners. I
 - Phase 0 inventory: `docs/inventory/phase0-inventory.md`
 - Phase 0 decisions (durable-daemon set, package-source decisions): `docs/inventory/phase0-decisions.md`
 - Phase 0 contradictions: `docs/inventory/phase0-contradictions.md`
+- **Package-level map:** `docs/architecture/package-inventory.md` — per-package table (doc class, current/target owner, config paths, rollback) for every tool in the stack; use for Phase 8 package migrations.
 
 At Phase 1, it contains **no executed migrations**; it documents the structure and expected fields for future entries.
 

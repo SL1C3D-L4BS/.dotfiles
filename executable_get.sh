@@ -40,6 +40,15 @@ fi
 echo "[get.sh] Applying dotfiles from $REPO..."
 chezmoi init --apply "$REPO"
 
+# Ensure Hyprland has a valid edition.conf (Fullstack 1-4 first-run guarantee)
+CFG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
+EDITION_CONF="$CFG_DIR/hypr/edition.conf"
+EDITION_BIN="$CFG_DIR/SL1C3D-L4BS/bin/sl1c3d-edition"
+if [ ! -f "$EDITION_CONF" ] && [ -x "$EDITION_BIN" ]; then
+  echo "[get.sh] First run: setting edition to base (creates $EDITION_CONF)..."
+  "$EDITION_BIN" set base
+fi
+
 echo ""
 echo "=== After install ==="
 echo "1. Log in to Hyprland (select Hyprland session at login)."

@@ -66,6 +66,12 @@ run_dir="$STATE_DIR/$ts-$EDITION"
 mkdir -p "$run_dir"
 cp -a "$MANIFEST" "$run_dir/manifest.json"
 
+# Backup current package lists for rollback (Fullstack 1-4 rollback hooks)
+pacman -Qqe >"$run_dir/pacman-qqe-before.txt" 2>/dev/null || true
+if command -v paru &>/dev/null; then paru -Qqe >"$run_dir/aur-qe-before.txt" 2>/dev/null || true
+elif command -v yay &>/dev/null; then yay -Qqe >"$run_dir/aur-qe-before.txt" 2>/dev/null || true
+fi
+
 # Record the edition as the active system edition (consumed by Quickshell hub)
 mkdir -p "$ROOT/state"
 cat >"$ROOT/state/edition.json" <<EOF

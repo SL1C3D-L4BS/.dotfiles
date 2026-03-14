@@ -14,6 +14,11 @@ if [ -x "$HOME/.config/SL1C3D-L4BS/bin/sl1c3d-edition" ]; then
   ed="$("$HOME/.config/SL1C3D-L4BS/bin/sl1c3d-edition" get || true)"
   echo "  edition: ${ed:-base}"
   test -f "$HOME/.config/hypr/edition.conf" && echo "  hypr/edition.conf: present" || { echo "  hypr/edition.conf: MISSING"; exit 1; }
+  if [ -f "$HOME/.config/SL1C3D-L4BS/state/edition.json" ]; then
+    grep -q '"edition"' "$HOME/.config/SL1C3D-L4BS/state/edition.json" 2>/dev/null && echo "  state/edition.json: valid" || { echo "  state/edition.json: invalid (missing .edition)"; exit 1; }
+  else
+    echo "  state/edition.json: missing (optional; run sl1c3d-edition set base for hub display)"
+  fi
 else
   echo "  SKIP: sl1c3d-edition missing"
 fi

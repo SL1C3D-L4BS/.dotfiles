@@ -5,6 +5,7 @@ This document is grounded in:
 - Phase 0 inventory (installed tools and installers): `docs/inventory/phase0-inventory.md`
 - Phase 0 decisions (ambiguous package-source decisions): `docs/inventory/phase0-decisions.md`
 - Phase 0 contradictions (Nix readiness): `docs/inventory/phase0-contradictions.md`
+- **Full package map:** `docs/architecture/package-inventory.md` — per-package table with config paths, invoke locations, and rollback commands for Phase 8.
 
 At Phase 1, all installed packages remain Arch-hosted; this file defines how classes and migrations will work when Phase 8 is executed.
 

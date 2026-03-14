@@ -153,9 +153,9 @@ M.ui = {
   },
 }
 
--- NvDash: branded startup screen (load_on_startup = false avoids cursor column error on small terms; :Nvdash to open)
+-- NvDash: branded startup screen (cursor column fixed in after/plugin/nvdash_cursor_fix.lua)
 M.nvdash = {
-  load_on_startup = false,
+  load_on_startup = true,
   header = {
     "                                                        ",
     "  ███████╗██╗     ██╗ ██████╗██████╗ ██████╗          ",

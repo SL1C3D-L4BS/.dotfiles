@@ -1,4 +1,20 @@
 return {
+  -- Disable NvChad's nvim-cmp so blink.cmp is the only completion engine (avoids duplicate engines and require("cmp") errors)
+  { "hrsh7th/nvim-cmp", enabled = false },
+
+  -- Standalone autopairs (NvChad's was tied to nvim-cmp; no cmp integration for blink.cmp)
+  {
+    "windwp/nvim-autopairs",
+    event = "InsertEnter",
+    opts = {
+      fast_wrap = {},
+      disable_filetype = { "TelescopePrompt", "vim" },
+    },
+    config = function(_, opts)
+      require("nvim-autopairs").setup(opts)
+    end,
+  },
+
   { import = "plugins.devicons" },
 
   -- ─── Formatting ────────────────────────────────────────────────────────────
@@ -11,6 +27,7 @@ return {
   -- ─── LSP ───────────────────────────────────────────────────────────────────
   {
     "neovim/nvim-lspconfig",
+    dependencies = { "saghen/blink.cmp" },
     config = function()
       require "configs.lspconfig"
     end,

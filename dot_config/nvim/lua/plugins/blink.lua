@@ -58,9 +58,13 @@ return {
       },
 
       sources = {
-        default  = { "lsp", "path", "snippets", "buffer" },
-        cmdline  = { "cmdline" },
+        default     = { "lsp", "path", "snippets", "buffer" },
         per_filetype = {},
+      },
+
+      -- Cmdline (Shift+:): config lives at top-level cmdline.sources, not sources.cmdline
+      cmdline = {
+        sources = { "buffer", "cmdline" },
       },
 
       -- Use Lua fuzzy to avoid Rust binary/trace errors (e.g. "failed to run" in sources)

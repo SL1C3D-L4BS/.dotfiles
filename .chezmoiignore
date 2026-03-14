@@ -5,3 +5,5 @@
 .openclaw/**
 # Masterclass: repo-only documentation (not deployed to $HOME)
 docs/
+# Plan lives in .cursor/plans only; do not deploy to $HOME
+PLAN.md
