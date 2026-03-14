@@ -11,9 +11,9 @@ export BROWSER="firefox"
 
 # ─── Nix profile (before /usr/bin so nix-installed tools take precedence) ─────
 if [[ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]]; then
-  source "$HOME/.nix-profile/etc/profile.d/nix.sh"
+  source "$HOME/.nix-profile/etc/profile.d/nix.sh" 2>/dev/null || true
 fi
-export PATH="$HOME/.nix-profile/bin:$PATH"
+[[ -d "$HOME/.nix-profile/bin" ]] && export PATH="$HOME/.nix-profile/bin:$PATH"
 
 # ─── Beautiful man pages via bat ─────────────────────────────────────────────
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"
@@ -25,7 +25,11 @@ export LESSHISTFILE="${XDG_CACHE_HOME:-$HOME/.cache}/.lesshst"
 
 # ─── Completion (cache for speed) ────────────────────────────────────────────
 autoload -Uz compinit
-[[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]] && compinit -C || compinit
+if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]]; then
+  compinit -C
+else
+  compinit -u 2>/dev/null || compinit
+fi
 zstyle ':completion:*' menu select
 zstyle ':completion:*' list-colors ''
 zstyle ':completion:*:descriptions' format '[%d]'
@@ -56,7 +60,7 @@ alias dh='dirs -v'
 CDPATH=.:~:~/src:~/projects:~/dev
 
 # ─── Prompt: Starship (brand palette in ~/.config/starship.toml) ─────────────
-eval "$(starship init zsh)"
+command -v starship &>/dev/null && eval "$(starship init zsh)"
 
 # ─── Zinit (turbo) + plugins ─────────────────────────────────────────────────
 # LOAD ORDER MATTERS: FSH must be LAST so it wraps all ZLE widgets correctly.

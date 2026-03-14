@@ -16,6 +16,7 @@ return {
   },
 
   { import = "plugins.devicons" },
+  { import = "plugins.dap" },
 
   -- ─── Formatting ────────────────────────────────────────────────────────────
   {

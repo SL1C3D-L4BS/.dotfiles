@@ -21,7 +21,7 @@
       "title": "35"
     },
     "key": {
-      "width": 12
+      "width": 14
     },
     "size": {
       "binaryPrefix": "si",
@@ -36,68 +36,74 @@
     },
     "separator",
     {
+      "type": "custom",
+      "key": "  \uf126 Stack",
+      "keyColor": "34",
+      "format": "\u001b[38;2;88;101;242mArch\u001b[0m · \u001b[38;2;179;102;255mHyprland\u001b[0m · \u001b[38;2;88;101;242mchezmoi\u001b[0m · \u001b[38;2;179;102;255mNix\u001b[0m"
+    },
+    {
       "type": "os",
-      "key": "  OS",
+      "key": "  \uf303 OS",
       "keyColor": "34",
       "format": "{pretty-name} {version-id}"
     },
     {
       "type": "kernel",
-      "key": "  Kernel",
+      "key": "  \uf17c Kernel",
       "keyColor": "34"
     },
     {
       "type": "uptime",
-      "key": "  Uptime",
+      "key": "  \uf64f Uptime",
       "keyColor": "34"
     },
     {
       "type": "shell",
-      "key": "  Shell",
+      "key": "  \uf489 Shell",
       "keyColor": "34"
     },
     {
       "type": "wm",
-      "key": "  WM",
+      "key": "  \ue7d4 WM",
       "keyColor": "34"
     },
     {
       "type": "terminal",
-      "key": "  Terminal",
+      "key": "  \uf120 Terminal",
       "keyColor": "34",
       "format": "{pretty-name} {version}"
     },
     {
       "type": "font",
-      "key": "  Font",
+      "key": "  \uf031 Font",
       "keyColor": "34"
     },
     {
       "type": "cpu",
-      "key": "  CPU",
+      "key": "  \uf4bc CPU",
       "keyColor": "34",
       "format": "{name} ({cores-logical}c) @ {freq-max}"
     },
     {
       "type": "gpu",
-      "key": "  GPU",
+      "key": "  \uf108 GPU",
       "keyColor": "34",
       "format": "{name} ({driver})"
     },
     {
       "type": "memory",
-      "key": "  Memory",
+      "key": "  \uf85a Memory",
       "keyColor": "34"
     },
     {
       "type": "disk",
-      "key": "  Disk",
+      "key": "  \uf0a0 Disk",
       "keyColor": "34",
       "folders": "/"
     },
     {
       "type": "localip",
-      "key": "  Network",
+      "key": "  \uf6ff Network",
       "keyColor": "34",
       "showIpv4": true,
       "showIpv6": false,

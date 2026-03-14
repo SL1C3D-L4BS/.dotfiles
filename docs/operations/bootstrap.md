@@ -38,7 +38,14 @@ For a new machine:
      ```
    - No `chezmoi apply` on login; apply is explicit only.
 
-4. **Session (TTY + systemd user units)**  
+4. **Developer workstation (optional)**  
+   - After masterclass + dev-stack, install notes/streaming/API/DB/AI tools with the dedicated script. **Do not paste** multi-line install blocks into zsh — you may see `zsh: command not found: #` or `zsh: unknown file attribute: i` from pasted comments and brackets. Run the script instead:
+     ```bash
+     bash ~/.config/SL1C3D-L4BS/system-config/install-developer-workstation.sh
+     ```
+   - The script installs Obsidian, OBS Studio + wlrobs, Bruno, xh, DBeaver, Beekeeper Studio, fnm, bun, k9s, postgresql, redis, biome, ruff, aichat; optional Insomnia/Altair. Failures are reported as warnings and do not stop the rest.
+
+5. **Session (TTY + systemd user units)**  
    - Enable systemd user units (run in a user session so `systemctl --user` works):
      ```bash
      systemctl --user daemon-reload
@@ -48,7 +55,7 @@ For a new machine:
      ```
    - Log in on TTY; Hyprland starts directly. Autostart runs env export then `systemctl --user start` for the daemon set.
 
-5. **Operations (sl1c3d)**  
+6. **Operations (sl1c3d)**  
    - Validate: `sl1c3d validate` (or `~/scripts/validate-configs.sh`).  
    - Health: `sl1c3d doctor`.  
    - Going forward: use `sl1c3d` for repair, benchmark, theme, edition, bootstrap, session — not ad-hoc scripts.
@@ -59,7 +66,7 @@ This sequence deliberately avoids any automatic `chezmoi apply` at login.
 
 ### 2. Session Model (TTY-Only)
 
-Phase 6 has moved durable daemons to systemd user units. Session is **TTY-only** (no UWSM, no display manager). User logs in on TTY; Hyprland starts directly. `autostart.conf` runs `dbus-update-activation-environment` and portal start, then `systemctl --user start` for the durable-daemon set. User units are enabled in step 5 above.
+Phase 6 has moved durable daemons to systemd user units. Session is **TTY-only** (no UWSM, no display manager). User logs in on TTY; Hyprland starts directly. `autostart.conf` runs `dbus-update-activation-environment` and portal start, then `systemctl --user start` for the durable-daemon set. User units are enabled in step 5 above (Session).
 
 ---
 

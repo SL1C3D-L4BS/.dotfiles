@@ -342,6 +342,11 @@ if command -v nvim &>/dev/null; then
   test -f ~/.config/nvim/lua/plugins/snacks.lua  && ok "snacks.lua"  || fail "snacks.lua MISSING (chezmoi apply needed)"
   test -f ~/.config/nvim/lua/plugins/avante.lua  && ok "avante.lua"  || fail "avante.lua MISSING (chezmoi apply needed)"
   test -f ~/.config/nvim/lua/plugins/extras.lua  && ok "extras.lua"  || fail "extras.lua MISSING (chezmoi apply needed)"
+  test -f ~/.config/nvim/lua/plugins/dap.lua    && ok "dap.lua (fullstack DAP)" || fail "dap.lua MISSING (chezmoi apply needed)"
+  test -f ~/.config/nvim/lua/configs/dap.lua     && ok "configs/dap.lua" || fail "configs/dap.lua MISSING (chezmoi apply needed)"
+  grep -q 'gopls' ~/.config/nvim/lua/configs/lspconfig.lua 2>/dev/null && ok "lspconfig fullstack (gopls, etc.)" || fail "lspconfig fullstack MISSING (chezmoi apply needed)"
+  grep -q 'nixfmt\|clang_format' ~/.config/nvim/lua/configs/conform.lua 2>/dev/null && ok "conform nix/c/cpp formatters" || fail "conform nix/c/cpp MISSING (chezmoi apply needed)"
+  nvim --headless +qall 2>/dev/null && ok "nvim config loads (headless)" || skip "nvim headless" "run nvim and check for errors"
 else
   skip "nvim plugins" "nvim not found"
 fi

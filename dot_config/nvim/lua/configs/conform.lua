@@ -17,6 +17,9 @@ local options = {
     sh        = { "shfmt" },
     bash      = { "shfmt" },
     zsh       = { "shfmt" },
+    nix       = { "nixfmt" },
+    c         = { "clang_format" },
+    cpp       = { "clang_format" },
   },
   format_on_save = {
     timeout_ms = 700,
