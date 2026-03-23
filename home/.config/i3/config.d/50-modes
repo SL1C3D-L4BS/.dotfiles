@@ -14,7 +14,7 @@ mode "resize" {
     bindsym Escape mode "default"
     bindsym $mod+r mode "default"
 }
-bindsym $mod+Shift+r mode "resize"
+bindsym $mod+r mode "resize"
 
 # System mode
 set $mode_system [l]ock  [s]uspend  [h]ibernate  [r]eboot  [p]oweroff

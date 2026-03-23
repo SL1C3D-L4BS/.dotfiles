@@ -1,0 +1,14 @@
+! Cursor
+Xcursor.theme: Adwaita
+Xcursor.size: 24
+
+! DPI
+Xft.dpi: 96
+Xft.antialias: 1
+Xft.hinting: 1
+Xft.hintstyle: hintfull
+Xft.rgba: rgb
+Xft.lcdfilter: lcddefault
+
+! Fonts
+*.font: JetBrainsMono Nerd Font:size=11

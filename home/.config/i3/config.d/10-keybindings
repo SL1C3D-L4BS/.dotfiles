@@ -7,7 +7,7 @@ bindsym $mod+Shift+Return exec alacritty --class float_term,float_term
 # Launcher (rofi)
 bindsym $mod+d exec --no-startup-id rofi -show drun -show-icons
 bindsym $mod+Tab exec --no-startup-id rofi -show window -show-icons
-bindsym $mod+r exec --no-startup-id rofi -show run
+bindsym $mod+p exec --no-startup-id rofi -show run
 
 # Fuzzy file browser
 bindsym $mod+o exec --no-startup-id alacritty --class fzf_launcher,fzf_launcher -e ~/.local/bin/file-browser
