@@ -1,0 +1,61 @@
+# ══════════════════════════════════════════════════════════════
+# i3status-rust — the_architect | Catppuccin Mocha | 2026
+# ══════════════════════════════════════════════════════════════
+
+[theme]
+theme = "ctp-mocha"
+
+[icons]
+icons = "material-nf"
+
+# ── AI / Ollama status ─────────────────────────────────────────
+[[block]]
+block = "custom"
+command = "~/.local/bin/ai-status-bar"
+interval = 10
+format = " $text "
+
+# ── CPU ────────────────────────────────────────────────────────
+[[block]]
+block = "cpu"
+interval = 2
+format = " $icon $utilization "
+format_alt = " $icon $barchart $frequency "
+
+# ── Memory ─────────────────────────────────────────────────────
+[[block]]
+block = "memory"
+interval = 2
+format = " $icon $mem_used_percents "
+format_alt = " $icon $mem_used/$mem_total "
+
+# ── Disk ───────────────────────────────────────────────────────
+[[block]]
+block = "disk_space"
+path = "/"
+interval = 30
+format = " $icon $free "
+format_alt = " $icon $used/$total "
+warning = 20.0
+alert = 10.0
+
+# ── Network ────────────────────────────────────────────────────
+[[block]]
+block = "net"
+device = "enp0s31f6"
+interval = 2
+format = " $icon {$speed_down $speed_up|offline} "
+format_alt = " $icon $ip "
+
+# ── Volume ─────────────────────────────────────────────────────
+[[block]]
+block = "sound"
+[[block.click]]
+button = "right"
+cmd = "pavucontrol"
+
+# ── Clock ──────────────────────────────────────────────────────
+[[block]]
+block = "time"
+interval = 1
+format = " 󰃰 $timestamp.datetime(f:'%a %b %d  %H:%M') "

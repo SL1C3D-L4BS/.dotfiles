@@ -1,0 +1,73 @@
+# ── i3bar — Catppuccin Mocha ───────────────────────────────────
+# Three outputs: Vizio (primary+tray), ONN portrait x2
+
+# ── Primary bar — Vizio 43" (left, landscape) ─────────────────
+bar {
+    output        HDMI-A-0
+    tray_output   HDMI-A-0
+    tray_padding  4
+    status_command i3status-rs ~/.config/i3status-rust/config.toml
+
+    font          pango:JetBrainsMono Nerd Font 11
+    height        28
+    position      bottom
+    separator_symbol "  "
+
+    colors {
+        background  #1e1e2e
+        statusline  #cdd6f4
+        separator   #45475a
+        # class              border    bg        text
+        focused_workspace    #89b4fa   #89b4fa   #1e1e2e
+        active_workspace     #313244   #313244   #cdd6f4
+        inactive_workspace   #1e1e2e   #1e1e2e   #6c7086
+        urgent_workspace     #f38ba8   #f38ba8   #1e1e2e
+        binding_mode         #cba6f7   #cba6f7   #1e1e2e
+    }
+}
+
+# ── Secondary bar — ONN center (portrait) ─────────────────────
+bar {
+    output        DisplayPort-1
+    tray_output   none
+    status_command i3status-rs ~/.config/i3status-rust/config.toml
+
+    font          pango:JetBrainsMono Nerd Font 11
+    height        28
+    position      bottom
+    separator_symbol "  "
+
+    colors {
+        background  #1e1e2e
+        statusline  #cdd6f4
+        separator   #45475a
+        focused_workspace    #89b4fa   #89b4fa   #1e1e2e
+        active_workspace     #313244   #313244   #cdd6f4
+        inactive_workspace   #1e1e2e   #1e1e2e   #6c7086
+        urgent_workspace     #f38ba8   #f38ba8   #1e1e2e
+        binding_mode         #cba6f7   #cba6f7   #1e1e2e
+    }
+}
+
+# ── Secondary bar — ONN right (portrait) ──────────────────────
+bar {
+    output        DisplayPort-2
+    tray_output   none
+    status_command i3status-rs ~/.config/i3status-rust/config.toml
+
+    font          pango:JetBrainsMono Nerd Font 11
+    height        28
+    position      bottom
+    separator_symbol "  "
+
+    colors {
+        background  #1e1e2e
+        statusline  #cdd6f4
+        separator   #45475a
+        focused_workspace    #89b4fa   #89b4fa   #1e1e2e
+        active_workspace     #313244   #313244   #cdd6f4
+        inactive_workspace   #1e1e2e   #1e1e2e   #6c7086
+        urgent_workspace     #f38ba8   #f38ba8   #1e1e2e
+        binding_mode         #cba6f7   #cba6f7   #1e1e2e
+    }
+}

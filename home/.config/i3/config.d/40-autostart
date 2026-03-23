@@ -7,9 +7,6 @@ exec_always --no-startup-id ~/.config/xrandr-setup.sh
 # Compositor (transparency, shadows, blur)
 exec_always --no-startup-id picom --daemon
 
-# Status bar
-exec_always --no-startup-id ~/.config/polybar/launch.sh
-
 # Wallpaper + theme
 exec_always --no-startup-id ~/.local/bin/theme-apply
 
