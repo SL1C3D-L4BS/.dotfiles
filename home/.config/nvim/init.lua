@@ -19,6 +19,9 @@ vim.opt.rtp:prepend(lazypath)
 vim.g.mapleader      = " "
 vim.g.maplocalleader = "\\"
 
+-- NvChad base46 cache path — must be set before lazy loads NvChad
+vim.g.base46_cache = vim.fn.stdpath("data") .. "/base46_cache/"
+
 -- Load options early (no plugin deps)
 require("config.options")
 

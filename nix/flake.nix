@@ -13,7 +13,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, nix-direnv, ... }:
+  outputs = { self, nixpkgs, home-manager, ... }:
     let
       system = "x86_64-linux";
       pkgs   = import nixpkgs { inherit system; config.allowUnfree = true; };
@@ -23,7 +23,6 @@
       #   nix run nixpkgs#home-manager -- switch --flake .#the_architect
       homeConfigurations."the_architect" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
-        extraSpecialArgs = { inherit nix-direnv; };
         modules = [ ./home.nix ];
       };
 

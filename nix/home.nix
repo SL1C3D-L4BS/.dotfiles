@@ -1,4 +1,4 @@
-{ pkgs, nix-direnv, ... }:
+{ pkgs, ... }:
 
 {
   home.username       = "the_architect";
@@ -27,7 +27,6 @@
     zoxide
     fzf
     direnv
-    nix-direnv.packages.${pkgs.system}.nix-direnv
 
     # File system
     eza           # ls replacement
@@ -61,9 +60,6 @@
     gnumake
     gcc
 
-    # AI / Ollama CLI
-    ollama
-
     # Secrets
     age
     sops
@@ -84,18 +80,14 @@
     xclip
     xdotool
     maim        # screenshot
-    brightnessctl
     numlockx
-
-    # Nerd fonts
-    (nerdfonts.override { fonts = [ "JetBrainsMono" ]; })
   ];
 
   # ── Direnv integration ────────────────────────────────────────
   programs.direnv = {
-    enable                   = true;
-    nix-direnv.enable        = true;
-    enableZshIntegration     = true;
+    enable               = true;
+    nix-direnv.enable    = true;
+    enableZshIntegration = true;
   };
 
   # ── Atuin shell history ────────────────────────────────────────
@@ -103,11 +95,11 @@
     enable               = true;
     enableZshIntegration = true;
     settings = {
-      style        = "compact";
-      inline_height = 20;
-      ctrl_n_shortcuts = true;
+      style             = "compact";
+      inline_height     = 20;
+      ctrl_n_shortcuts  = true;
       filter_mode_shell_up_key_binding = "session";
-      enter_accept = true;
+      enter_accept      = true;
     };
   };
 
@@ -122,54 +114,54 @@
   programs.starship = {
     enable               = true;
     enableZshIntegration = true;
-    configFile           = ../home/.config/shell/starship.toml;
+    configPath           = "/home/the_architect/.config/shell/starship.toml";
   };
 
   # ── Git config ────────────────────────────────────────────────
   programs.git = {
-    enable      = true;
-    userName    = "SL1C3D-L4BS";
-    userEmail   = "slicedlabs.founder@proton.me";
-    delta = {
-      enable  = true;
-      options = {
-        navigate          = true;
-        line-numbers      = true;
-        side-by-side      = false;
-        syntax-theme      = "gruvbox-dark";
-        features          = "decorations";
+    enable    = true;
+    settings = {
+      user = {
+        name  = "SL1C3D-L4BS";
+        email = "slicedlabs.founder@proton.me";
       };
-    };
-    extraConfig = {
-      core.editor       = "nvim";
-      pull.rebase       = true;
+      core.editor          = "nvim";
+      pull.rebase          = true;
       push.autoSetupRemote = true;
-      init.defaultBranch = "main";
-      diff.colorMoved   = "default";
+      init.defaultBranch   = "main";
+      diff.colorMoved      = "default";
+    };
+  };
+
+  programs.delta = {
+    enable                = true;
+    enableGitIntegration  = true;
+    options = {
+      navigate          = true;
+      line-numbers      = true;
+      side-by-side      = false;
+      syntax-theme      = "gruvbox-dark";
+      features          = "decorations";
     };
   };
 
   # ── ZSH ───────────────────────────────────────────────────────
   programs.zsh = {
-    enable              = true;
-    dotDir              = ".config/shell";
-    initExtraFirst      = ''
-      # Profiling: uncomment to measure
-      # zmodload zsh/zprof
-    '';
-    initExtra           = builtins.readFile ../home/.config/shell/zshrc;
-    envExtra            = ''
+    enable         = true;
+    dotDir         = "/home/the_architect/.config/shell";
+    initContent    = builtins.readFile ../home/.config/shell/zshrc;
+    envExtra       = ''
       export STARSHIP_CONFIG="$HOME/.config/shell/starship.toml"
     '';
   };
 
   # ── Bat (cat replacement) ─────────────────────────────────────
   programs.bat = {
-    enable  = true;
-    config  = {
-      theme       = "gruvbox-dark";
-      pager       = "less -FR";
-      style       = "plain";
+    enable = true;
+    config = {
+      theme  = "gruvbox-dark";
+      pager  = "less -FR";
+      style  = "plain";
     };
   };
 
@@ -183,21 +175,21 @@
         optionsTextColor    = [ "blue" ];
         selectedLineBgColor = [ "blue" ];
       };
-      git.paging.colorArg    = "always";
-      git.paging.pager       = "delta --color-only";
+      git.paging.colorArg = "always";
+      git.paging.pager    = "delta --color-only";
     };
   };
 
   # ── XDG dirs ──────────────────────────────────────────────────
   xdg.enable = true;
   xdg.userDirs = {
-    enable      = true;
+    enable            = true;
     createDirectories = true;
-    desktop     = "$HOME/Desktop";
-    documents   = "$HOME/Documents";
-    download    = "$HOME/Downloads";
-    music       = "$HOME/Music";
-    pictures    = "$HOME/Pictures";
-    videos      = "$HOME/Videos";
+    desktop           = "$HOME/Desktop";
+    documents         = "$HOME/Documents";
+    download          = "$HOME/Downloads";
+    music             = "$HOME/Music";
+    pictures          = "$HOME/Pictures";
+    videos            = "$HOME/Videos";
   };
 }

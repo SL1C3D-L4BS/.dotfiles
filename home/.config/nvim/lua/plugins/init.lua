@@ -39,7 +39,7 @@ return {
     dependencies = { "williamboman/mason.nvim", "neovim/nvim-lspconfig" },
     opts = {
       ensure_installed = {
-        "lua_ls", "pyright", "ruff_lsp", "rust_analyzer", "gopls",
+        "lua_ls", "pyright", "rust_analyzer", "gopls",
         "ts_ls", "jsonls", "yamlls", "taplo", "bashls",
       },
       automatic_installation = true,
