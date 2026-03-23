@@ -128,6 +128,8 @@
   # ── Git config ────────────────────────────────────────────────
   programs.git = {
     enable      = true;
+    userName    = "SL1C3D-L4BS";
+    userEmail   = "slicedlabs.founder@proton.me";
     delta = {
       enable  = true;
       options = {
