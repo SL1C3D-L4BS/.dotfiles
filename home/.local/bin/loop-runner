@@ -1,0 +1,393 @@
+#!/usr/bin/env bash
+# loop-runner — orchestrate agentic flywheels
+# Usage:
+#   loop-runner --all
+#   loop-runner --loop data-mapping
+#   loop-runner --loop ai-model --dry-run
+
+set -euo pipefail
+
+LOOP_DIR="$HOME/.local/share/loops"
+LOG_DIR="$LOOP_DIR/logs"
+STATE_DIR="$LOOP_DIR/state"
+mkdir -p "$LOG_DIR" "$STATE_DIR"
+
+DRY_RUN=false
+LOOP_NAME=""
+RUN_ALL=false
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --all)      RUN_ALL=true; shift;;
+        --loop)     LOOP_NAME="$2"; shift 2;;
+        --dry-run)  DRY_RUN=true; shift;;
+        *) shift;;
+    esac
+done
+
+ts()    { date -Iseconds; }
+log()   { echo "{\"ts\":\"$(ts)\",\"loop\":\"$1\",\"event\":\"$2\",\"data\":$3}" | tee -a "$LOG_DIR/$1.jsonl"; }
+state() { echo "{\"loop\":\"$1\",\"last_run\":\"$(ts)\",\"status\":\"$2\"}" > "$STATE_DIR/$1.json"; }
+
+# ── Loop 1: Data Mapping ───────────────────────────────────────
+loop_data_mapping() {
+    log "data-mapping" "start" '{"trigger":"manual"}'
+    local new_files=0
+    local mapped=0
+
+    # Discover new CSV/JSON in ~/data that haven't been mapped
+    if [[ -d ~/data ]]; then
+        while IFS= read -r f; do
+            schema_file="${f%.csv}.schema.json"
+            if [[ ! -f "$schema_file" ]]; then
+                $DRY_RUN || map-set-schema "$f" > "$schema_file" 2>/dev/null
+                ((mapped++)) || true
+            fi
+            ((new_files++)) || true
+        done < <(fd -e csv -e json . ~/data 2>/dev/null || true)
+    fi
+
+    log "data-mapping" "complete" "{\"files_scanned\":$new_files,\"schemas_generated\":$mapped}"
+    state "data-mapping" "ok"
+    echo "{\"loop\":\"data-mapping\",\"files_scanned\":$new_files,\"schemas_generated\":$mapped}"
+}
+
+# ── Loop 2: AI Model ──────────────────────────────────────────
+loop_ai_model() {
+    log "ai-model" "start" '{"trigger":"manual"}'
+    local registry="$STATE_DIR/model_registry.json"
+
+    if command -v ollama &>/dev/null; then
+        models=$(ollama-list-models 2>/dev/null || echo '{"models":[]}')
+        echo "$models" > "$registry"
+        model_count=$(echo "$models" | python3 -c "import sys,json; print(len(json.load(sys.stdin).get('models',[])))" 2>/dev/null || echo 0)
+    else
+        model_count=0
+        echo '{"models":[]}' > "$registry"
+    fi
+
+    log "ai-model" "complete" "{\"model_count\":$model_count,\"registry\":\"$registry\"}"
+    state "ai-model" "ok"
+    echo "{\"loop\":\"ai-model\",\"model_count\":$model_count}"
+}
+
+# ── Loop 3: Audit ─────────────────────────────────────────────
+loop_audit() {
+    log "audit" "start" '{"trigger":"manual"}'
+    local report_file="$LOG_DIR/audit_$(date +%Y%m%d).json"
+    local parquet_count=0
+    local issues=0
+
+    if [[ -d ~/data ]]; then
+        parquet_files=$(fd -e parquet . ~/data 2>/dev/null || true)
+        if [[ -n "$parquet_files" ]]; then
+            $DRY_RUN || echo "$parquet_files" | xargs audit-parquet > "$report_file" 2>/dev/null || true
+            parquet_count=$(echo "$parquet_files" | wc -l)
+            issues=$(python3 -c "
+import json, sys
+try:
+    data = json.load(open('$report_file'))
+    print(sum(1 for r in (data if isinstance(data,list) else [data]) if r.get('total_nulls',0)>0 or r.get('duplicate_rows',0)>0))
+except: print(0)" 2>/dev/null || echo 0)
+        fi
+    fi
+
+    log "audit" "complete" "{\"files_audited\":$parquet_count,\"issues\":$issues,\"report\":\"$report_file\"}"
+    state "audit" "ok"
+    echo "{\"loop\":\"audit\",\"files_audited\":$parquet_count,\"issues\":$issues}"
+}
+
+# ── Loop 4: Productivity ──────────────────────────────────────
+loop_productivity() {
+    log "productivity" "start" '{"trigger":"manual"}'
+    local insight_file="$STATE_DIR/productivity_$(date +%Y%m%d).json"
+
+    # Analyze today's command history
+    local total_cmds=0
+    local unique_cmds=0
+
+    if command -v atuin &>/dev/null; then
+        total_cmds=$(atuin history list --limit 999999 2>/dev/null | wc -l || echo 0)
+        # Most used commands today
+        top_cmds=$(atuin history list 2>/dev/null \
+            | awk '{print $1}' | sort | uniq -c | sort -rn | head -10 \
+            | jq -R 'split(" ") | {count: .[0]|tonumber, cmd: .[1]}' | jq -s '.' 2>/dev/null || echo '[]')
+    else
+        top_cmds='[]'
+    fi
+
+    insight=$(python3 -c "
+import json, os, datetime
+data = {
+    'date': datetime.date.today().isoformat(),
+    'total_commands': $total_cmds,
+    'top_commands': $top_cmds,
+    'shell_files_edited': 0,
+    'git_commits': 0
+}
+# Count git commits today
+import subprocess
+try:
+    r = subprocess.run(['git', 'log', '--oneline', '--since=midnight', '--all'],
+                      capture_output=True, text=True, cwd=os.path.expanduser('~/dev/.dotfiles'))
+    data['git_commits'] = len(r.stdout.strip().split('\n')) if r.stdout.strip() else 0
+except: pass
+print(json.dumps(data, indent=2))
+" 2>/dev/null || echo '{}')
+
+    $DRY_RUN || echo "$insight" > "$insight_file"
+    log "productivity" "complete" "{\"insight_file\":\"$insight_file\"}"
+    state "productivity" "ok"
+    echo "$insight"
+}
+
+# ── Loop 5: Package Update ────────────────────────────────────
+loop_package_update() {
+    log "package-update" "start" '{"trigger":"manual"}'
+    local updates="{}"
+
+    # Check for outdated packages (don't install — just report)
+    if command -v checkupdates &>/dev/null; then
+        arch_updates=$(checkupdates 2>/dev/null | wc -l || echo 0)
+    else
+        arch_updates=-1
+    fi
+
+    if command -v nix &>/dev/null; then
+        # Check flake staleness
+        flake_age=$(python3 -c "
+import os, time
+lock = os.path.expanduser('~/dev/.dotfiles/nix/flake.lock')
+if os.path.exists(lock):
+    age_days = (time.time() - os.path.getmtime(lock)) / 86400
+    print(round(age_days, 1))
+else:
+    print(-1)" 2>/dev/null || echo -1)
+    else
+        flake_age=-1
+    fi
+
+    log "package-update" "complete" "{\"arch_pending\":$arch_updates,\"nix_flake_age_days\":$flake_age}"
+    state "package-update" "ok"
+    echo "{\"loop\":\"package-update\",\"arch_pending\":$arch_updates,\"nix_flake_age_days\":$flake_age}"
+}
+
+# ── Loop 6: Editor Optimization ───────────────────────────────
+loop_editor_optimization() {
+    log "editor-optimization" "start" '{"trigger":"manual"}'
+    local profile_file="$STATE_DIR/nvim_profile_$(date +%Y%m%d).txt"
+
+    if command -v nvim &>/dev/null; then
+        $DRY_RUN || nvim --startuptime "$profile_file" -c "qall!" 2>/dev/null || true
+        if [[ -f "$profile_file" ]]; then
+            startup_ms=$(tail -1 "$profile_file" | awk '{print $1}' | cut -d. -f1 || echo 0)
+            top_plugins=$(grep -E "^\s+[0-9]" "$profile_file" 2>/dev/null \
+                | sort -rn | head -5 \
+                | jq -R 'split(": ") | {ms: .[0]|gsub("\\s+";"")|tonumber, plugin: .[1]}' 2>/dev/null \
+                | jq -s '.' || echo '[]')
+        else
+            startup_ms=0; top_plugins='[]'
+        fi
+    else
+        startup_ms=0; top_plugins='[]'
+    fi
+
+    local status="ok"
+    [[ $startup_ms -gt 70 ]] && status="slow"
+
+    log "editor-optimization" "complete" "{\"startup_ms\":$startup_ms,\"status\":\"$status\"}"
+    state "editor-optimization" "ok"
+    echo "{\"loop\":\"editor-optimization\",\"startup_ms\":$startup_ms,\"status\":\"$status\",\"top_slow_plugins\":$top_plugins}"
+}
+
+# ── Loop 7: Shell Optimization ────────────────────────────────
+loop_shell_optimization() {
+    log "shell-optimization" "start" '{"trigger":"manual"}'
+
+    if command -v zsh &>/dev/null; then
+        times=$(for i in 1 2 3 4 5; do
+            { time zsh -i -c exit; } 2>&1 | grep real | awk '{print $2}'
+        done)
+        # Parse avg ms
+        avg_ms=$(echo "$times" | python3 -c "
+import sys, re
+vals = []
+for line in sys.stdin:
+    m = re.search(r'(\d+)m([\d.]+)s', line.strip())
+    if m:
+        vals.append(int(m.group(1))*60000 + float(m.group(2))*1000)
+if vals: print(round(sum(vals)/len(vals)))
+else: print(-1)" 2>/dev/null || echo -1)
+    else
+        avg_ms=-1
+    fi
+
+    local status="ok"
+    [[ $avg_ms -gt 100 ]] && status="slow"
+
+    log "shell-optimization" "complete" "{\"avg_startup_ms\":$avg_ms,\"status\":\"$status\"}"
+    state "shell-optimization" "ok"
+    echo "{\"loop\":\"shell-optimization\",\"avg_startup_ms\":$avg_ms,\"status\":\"$status\"}"
+}
+
+# ── Loop 8: History Intelligence ──────────────────────────────
+loop_history_intelligence() {
+    log "history-intelligence" "start" '{"trigger":"manual"}'
+    local alias_file="$STATE_DIR/suggested_aliases.json"
+
+    # Find frequent long commands that could be aliased
+    suggested=$(python3 - <<'PYEOF'
+import subprocess, json, re
+from collections import Counter
+
+try:
+    r = subprocess.run(['atuin', 'history', 'list', '--limit', '5000'],
+                       capture_output=True, text=True)
+    cmds = r.stdout.strip().split('\n')
+except:
+    try:
+        with open(__import__('os').path.expanduser('~/.zsh_history')) as f:
+            cmds = [l.strip().lstrip(':0;') for l in f]
+    except:
+        cmds = []
+
+# Count commands
+counter = Counter(cmds)
+suggestions = []
+for cmd, count in counter.most_common(50):
+    cmd = cmd.strip()
+    # Only suggest for long commands (>15 chars) run often (>5 times)
+    if count >= 5 and len(cmd) > 15 and not cmd.startswith('alias'):
+        words = cmd.split()
+        alias_name = words[0][0] + ''.join(w[0] for w in words[1:3] if w) if len(words)>1 else ''
+        if alias_name and len(alias_name) >= 2:
+            suggestions.append({'cmd': cmd, 'count': count, 'suggested_alias': alias_name})
+        if len(suggestions) >= 10:
+            break
+
+print(json.dumps(suggestions, indent=2))
+PYEOF
+)
+
+    $DRY_RUN || echo "$suggested" > "$alias_file"
+    count=$(echo "$suggested" | python3 -c "import json,sys; print(len(json.load(sys.stdin)))" 2>/dev/null || echo 0)
+
+    log "history-intelligence" "complete" "{\"suggestions\":$count,\"file\":\"$alias_file\"}"
+    state "history-intelligence" "ok"
+    echo "{\"loop\":\"history-intelligence\",\"alias_suggestions\":$count,\"file\":\"$alias_file\"}"
+}
+
+# ── Loop 9: Content Generation ────────────────────────────────
+loop_content_generation() {
+    log "content-generation" "start" '{"trigger":"manual"}'
+    local content_dir="$HOME/Documents/generated"
+    $DRY_RUN || mkdir -p "$content_dir"
+
+    # Generate README for any project missing one
+    generated=0
+    if [[ -d ~/dev ]]; then
+        while IFS= read -r proj; do
+            readme="$proj/README.md"
+            if [[ ! -f "$readme" || ! -s "$readme" ]]; then
+                proj_name=$(basename "$proj")
+                if $DRY_RUN; then
+                    echo "  [dry-run] would generate README for $proj_name"
+                else
+                    ollama-generate --model llama3.2 --no-stream \
+                        --prompt "Write a concise professional README.md for a project called '$proj_name'. Include: title, 1-sentence description, install, usage, license. Be brief." \
+                        2>/dev/null | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    print(d.get('response',''))
+except:
+    pass" > "$readme" 2>/dev/null || true
+                    ((generated++)) || true
+                fi
+            fi
+        done < <(fd -t d -d 1 . ~/dev 2>/dev/null | grep -v '\.dotfiles' || true)
+    fi
+
+    log "content-generation" "complete" "{\"readmes_generated\":$generated}"
+    state "content-generation" "ok"
+    echo "{\"loop\":\"content-generation\",\"readmes_generated\":$generated}"
+}
+
+# ── Loop 10: Licensing ────────────────────────────────────────
+loop_licensing() {
+    log "licensing" "start" '{"trigger":"manual"}'
+    local report_file="$STATE_DIR/license_report_$(date +%Y%m%d).json"
+
+    if [[ ! -f ~/.config/keys/identity.age ]]; then
+        log "licensing" "skip" '{"reason":"no_keystore"}'
+        echo '{"loop":"licensing","status":"skipped","reason":"keystore not initialized"}'
+        return
+    fi
+
+    # List licenses, check expiry
+    licenses=$(license-manager list 2>/dev/null || echo '{"licenses":[]}')
+    expiring=$(echo "$licenses" | python3 -c "
+import json, sys, datetime
+try:
+    data = json.load(sys.stdin)
+    today = datetime.date.today()
+    expiring = []
+    for lic in data.get('licenses', []):
+        exp = lic.get('expires', '')
+        if exp:
+            try:
+                exp_date = datetime.date.fromisoformat(exp)
+                days_left = (exp_date - today).days
+                if days_left < 90:
+                    expiring.append({'product': lic['product'], 'days_left': days_left})
+            except: pass
+    print(json.dumps(expiring))
+except: print('[]')" 2>/dev/null || echo '[]')
+
+    total=$(echo "$licenses" | python3 -c "import json,sys; print(json.load(sys.stdin).get('count',0))" 2>/dev/null || echo 0)
+    expiring_count=$(echo "$expiring" | python3 -c "import json,sys; print(len(json.load(sys.stdin)))" 2>/dev/null || echo 0)
+
+    report="{\"total\":$total,\"expiring_soon\":$expiring,\"expiring_count\":$expiring_count}"
+    $DRY_RUN || echo "$report" > "$report_file"
+
+    log "licensing" "complete" "$report"
+    state "licensing" "ok"
+    echo "{\"loop\":\"licensing\",$( echo "$report" | python3 -c "import json,sys; d=json.load(sys.stdin); print(','.join(f'\"{ k}\":{json.dumps(v)}' for k,v in d.items()))" 2>/dev/null || echo '"status":"ok"')}"
+}
+
+# ── Dispatcher ────────────────────────────────────────────────
+declare -A LOOPS=(
+    [data-mapping]=loop_data_mapping
+    [ai-model]=loop_ai_model
+    [audit]=loop_audit
+    [productivity]=loop_productivity
+    [package-update]=loop_package_update
+    [editor-optimization]=loop_editor_optimization
+    [shell-optimization]=loop_shell_optimization
+    [history-intelligence]=loop_history_intelligence
+    [content-generation]=loop_content_generation
+    [licensing]=loop_licensing
+)
+
+if $RUN_ALL; then
+    results='[]'
+    for name in "${!LOOPS[@]}"; do
+        echo "--- $name ---" >&2
+        result=$("${LOOPS[$name]}" 2>/dev/null || echo '{}')
+        results=$(echo "$results $result" | python3 -c "
+import sys, json
+parts = sys.stdin.read().split()
+arr = []
+for p in parts:
+    try: arr.append(json.loads(p))
+    except: pass
+print(json.dumps(arr))")
+    done
+    echo "$results"
+elif [[ -n "$LOOP_NAME" ]]; then
+    fn="${LOOPS[$LOOP_NAME]:-}"
+    [[ -z "$fn" ]] && { echo "{\"error\":\"unknown loop\",\"available\":[$(printf '"%s",' "${!LOOPS[@]}" | sed 's/,$//')]}" >&2; exit 1; }
+    $fn
+else
+    echo "{\"available_loops\":[$(printf '"%s",' "${!LOOPS[@]}" | sed 's/,$//')]}"
+fi

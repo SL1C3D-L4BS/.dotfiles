@@ -1,0 +1,25 @@
+# chezmoi config template — generated on first init
+# Location: ~/.config/chezmoi/chezmoi.toml
+
+[data]
+    name  = "SL1C3D-L4BS"
+    email = "slicedlabs.founder@proton.me"
+
+[git]
+    autoCommit = false
+    autoPush   = false
+
+[encryption]
+    # Uses age for secret encryption
+    # Public key stored in ~/.config/keys/identity.age.pub
+    tool = "age"
+
+[age]
+    identity  = "~/.config/keys/identity.age"
+    recipient = "{{ .chezmoi.homeDir }}/.config/keys/identity.age.pub"
+
+[diff]
+    pager = "delta"
+
+[edit]
+    command = "nvim"

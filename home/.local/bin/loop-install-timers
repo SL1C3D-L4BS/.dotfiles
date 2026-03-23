@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# loop-install-timers — install systemd user timers for all agentic loops
+# Usage: loop-install-timers [--dry-run]
+
+set -euo pipefail
+DRY=false; [[ "${1:-}" == "--dry-run" ]] && DRY=true
+
+SYSTEMD_DIR="$HOME/.config/systemd/user"
+mkdir -p "$SYSTEMD_DIR"
+
+install_timer() {
+    local name="$1"
+    local on_calendar="$2"   # systemd OnCalendar= value
+    local description="$3"
+
+    local service_file="$SYSTEMD_DIR/loop-${name}.service"
+    local timer_file="$SYSTEMD_DIR/loop-${name}.timer"
+
+    cat > "$service_file" <<EOF
+[Unit]
+Description=Agentic loop: ${description}
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/loop-runner --loop ${name}
+StandardOutput=journal
+StandardError=journal
+Environment=HOME=%h
+EOF
+
+    cat > "$timer_file" <<EOF
+[Unit]
+Description=Timer for agentic loop: ${description}
+
+[Timer]
+OnCalendar=${on_calendar}
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+
+    if $DRY; then
+        echo "[dry-run] would install: loop-${name}.timer (${on_calendar})"
+    else
+        systemctl --user daemon-reload
+        systemctl --user enable --now "loop-${name}.timer"
+        echo "{\"installed\":\"loop-${name}\",\"schedule\":\"${on_calendar}\"}"
+    fi
+}
+
+# Loop schedules
+install_timer "data-mapping"          "*:0/30"                     "Data Mapping"
+install_timer "ai-model"              "daily"                      "AI Model Registry"
+install_timer "audit"                 "daily"                      "Data Audit"
+install_timer "productivity"          "*-*-* 23:00:00"             "Productivity Insights"
+install_timer "package-update"        "weekly"                     "Package Update Check"
+install_timer "editor-optimization"   "*-*-* 09:00:00"             "Editor Optimization"
+install_timer "shell-optimization"    "*-*-* 09:05:00"             "Shell Optimization"
+install_timer "history-intelligence"  "*-*-* 22:00:00"             "History Intelligence"
+install_timer "content-generation"    "Mon *-*-* 10:00:00"         "Content Generation"
+install_timer "licensing"             "*-*-1 00:00:00"             "License Management"
+
+echo "{\"status\":\"all timers installed\"}"

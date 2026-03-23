@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""
+loop-status — show status of all agentic flywheels
+Usage:
+    loop-status
+    loop-status | jq '.loops[] | select(.status != "ok")'
+"""
+import json, os, glob
+from pathlib import Path
+from datetime import datetime
+
+STATE_DIR = Path.home() / ".local/share/loops/state"
+LOG_DIR   = Path.home() / ".local/share/loops/logs"
+
+LOOPS = [
+    "data-mapping", "ai-model", "audit", "productivity",
+    "package-update", "editor-optimization", "shell-optimization",
+    "history-intelligence", "content-generation", "licensing"
+]
+
+def parse_state(name):
+    sf = STATE_DIR / f"{name}.json"
+    if sf.exists():
+        try:
+            d = json.loads(sf.read_text())
+            # Compute staleness
+            last = datetime.fromisoformat(d.get("last_run","1970-01-01"))
+            age_h = round((datetime.now() - last).total_seconds() / 3600, 1)
+            d["age_hours"] = age_h
+            return d
+        except:
+            return {"loop": name, "status": "error_reading_state"}
+    return {"loop": name, "status": "never_run"}
+
+def last_log_entry(name):
+    lf = LOG_DIR / f"{name}.jsonl"
+    if lf.exists():
+        lines = lf.read_text().strip().split("\n")
+        for line in reversed(lines):
+            try: return json.loads(line)
+            except: pass
+    return None
+
+def main():
+    statuses = []
+    for name in LOOPS:
+        state = parse_state(name)
+        last_log = last_log_entry(name)
+        statuses.append({
+            "loop": name,
+            "status": state.get("status", "unknown"),
+            "last_run": state.get("last_run"),
+            "age_hours": state.get("age_hours"),
+            "last_event": last_log.get("event") if last_log else None,
+            "last_data": last_log.get("data") if last_log else None,
+        })
+
+    never_run = sum(1 for s in statuses if s["status"] == "never_run")
+    ok_count  = sum(1 for s in statuses if s["status"] == "ok")
+
+    print(json.dumps({
+        "summary": {
+            "total": len(LOOPS),
+            "ok": ok_count,
+            "never_run": never_run,
+            "state_dir": str(STATE_DIR),
+            "log_dir": str(LOG_DIR),
+        },
+        "loops": statuses
+    }, indent=2))
+
+if __name__ == "__main__":
+    main()

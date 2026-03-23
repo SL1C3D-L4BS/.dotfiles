@@ -1,0 +1,8 @@
+# direnv global config — the_architect
+[global]
+# Suppress "direnv: loading" messages (keep shell clean)
+hide_env_diff = true
+
+[whitelist]
+# Auto-allow projects under ~/dev (no manual direnv allow needed)
+prefix = [ "/home/the_architect/dev" ]

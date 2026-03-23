@@ -1,0 +1,27 @@
+# Atuin config — the_architect | 2026
+# Docs: https://atuin.sh/docs/config
+
+[settings]
+# UI
+style        = "compact"
+inline_height = 25
+
+# Search
+filter_mode  = "global"        # global, host, session, directory
+search_mode  = "fuzzy"
+filter_mode_shell_up_key_binding = "session"
+
+# UX
+enter_accept  = true           # press Enter to immediately run selected cmd
+ctrl_n_shortcuts = true        # Ctrl+N/P to move through history
+show_preview  = true
+exit_mode     = "return-query" # keep typed query on exit
+
+# Sync (optional — set key via: atuin login)
+sync_frequency = "5m"
+sync_address   = "https://api.atuin.sh"
+auto_sync      = true
+
+# Stats
+stats.common_prefix = ["sudo ", "git "]
+stats.common_subcommands = ["git", "cargo", "npm", "nix", "docker"]
