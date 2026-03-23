@@ -1,6 +1,9 @@
 # ── Autostart ─────────────────────────────────────────────────
 # exec runs once; exec_always runs on reload too
 
+# Monitor layout (must run before polybar/picom)
+exec_always --no-startup-id ~/.config/xrandr-setup.sh
+
 # Compositor (transparency, shadows, blur)
 exec_always --no-startup-id picom --daemon
 
