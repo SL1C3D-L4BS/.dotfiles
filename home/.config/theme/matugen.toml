@@ -1,0 +1,22 @@
+# Matugen config — the_architect
+# Docs: https://github.com/InioX/matugen
+
+[config]
+reload_apps = false   # we handle reloads ourselves in theme-apply
+set_wallpaper = false
+show_colors = false
+
+[config.custom_keywords]
+# Additional keywords available in templates
+
+[[templates]]
+input_path  = "~/.config/theme/templates/colors.Xresources.tera"
+output_path = "~/.config/theme/colors.Xresources"
+
+[[templates]]
+input_path  = "~/.config/theme/templates/alacritty-theme.toml.tera"
+output_path = "~/.config/alacritty/theme.toml"
+
+[[templates]]
+input_path  = "~/.config/theme/templates/rofi-palette.rasi.tera"
+output_path = "~/.config/rofi/themes/palette.rasi"

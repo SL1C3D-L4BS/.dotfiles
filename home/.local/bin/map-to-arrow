@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+"""
+map-to-arrow — convert CSV/JSON/NDJSON to Parquet (Arrow format)
+Usage:
+    map-to-arrow input.csv output.parquet
+    cat data.json | map-to-arrow --stdin --format json -o out.parquet
+"""
+import sys, json, argparse
+from pathlib import Path
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("input",  nargs="?", default="-")
+    p.add_argument("output", nargs="?", default=None)
+    p.add_argument("--format", choices=["csv","json","ndjson","auto"], default="auto")
+    p.add_argument("--stdin", action="store_true")
+    p.add_argument("-o", "--out", dest="out", default=None)
+    args = p.parse_args()
+
+    import duckdb
+    src = "-" if args.stdin else args.input
+    out = args.out or args.output or Path(str(src)).with_suffix(".parquet")
+
+    fmt = args.format
+    if fmt == "auto":
+        ext = Path(str(src)).suffix.lower() if src != "-" else ".json"
+        fmt = ext.lstrip(".") or "json"
+
+    if fmt == "csv":
+        duckdb.sql(f"COPY (SELECT * FROM read_csv_auto('{src}')) TO '{out}' (FORMAT PARQUET)")
+    elif fmt in ("json","ndjson"):
+        duckdb.sql(f"COPY (SELECT * FROM read_json_auto('{src}')) TO '{out}' (FORMAT PARQUET)")
+    else:
+        sys.exit(f"Unsupported format: {fmt}")
+
+    import os
+    size = os.path.getsize(out)
+    result = {"output": str(out), "format": "parquet", "size_bytes": size, "status": "ok"}
+    print(json.dumps(result, indent=2))
+
+if __name__ == "__main__":
+    main()

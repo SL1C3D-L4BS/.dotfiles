@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# package-browser — search nix packages interactively, install via home-manager
+# Usage:
+#   package-browser [search_term]
+
+set -euo pipefail
+
+QUERY="${*:-}"
+
+selected=$(nix search nixpkgs "$QUERY" --json 2>/dev/null \
+    | jq -r 'to_entries[] | "\(.key)\t\(.value.description // "")"' \
+    | fzf --prompt=" nix-pkg › " \
+          --delimiter='\t' \
+          --with-nth=1,2 \
+          --preview 'nix-env -qa --description {1} 2>/dev/null | head -20' \
+          --preview-window=down:5:wrap)
+
+if [[ -n "$selected" ]]; then
+    pkg=$(echo "$selected" | cut -f1 | sed 's|^nixpkgs#||')
+    echo "{\"selected\":\"$pkg\",\"hint\":\"Add to home.nix packages, then: nhm\"}"
+fi

@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+"""
+verify-parquet — validate parquet file: schema, row count, nulls, types
+Usage:
+    verify-parquet file.parquet
+    verify-parquet *.parquet --strict
+"""
+import sys, json, argparse
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("files", nargs="+")
+    p.add_argument("--strict", action="store_true", help="fail on null presence")
+    args = p.parse_args()
+
+    import duckdb
+    results = []
+    for f in args.files:
+        try:
+            info = duckdb.sql(f"""
+                SELECT
+                    count(*) AS row_count,
+                    * EXCLUDE (count(*))
+                FROM (
+                    SELECT count(*) AS row_count FROM read_parquet('{f}')
+                )
+            """).fetchone()
+
+            schema = duckdb.sql(f"DESCRIBE SELECT * FROM read_parquet('{f}') LIMIT 0").fetchall()
+            schema_list = [{"column": r[0], "type": r[1]} for r in schema]
+
+            # Null check per column
+            null_checks = []
+            for col in schema_list:
+                n = duckdb.sql(
+                    f"SELECT count(*) FROM read_parquet('{f}') WHERE \"{col['column']}\" IS NULL"
+                ).fetchone()[0]
+                null_checks.append({"column": col["column"], "null_count": n})
+
+            row_count = duckdb.sql(f"SELECT count(*) FROM read_parquet('{f}')").fetchone()[0]
+            total_nulls = sum(c["null_count"] for c in null_checks)
+
+            results.append({
+                "file": f,
+                "row_count": row_count,
+                "column_count": len(schema_list),
+                "schema": schema_list,
+                "null_summary": null_checks,
+                "total_nulls": total_nulls,
+                "valid": not (args.strict and total_nulls > 0)
+            })
+        except Exception as e:
+            results.append({"file": f, "error": str(e), "valid": False})
+
+    print(json.dumps(results, indent=2))
+    if args.strict and any(not r.get("valid") for r in results):
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

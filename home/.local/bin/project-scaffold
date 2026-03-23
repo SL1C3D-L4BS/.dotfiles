@@ -1,0 +1,141 @@
+#!/usr/bin/env bash
+# project-scaffold — create a new project with nix flake, direnv, git, README
+# Usage: project-scaffold my-project --lang python
+# Output: JSON with project info
+
+set -euo pipefail
+
+usage() { echo "Usage: project-scaffold <name> [--lang python|rust|go|node|generic] [--dir DIR]" >&2; exit 1; }
+
+NAME="${1:-}"; [[ -z "$NAME" ]] && usage
+LANG="generic"; DIR="$(pwd)"
+
+shift
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --lang) LANG="$2"; shift 2;;
+        --dir)  DIR="$2";  shift 2;;
+        *) usage;;
+    esac
+done
+
+PROJECT="$DIR/$NAME"
+[[ -d "$PROJECT" ]] && { echo "{\"error\": \"Directory exists: $PROJECT\"}" >&2; exit 1; }
+mkdir -p "$PROJECT"
+cd "$PROJECT"
+
+git init -q
+mkdir -p src docs
+
+# .gitignore
+cat > .gitignore <<EOF
+.direnv/
+result
+*.pyc
+__pycache__/
+target/
+node_modules/
+dist/
+.env
+EOF
+
+# README
+cat > README.md <<EOF
+# $NAME
+EOF
+
+# direnv
+cat > .envrc <<EOF
+use flake
+EOF
+
+# Nix flake per language
+case "$LANG" in
+python)
+    cat > flake.nix <<EOF
+{
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  outputs = { nixpkgs, ... }: let
+    sys = "x86_64-linux"; pkgs = nixpkgs.legacyPackages.\${sys};
+  in {
+    devShells.\${sys}.default = pkgs.mkShell {
+      packages = with pkgs; [ python312 python312Packages.pip uv ruff mypy ];
+    };
+  };
+}
+EOF
+    cat > src/__init__.py <<EOF
+EOF
+    cat > pyproject.toml <<EOF
+[project]
+name = "$NAME"
+version = "0.1.0"
+requires-python = ">=3.12"
+EOF
+    ;;
+rust)
+    cat > flake.nix <<EOF
+{
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  outputs = { nixpkgs, ... }: let
+    sys = "x86_64-linux"; pkgs = nixpkgs.legacyPackages.\${sys};
+  in {
+    devShells.\${sys}.default = pkgs.mkShell {
+      packages = with pkgs; [ rustc cargo clippy rustfmt rust-analyzer ];
+    };
+  };
+}
+EOF
+    ;;
+go)
+    cat > flake.nix <<EOF
+{
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  outputs = { nixpkgs, ... }: let
+    sys = "x86_64-linux"; pkgs = nixpkgs.legacyPackages.\${sys};
+  in {
+    devShells.\${sys}.default = pkgs.mkShell {
+      packages = with pkgs; [ go gopls golangci-lint ];
+    };
+  };
+}
+EOF
+    ;;
+node)
+    cat > flake.nix <<EOF
+{
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  outputs = { nixpkgs, ... }: let
+    sys = "x86_64-linux"; pkgs = nixpkgs.legacyPackages.\${sys};
+  in {
+    devShells.\${sys}.default = pkgs.mkShell {
+      packages = with pkgs; [ nodejs_22 pnpm typescript nodePackages.typescript-language-server ];
+    };
+  };
+}
+EOF
+    cat > package.json <<EOF
+{"name":"$NAME","version":"0.1.0","private":true}
+EOF
+    ;;
+*)
+    cat > flake.nix <<EOF
+{
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  outputs = { nixpkgs, ... }: let
+    sys = "x86_64-linux"; pkgs = nixpkgs.legacyPackages.\${sys};
+  in {
+    devShells.\${sys}.default = pkgs.mkShell {
+      packages = with pkgs; [ git curl jq ];
+    };
+  };
+}
+EOF
+    ;;
+esac
+
+git add -A
+git commit -q -m "chore: scaffold $NAME ($LANG)"
+
+jq -n --arg name "$NAME" --arg lang "$LANG" --arg path "$PROJECT" \
+  '{"status":"created","name":$name,"lang":$lang,"path":$path}'

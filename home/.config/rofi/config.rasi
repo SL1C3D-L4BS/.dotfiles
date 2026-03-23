@@ -1,0 +1,26 @@
+/* ══════════════════════════════════════════════════════════════
+   Rofi config — the_architect | matugen-themed
+   ══════════════════════════════════════════════════════════════ */
+
+configuration {
+    modi:                    "drun,run,window,filebrowser";
+    show-icons:              true;
+    icon-theme:              "Papirus-Dark";
+    terminal:                "alacritty";
+    drun-display-format:     "{name}";
+    window-format:           "{w} · {c} · {t}";
+    display-drun:            "  Apps";
+    display-run:             "  Run";
+    display-window:          "  Windows";
+    display-filebrowser:     "  Files";
+    sidebar-mode:            false;
+    matching:                "fuzzy";
+    sort:                    true;
+    sorting-method:          "fzf";
+    case-sensitive:          false;
+    cycle:                   true;
+    filter:                  "";
+    scroll-method:           0;
+}
+
+@theme "~/.config/rofi/themes/palette.rasi"

@@ -1,0 +1,24 @@
+# ── Autostart ─────────────────────────────────────────────────
+# exec runs once; exec_always runs on reload too
+
+# Compositor (transparency, shadows, blur)
+exec_always --no-startup-id picom --daemon
+
+# Status bar
+exec_always --no-startup-id ~/.config/polybar/launch.sh
+
+# Wallpaper + theme
+exec_always --no-startup-id ~/.local/bin/theme-apply
+
+# Screen lock on suspend
+exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock -c 1e1e2e --nofork
+
+# Clipboard manager
+exec --no-startup-id greenclip daemon
+
+# Input settings
+exec --no-startup-id xset r rate 200 40
+exec --no-startup-id numlockx on
+
+# Fix java apps in i3
+exec --no-startup-id wmname LG3D

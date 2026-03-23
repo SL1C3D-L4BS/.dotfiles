@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# ai-status-bar — polybar module: show ollama status + active model
+# Output: short text for polybar display
+
+OLLAMA_URL="http://localhost:11434"
+
+if curl -sf "$OLLAMA_URL/api/tags" --max-time 1 >/dev/null 2>&1; then
+    count=$(curl -sf "$OLLAMA_URL/api/tags" 2>/dev/null \
+        | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d.get('models',[])))" 2>/dev/null || echo "?")
+    echo " $count"
+else
+    echo "  offline"
+fi

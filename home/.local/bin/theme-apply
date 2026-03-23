@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════
+# theme-apply — propagate matugen palette to all components
+# Usage: theme-apply [wallpaper_path]
+# Without arg: uses current wallpaper from ~/.config/theme/current
+# ══════════════════════════════════════════════════════════════
+set -euo pipefail
+
+THEME_DIR="$HOME/.config/theme"
+WALLPAPER="${1:-$(cat "$THEME_DIR/current" 2>/dev/null || echo "")}"
+
+mkdir -p "$THEME_DIR"
+
+# ── 1. Set wallpaper ──────────────────────────────────────────
+if [[ -f "$WALLPAPER" ]]; then
+    echo "$WALLPAPER" > "$THEME_DIR/current"
+    feh --bg-fill "$WALLPAPER" 2>/dev/null || true
+fi
+
+# ── 2. Generate palette with matugen ──────────────────────────
+if command -v matugen &>/dev/null && [[ -f "$WALLPAPER" ]]; then
+    matugen image "$WALLPAPER" \
+        --config "$HOME/.config/theme/matugen.toml" \
+        2>/dev/null || true
+else
+    # Fallback: use Catppuccin Mocha palette
+    cp "$THEME_DIR/palette-default.toml" "$THEME_DIR/palette.toml" 2>/dev/null || true
+fi
+
+# ── 3. Export to Xresources ───────────────────────────────────
+PALETTE="$THEME_DIR/palette.toml"
+if [[ -f "$PALETTE" ]]; then
+    python3 - <<'PYEOF'
+import re, subprocess, os
+
+palette_file = os.path.expanduser("~/.config/theme/palette.toml")
+xres_file    = os.path.expanduser("~/.config/theme/colors.Xresources")
+
+try:
+    content = open(palette_file).read()
+    # Extract hex color values
+    colors = dict(re.findall(r'(\w+)\s*=\s*"(#[0-9a-fA-F]{6,8})"', content))
+except:
+    colors = {}
+
+# Map matugen names → Xresources entries
+mapping = {
+    "background":  colors.get("background", "#1e1e2e"),
+    "foreground":  colors.get("foreground", "#cdd6f4"),
+    "color0":      colors.get("surface", "#45475a"),
+    "color1":      colors.get("error", "#f38ba8"),
+    "color2":      colors.get("primary", "#a6e3a1"),
+    "color3":      colors.get("tertiary", "#f9e2af"),
+    "color4":      colors.get("secondary", "#89b4fa"),
+    "color5":      colors.get("pink", "#cba6f7"),
+    "color6":      colors.get("teal", "#94e2d5"),
+    "color7":      colors.get("on_surface", "#cdd6f4"),
+    "color8":      colors.get("surface_variant", "#585b70"),
+}
+
+lines = ["! Matugen-generated colors"]
+for k, v in mapping.items():
+    lines.append(f"*.{k}: {v}")
+    lines.append(f"*{k}: {v}")
+
+open(xres_file, "w").write("\n".join(lines) + "\n")
+PYEOF
+fi
+
+# ── 4. Merge into Xresources & reload ─────────────────────────
+XRES="$HOME/.config/theme/colors.Xresources"
+if [[ -f "$XRES" ]]; then
+    xrdb -merge "$XRES" 2>/dev/null || true
+fi
+
+# ── 5. Update alacritty theme ─────────────────────────────────
+python3 "$HOME/.local/bin/_theme-alacritty" 2>/dev/null || true
+
+# ── 6. Reload polybar ─────────────────────────────────────────
+if pgrep -x polybar &>/dev/null; then
+    "$HOME/.config/polybar/launch.sh" &
+fi
+
+# ── 7. Reload i3 colors ───────────────────────────────────────
+i3-msg reload 2>/dev/null || true
+
+# ── 8. Update rofi theme ──────────────────────────────────────
+python3 "$HOME/.local/bin/_theme-rofi" 2>/dev/null || true
+
+echo "theme-apply: done"

@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+"""
+resource-profile — snapshot current system resource usage
+Usage:
+    resource-profile
+    resource-profile --watch 2      # refresh every 2s
+    resource-profile --json         # one-shot JSON output
+"""
+import sys, json, argparse, time, os
+
+def get_stats():
+    import subprocess
+    stats = {}
+
+    # CPU
+    try:
+        with open("/proc/stat") as f:
+            line = f.readline()
+        fields = list(map(int, line.split()[1:]))
+        idle = fields[3]
+        total = sum(fields)
+        stats["cpu_idle_pct"] = round(idle/total*100, 1)
+        stats["cpu_used_pct"] = round(100 - idle/total*100, 1)
+    except: pass
+
+    # Memory
+    try:
+        mem = {}
+        with open("/proc/meminfo") as f:
+            for line in f:
+                k, v = line.split(":")
+                mem[k.strip()] = int(v.split()[0])
+        total_kb = mem.get("MemTotal",0)
+        avail_kb = mem.get("MemAvailable",0)
+        used_kb  = total_kb - avail_kb
+        stats["mem_total_mb"] = round(total_kb/1024, 0)
+        stats["mem_used_mb"]  = round(used_kb/1024, 0)
+        stats["mem_used_pct"] = round(used_kb/total_kb*100, 1) if total_kb else 0
+    except: pass
+
+    # Load average
+    try:
+        with open("/proc/loadavg") as f:
+            parts = f.read().split()
+        stats["load_1m"] = float(parts[0])
+        stats["load_5m"] = float(parts[1])
+        stats["load_15m"] = float(parts[2])
+    except: pass
+
+    # Disk
+    try:
+        st = os.statvfs("/")
+        total = st.f_blocks * st.f_frsize
+        free  = st.f_bfree  * st.f_frsize
+        stats["disk_total_gb"] = round(total/1e9, 1)
+        stats["disk_free_gb"]  = round(free/1e9, 1)
+        stats["disk_used_pct"] = round((total-free)/total*100, 1)
+    except: pass
+
+    stats["timestamp"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+    return stats
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--watch", type=float, default=0, metavar="SECONDS")
+    p.add_argument("--json", action="store_true")
+    args = p.parse_args()
+
+    if args.watch:
+        while True:
+            s = get_stats()
+            if args.json:
+                print(json.dumps(s)); sys.stdout.flush()
+            else:
+                os.system("clear")
+                print(json.dumps(s, indent=2))
+            time.sleep(args.watch)
+    else:
+        print(json.dumps(get_stats(), indent=2))
+
+if __name__ == "__main__":
+    main()

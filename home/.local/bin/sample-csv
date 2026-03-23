@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""
+sample-csv — sample N rows from a CSV (random or head), output JSON or CSV
+Usage:
+    sample-csv data.csv --n 100 --method random
+    sample-csv data.csv --n 50 --out-format csv
+    cat data.csv | sample-csv --stdin --n 10
+"""
+import sys, csv, json, random, argparse
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("file", nargs="?", default="-")
+    p.add_argument("--n", type=int, default=50)
+    p.add_argument("--method", choices=["head","random","tail"], default="head")
+    p.add_argument("--out-format", choices=["json","csv","ndjson"], default="json")
+    p.add_argument("--stdin", action="store_true")
+    p.add_argument("--seed", type=int, default=42)
+    args = p.parse_args()
+
+    src = sys.stdin if (args.stdin or args.file == "-") else open(args.file)
+    reader = csv.DictReader(src)
+    rows = list(reader)
+
+    if args.method == "random":
+        random.seed(args.seed)
+        sample = random.sample(rows, min(args.n, len(rows)))
+    elif args.method == "tail":
+        sample = rows[-args.n:]
+    else:
+        sample = rows[:args.n]
+
+    meta = {"total_rows": len(rows), "sampled": len(sample), "method": args.method}
+
+    if args.out_format == "csv":
+        if sample:
+            w = csv.DictWriter(sys.stdout, fieldnames=sample[0].keys())
+            w.writeheader(); w.writerows(sample)
+    elif args.out_format == "ndjson":
+        for r in sample: print(json.dumps(r))
+    else:
+        print(json.dumps({"meta": meta, "rows": sample}, indent=2))
+
+if __name__ == "__main__":
+    main()

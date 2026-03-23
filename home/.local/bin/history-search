@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# history-search — atuin-powered fuzzy history search, outputs JSON
+# Usage:
+#   history-search              # interactive search, copy selected command
+#   history-search --stats      # output shell history stats as JSON
+#   history-search --recent 20  # last N commands as JSON
+
+set -euo pipefail
+
+cmd="${1:-search}"
+
+case "$cmd" in
+--stats)
+    if command -v atuin &>/dev/null; then
+        atuin stats --json 2>/dev/null || echo '{"error":"atuin stats unavailable"}'
+    else
+        total=$(wc -l < "$HISTFILE" 2>/dev/null || echo 0)
+        echo "{\"total_commands\":$total,\"source\":\"HISTFILE\"}"
+    fi
+    ;;
+--recent)
+    n="${2:-20}"
+    if command -v atuin &>/dev/null; then
+        atuin history list --limit "$n" --format json 2>/dev/null \
+            || echo "{\"error\":\"atuin unavailable\"}"
+    else
+        tail -"$n" "${HISTFILE:-$HOME/.zsh_history}" | jq -R '.' | jq -s '{"commands":.}'
+    fi
+    ;;
+*)
+    if command -v atuin &>/dev/null; then
+        selected=$(atuin search --interactive 2>/dev/null | tail -1)
+    else
+        selected=$(cat "${HISTFILE:-$HOME/.zsh_history}" | fzf --tac --no-sort \
+            --prompt=" history › " \
+            --preview 'echo {}' \
+            --preview-window=down:3:wrap)
+    fi
+    if [[ -n "$selected" ]]; then
+        echo -n "$selected" | xclip -selection clipboard 2>/dev/null || true
+        echo "{\"action\":\"selected\",\"command\":\"$selected\"}"
+    fi
+    ;;
+esac

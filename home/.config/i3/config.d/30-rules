@@ -1,0 +1,24 @@
+# ── Window rules ──────────────────────────────────────────────
+
+# Float rules
+for_window [class="float_term"]     floating enable, resize set 900 600, move position center
+for_window [class="fzf_launcher"]   floating enable, resize set 1000 700, move position center
+for_window [class="Pavucontrol"]    floating enable
+for_window [class="Nm-connection-editor"] floating enable
+for_window [class=".*" title="^Picture in picture$"] floating enable, sticky enable
+for_window [class="Xdg-open"]       floating enable
+for_window [window_role="pop-up"]   floating enable
+for_window [window_role="task_dialog"] floating enable
+
+# Workspace assignments
+assign [class="Alacritty"]   $ws1
+assign [class="Cursor"]      $ws2
+assign [class="firefox"]     $ws3
+assign [class="Chromium"]    $ws3
+assign [class="discord"]     $ws5
+assign [class="Slack"]       $ws5
+assign [class="Spotify"]     $ws10
+assign [class="Pavucontrol"] $ws8
+
+# No focus stealing
+focus_on_window_activation smart

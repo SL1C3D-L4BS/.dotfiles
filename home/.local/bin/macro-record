@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# macro-record — record, list, and replay shell command sequences
+# Usage:
+#   macro-record start <name>       # begin recording
+#   macro-record stop               # end recording
+#   macro-record list               # list saved macros
+#   macro-record run <name>         # replay a macro
+#   macro-record show <name>        # show macro commands as JSON
+
+set -euo pipefail
+
+MACRO_DIR="$HOME/.local/share/macros"
+RECORDING_FILE="$MACRO_DIR/.recording"
+mkdir -p "$MACRO_DIR"
+
+cmd="${1:-list}"
+name="${2:-}"
+
+case "$cmd" in
+start)
+    [[ -z "$name" ]] && { echo '{"error":"name required"}' >&2; exit 1; }
+    echo "$name" > "$RECORDING_FILE"
+    echo "[]" > "$MACRO_DIR/$name.json"
+    # Hook into history via PROMPT_COMMAND
+    cat > "$MACRO_DIR/$name.sh" <<'HOOK'
+#!/usr/bin/env bash
+# Auto-generated macro shell — run commands, then macro-record stop
+HOOK
+    echo "{\"status\":\"recording\",\"name\":\"$name\",\"hint\":\"Run commands. When done: macro-record stop\"}"
+    ;;
+
+stop)
+    [[ ! -f "$RECORDING_FILE" ]] && { echo '{"error":"not recording"}' >&2; exit 1; }
+    name=$(cat "$RECORDING_FILE")
+    # Extract recent history commands
+    history_lines=$(tail -20 "$HISTFILE" 2>/dev/null || tail -20 "$HOME/.bash_history" 2>/dev/null || echo "")
+    commands=$(echo "$history_lines" | tail -20 | jq -R '.' | jq -s '.')
+    echo "$commands" > "$MACRO_DIR/$name.json"
+    rm -f "$RECORDING_FILE"
+    echo "{\"status\":\"saved\",\"name\":\"$name\",\"commands\":$commands}"
+    ;;
+
+list)
+    macros=$(fd -e json . "$MACRO_DIR" 2>/dev/null | sed 's|.*/||;s|\.json$||' | jq -R '.' | jq -s '.')
+    echo "{\"macros\":$macros,\"count\":$(echo "$macros" | jq 'length')}"
+    ;;
+
+show)
+    [[ -z "$name" ]] && { echo '{"error":"name required"}' >&2; exit 1; }
+    f="$MACRO_DIR/$name.json"
+    [[ ! -f "$f" ]] && { echo "{\"error\":\"macro not found: $name\"}" >&2; exit 1; }
+    echo "{\"name\":\"$name\",\"commands\":$(cat "$f")}"
+    ;;
+
+run)
+    [[ -z "$name" ]] && { echo '{"error":"name required"}' >&2; exit 1; }
+    f="$MACRO_DIR/$name.json"
+    [[ ! -f "$f" ]] && { echo "{\"error\":\"macro not found: $name\"}" >&2; exit 1; }
+    commands=$(jq -r '.[]' "$f")
+    echo "{\"status\":\"running\",\"name\":\"$name\"}"
+    while IFS= read -r cmd_line; do
+        echo "+ $cmd_line"
+        eval "$cmd_line"
+    done <<< "$commands"
+    ;;
+
+*)
+    echo "{\"error\":\"unknown command\",\"commands\":[\"start\",\"stop\",\"list\",\"show\",\"run\"]}"
+    exit 1
+    ;;
+esac

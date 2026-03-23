@@ -1,0 +1,30 @@
+# ══════════════════════════════════════════════════════════════
+# i3 config — the_architect | 2026 elite workstation
+# Modular: includes config.d/* for separation of concerns
+# ══════════════════════════════════════════════════════════════
+
+set $mod Mod4
+set $alt Mod1
+
+# ── Fonts ─────────────────────────────────────────────────────
+font pango:JetBrainsMono Nerd Font 10
+
+# ── Workspace names (icon + number) ───────────────────────────
+set $ws1  "1: "
+set $ws2  "2: "
+set $ws3  "3: "
+set $ws4  "4: "
+set $ws5  "5: "
+set $ws6  "6: "
+set $ws7  "7: "
+set $ws8  "8: "
+set $ws9  "9: "
+set $ws10 "10: "
+
+# ── Include modular configs ────────────────────────────────────
+include ~/.config/i3/config.d/00-appearance
+include ~/.config/i3/config.d/10-keybindings
+include ~/.config/i3/config.d/20-workspaces
+include ~/.config/i3/config.d/30-rules
+include ~/.config/i3/config.d/40-autostart
+include ~/.config/i3/config.d/50-modes

@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""
+ollama-map-headers — use local LLM to semantically map CSV headers to a target schema
+Usage:
+    ollama-map-headers --source "first_name,last_name,dob,phone_num" \
+                       --target "name,birth_date,contact_number"
+    cat schema.json | ollama-map-headers --stdin --model mistral
+"""
+import sys, json, argparse
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--source", help="Comma-separated source headers")
+    p.add_argument("--target", help="Comma-separated target headers")
+    p.add_argument("--stdin", action="store_true", help="Read JSON {source:[],target:[]} from stdin")
+    p.add_argument("--model", "-m", default="llama3.2")
+    p.add_argument("--confidence-threshold", type=float, default=0.5)
+    args = p.parse_args()
+
+    if args.stdin:
+        data = json.load(sys.stdin)
+        source = data["source"]
+        target = data["target"]
+    else:
+        source = [h.strip() for h in args.source.split(",")]
+        target = [h.strip() for h in args.target.split(",")]
+
+    prompt = f"""You are a data mapping expert. Map source column headers to target column headers.
+Return ONLY valid JSON — an array of mapping objects.
+
+Source headers: {json.dumps(source)}
+Target headers: {json.dumps(target)}
+
+Return format (JSON array):
+[
+  {{"source": "source_col", "target": "target_col", "confidence": 0.95, "reason": "brief reason"}},
+  ...
+]
+Include null target for unmapped source columns. Return ONLY the JSON array, no other text."""
+
+    import urllib.request
+    payload = json.dumps({"model": args.model, "prompt": prompt, "stream": False, "format": "json"}).encode()
+    req = urllib.request.Request("http://localhost:11434/api/generate", data=payload,
+                                  headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req) as resp:
+            result = json.load(resp)
+            raw = result.get("response","[]")
+            try:
+                mappings = json.loads(raw)
+            except json.JSONDecodeError:
+                import re
+                m = re.search(r'\[.*\]', raw, re.DOTALL)
+                mappings = json.loads(m.group(0)) if m else []
+
+            filtered = [m for m in mappings if m.get("confidence",0) >= args.confidence_threshold]
+            print(json.dumps({
+                "model": args.model,
+                "source_count": len(source),
+                "target_count": len(target),
+                "mappings": filtered,
+                "unmapped_count": sum(1 for m in filtered if m.get("target") is None)
+            }, indent=2))
+    except Exception as e:
+        print(json.dumps({"error": str(e)}), file=sys.stderr); sys.exit(1)
+
+if __name__ == "__main__":
+    main()

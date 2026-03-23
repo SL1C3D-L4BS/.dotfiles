@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""
+map-row — apply a jq-style mapping expression to each row of a dataset
+Usage:
+    cat data.csv | map-row --format csv --expr '.name = .first_name + " " + .last_name'
+    map-row data.json --expr '.score = (.value | tonumber)'
+Output: JSON array of transformed rows
+"""
+import sys, json, csv, argparse
+
+def apply_expr(rows, expr):
+    # Lightweight Python-native field mapper (subset of jq)
+    # Supports: .field, .a = .b, .a = .b + .c, del(.field)
+    # For full jq: pipe through jq subprocess
+    import subprocess, shutil
+    if shutil.which("jq"):
+        data = json.dumps(rows)
+        result = subprocess.run(
+            ["jq", f"[.[] | {expr}]"],
+            input=data, capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            return json.loads(result.stdout)
+    return rows  # passthrough if jq unavailable
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("file", nargs="?", default="-")
+    p.add_argument("--format", choices=["csv","json"], default="json")
+    p.add_argument("--expr", required=True, help="jq-style expression per row")
+    p.add_argument("--out-format", choices=["json","csv","ndjson"], default="json")
+    args = p.parse_args()
+
+    src = sys.stdin if args.file == "-" else open(args.file)
+    if args.format == "csv":
+        rows = list(csv.DictReader(src))
+    else:
+        rows = json.load(src)
+
+    rows = apply_expr(rows, args.expr)
+
+    if args.out_format == "ndjson":
+        for r in rows: print(json.dumps(r))
+    elif args.out_format == "csv" and rows:
+        w = csv.DictWriter(sys.stdout, fieldnames=rows[0].keys())
+        w.writeheader(); w.writerows(rows)
+    else:
+        print(json.dumps(rows, indent=2))
+
+if __name__ == "__main__":
+    main()

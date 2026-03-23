@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""
+discover-sql-headers — get column definitions for a SQL table
+Usage:
+    discover-sql-headers --dsn "sqlite:///db.sqlite" --table users
+"""
+import sys, json, argparse
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--dsn", required=True)
+    p.add_argument("--table", required=True)
+    p.add_argument("--schema", default="public")
+    args = p.parse_args()
+
+    import duckdb
+    try:
+        if args.dsn.startswith(("postgresql","postgres")):
+            import psycopg2
+            conn = psycopg2.connect(args.dsn)
+            cur = conn.cursor()
+            cur.execute(f"""
+                SELECT column_name, data_type, is_nullable, column_default
+                FROM information_schema.columns
+                WHERE table_schema = %s AND table_name = %s
+                ORDER BY ordinal_position
+            """, (args.schema, args.table))
+            cols = [{"column": r[0], "type": r[1], "nullable": r[2]=="YES", "default": r[3]} for r in cur.fetchall()]
+            conn.close()
+        elif args.dsn.startswith("sqlite"):
+            import sqlite3
+            path = args.dsn.replace("sqlite:///","")
+            conn = sqlite3.connect(path)
+            cur = conn.execute(f'PRAGMA table_info("{args.table}")')
+            cols = [{"column": r[1], "type": r[2], "nullable": not r[3], "default": r[4], "pk": bool(r[5])} for r in cur.fetchall()]
+            conn.close()
+        else:
+            cols = []
+
+        print(json.dumps({"table": args.table, "column_count": len(cols), "columns": cols}, indent=2))
+    except Exception as e:
+        print(json.dumps({"error": str(e)}), file=sys.stderr); sys.exit(1)
+
+if __name__ == "__main__":
+    main()

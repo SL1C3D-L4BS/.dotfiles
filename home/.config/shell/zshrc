@@ -1,0 +1,155 @@
+# ══════════════════════════════════════════════════════════════
+# ~/.zshrc — the_architect | 2026 elite shell
+# Target startup: <100ms  (profile: zsh -i -c exit 2>&1 | head)
+# ══════════════════════════════════════════════════════════════
+
+# ── Fast bail for non-interactive ─────────────────────────────
+[[ $- != *i* ]] && return
+
+# ── XDG ───────────────────────────────────────────────────────
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_STATE_HOME="$HOME/.local/state"
+
+# ── Core ENV ──────────────────────────────────────────────────
+export PATH="$HOME/.local/bin:$HOME/.nix-profile/bin:$PATH"
+export EDITOR=nvim
+export VISUAL=nvim
+export PAGER=bat
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+export LESSHISTFILE=/dev/null
+
+# ── ZSH options ───────────────────────────────────────────────
+setopt AUTO_CD
+setopt AUTO_PUSHD
+setopt PUSHD_IGNORE_DUPS
+setopt PUSHD_SILENT
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_VERIFY
+setopt SHARE_HISTORY
+setopt EXTENDED_GLOB
+setopt NOTIFY
+setopt NO_BEEP
+setopt COMPLETE_IN_WORD
+setopt ALWAYS_TO_END
+
+# ── History ───────────────────────────────────────────────────
+HISTFILE="$XDG_STATE_HOME/zsh/history"
+HISTSIZE=100000
+SAVEHIST=100000
+mkdir -p "$XDG_STATE_HOME/zsh"
+
+# ── Completion (cached, fast) ──────────────────────────────────
+autoload -Uz compinit
+_zcompdump="${XDG_CACHE_HOME}/zsh/zcompdump"
+mkdir -p "${XDG_CACHE_HOME}/zsh"
+# Rebuild completion dump at most once per day
+if [[ -n "${_zcompdump}"(#qN.mh+24) ]]; then
+    compinit -d "$_zcompdump"
+else
+    compinit -C -d "$_zcompdump"
+fi
+
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*:descriptions' format '%B%d%b'
+zstyle ':completion:*:warnings' format 'No matches: %d'
+
+# ── Keybindings (vi mode) ─────────────────────────────────────
+bindkey -e   # emacs base (Ctrl+A/E, Ctrl+R etc.) — switch to -v for full vi
+bindkey '^[[A' history-search-backward
+bindkey '^[[B' history-search-forward
+bindkey '^P' history-search-backward
+bindkey '^N' history-search-forward
+
+# ── Aliases ───────────────────────────────────────────────────
+# ls → eza
+alias ls='eza --icons --group-directories-first'
+alias ll='eza -la --icons --group-directories-first --git'
+alias lt='eza --tree --level=2 --icons'
+alias la='eza -a --icons'
+
+# cat → bat
+alias cat='bat --paging=never'
+alias less='bat'
+
+# grep → ripgrep
+alias grep='rg'
+
+# editors
+alias v='nvim'
+alias vi='nvim'
+alias vim='nvim'
+
+# git
+alias g='git'
+alias lg='lazygit'
+alias gs='git status -sb'
+alias gd='git diff'
+alias gc='git commit -v'
+alias gp='git push'
+
+# nav
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ~='cd ~'
+
+# system
+alias top='btop'
+alias ps='procs'
+alias df='duf'
+alias du='dust'
+alias clr='clear'
+
+# nix
+alias nrs='nix run nixpkgs#'
+alias nds='nix develop'
+alias nhm='home-manager switch --flake ~/.config/home-manager#default'
+
+# dotfiles
+alias dot='cd ~/dev/.dotfiles'
+alias dotpull='cd ~/dev/.dotfiles && git pull'
+
+# CLIs (custom)
+alias fb='file-browser'
+alias hs='history-search'
+alias rm='resource-monitor'
+alias ss='snippet-manager'
+
+# ── Direnv ────────────────────────────────────────────────────
+(( ${+commands[direnv]} )) && eval "$(direnv hook zsh)"
+
+# ── Zoxide ────────────────────────────────────────────────────
+(( ${+commands[zoxide]} )) && eval "$(zoxide init zsh --cmd cd)"
+
+# ── Atuin (replaces Ctrl+R history) ──────────────────────────
+if (( ${+commands[atuin]} )); then
+    eval "$(atuin init zsh --disable-up-arrow)"
+    bindkey '^r' _atuin_search_widget
+fi
+
+# ── Starship prompt ───────────────────────────────────────────
+(( ${+commands[starship]} )) && eval "$(starship init zsh)"
+
+# ── FZF ───────────────────────────────────────────────────────
+if (( ${+commands[fzf]} )); then
+    source <(fzf --zsh)
+    export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+    export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+    export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+    export FZF_DEFAULT_OPTS="
+        --height=40% --layout=reverse --border=rounded
+        --color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8
+        --color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc
+        --color=marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8
+        --bind ctrl-d:half-page-down,ctrl-u:half-page-up
+        --bind ctrl-f:page-down,ctrl-b:page-up"
+    export FZF_CTRL_R_OPTS="--sort --exact"
+fi
+
+# ── Local overrides ───────────────────────────────────────────
+[[ -f "$HOME/.config/shell/zshrc.local" ]] && source "$HOME/.config/shell/zshrc.local"

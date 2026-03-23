@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+"""
+discover-csv-headers — extract headers + type inference from CSV files
+Usage:
+    discover-csv-headers file.csv
+    discover-csv-headers *.csv
+    cat data.csv | discover-csv-headers --stdin
+"""
+import sys, csv, json, argparse
+from pathlib import Path
+
+def sniff_file(path_or_stdin, label):
+    import io
+    if path_or_stdin == "-":
+        content = sys.stdin.read()
+        src = io.StringIO(content)
+    else:
+        content = open(path_or_stdin).read()
+        src = io.StringIO(content)
+
+    dialect = csv.Sniffer().sniff(content[:4096], delimiters=",\t|;")
+    reader = csv.DictReader(src, dialect=dialect)
+    rows = []
+    for i, row in enumerate(reader):
+        if i >= 200: break
+        rows.append(row)
+
+    if not rows:
+        return {"file": label, "headers": [], "row_count_sampled": 0}
+
+    headers = list(rows[0].keys())
+    def infer(col):
+        vals = [r.get(col,"") for r in rows if r.get(col,"").strip()]
+        if not vals: return "null"
+        for t, n in [(int,"integer"),(float,"number")]:
+            try: [t(v) for v in vals]; return n
+            except: pass
+        return "string"
+
+    return {
+        "file": label,
+        "delimiter": dialect.delimiter,
+        "header_count": len(headers),
+        "headers": [{"name": h, "inferred_type": infer(h)} for h in headers],
+        "row_count_sampled": len(rows)
+    }
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("files", nargs="*")
+    p.add_argument("--stdin", action="store_true")
+    args = p.parse_args()
+
+    results = []
+    if args.stdin or not args.files:
+        results.append(sniff_file("-", "stdin"))
+    else:
+        for f in args.files:
+            results.append(sniff_file(f, f))
+
+    out = results[0] if len(results)==1 else results
+    print(json.dumps(out, indent=2))
+
+if __name__ == "__main__":
+    main()

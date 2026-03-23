@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# theme-switch — fzf-pick a wallpaper then apply theme
+WALL_DIR="${WALLPAPER_DIR:-$HOME/Pictures/wallpapers}"
+mkdir -p "$WALL_DIR"
+WALL=$(fd -e jpg -e jpeg -e png -e webp . "$WALL_DIR" \
+    | fzf --prompt=" wallpaper › " \
+          --preview 'feh --scale-down --image-bg black {} 2>/dev/null || echo {}' \
+          --preview-window=right:50%)
+[[ -n "$WALL" ]] && exec theme-apply "$WALL"

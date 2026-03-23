@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+"""
+map-set-schema — infer and output JSON schema from a dataset
+Usage:
+    map-set-schema <file.csv|file.parquet|file.json>
+    cat data.csv | map-set-schema --stdin --format csv
+Output: JSON schema object
+"""
+import sys, json, argparse
+from pathlib import Path
+
+def infer_type(values):
+    non_null = [v for v in values if v is not None and str(v).strip() not in ("", "null", "NULL", "NA", "N/A")]
+    if not non_null: return "null"
+    checks = [(int, "integer"), (float, "number")]
+    for cast, name in checks:
+        try:
+            [cast(v) for v in non_null]; return name
+        except (ValueError, TypeError): pass
+    return "string"
+
+def schema_from_rows(rows):
+    if not rows: return {}
+    keys = list(rows[0].keys())
+    return {k: {"type": infer_type([r.get(k) for r in rows])} for k in keys}
+
+def load_csv(path_or_stdin, fmt="csv"):
+    import csv
+    src = sys.stdin if path_or_stdin == "-" else open(path_or_stdin)
+    reader = csv.DictReader(src)
+    return list(reader)[:500]
+
+def load_json(path):
+    data = json.loads(open(path).read())
+    return data if isinstance(data, list) else [data]
+
+def load_parquet(path):
+    try:
+        import duckdb
+        rows = duckdb.sql(f"SELECT * FROM read_parquet('{path}') LIMIT 500").df()
+        return rows.to_dict(orient="records")
+    except ImportError:
+        return json.load(sys.exit(1) or sys.stdin)
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("file", nargs="?", default="-")
+    p.add_argument("--format", choices=["csv","json","parquet","auto"], default="auto")
+    p.add_argument("--stdin", action="store_true")
+    args = p.parse_args()
+
+    src = "-" if args.stdin else args.file
+    fmt = args.format
+    if fmt == "auto":
+        ext = Path(str(src)).suffix.lower() if src != "-" else ".csv"
+        fmt = {"csv":".csv","json":".json","parquet":".parquet"}.get(ext, ".csv").lstrip(".")
+
+    loaders = {"csv": load_csv, "json": load_json, "parquet": load_parquet}
+    rows = loaders.get(fmt, load_csv)(src)
+    schema = schema_from_rows(rows)
+
+    output = {
+        "source": str(src),
+        "format": fmt,
+        "row_count_sampled": len(rows),
+        "schema": schema
+    }
+    print(json.dumps(output, indent=2))
+
+if __name__ == "__main__":
+    main()

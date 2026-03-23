@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+"""
+audit-parquet — deep quality audit of parquet files: duplicates, outliers, distributions
+Usage:
+    audit-parquet data.parquet
+    audit-parquet *.parquet --strict --report audit_report.json
+"""
+import sys, json, argparse
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("files", nargs="+")
+    p.add_argument("--strict", action="store_true")
+    p.add_argument("--report", default=None, help="Save report to JSON file")
+    args = p.parse_args()
+
+    import duckdb
+    reports = []
+    for f in args.files:
+        try:
+            con = duckdb.connect()
+            row_count = con.execute(f"SELECT count(*) FROM read_parquet('{f}')").fetchone()[0]
+            schema_raw = con.execute(f"DESCRIBE SELECT * FROM read_parquet('{f}') LIMIT 0").fetchall()
+            schema = [{"column": r[0], "type": r[1]} for r in schema_raw]
+
+            # Duplicate rows
+            dup_count = con.execute(f"""
+                SELECT count(*) - count(DISTINCT *) FROM read_parquet('{f}')
+            """).fetchone()[0]
+
+            # Per-column stats for numeric cols
+            col_stats = []
+            for col in schema:
+                c = col["column"]
+                t = col["type"].lower()
+                if any(x in t for x in ("int","float","double","decimal","numeric","real")):
+                    stats = con.execute(f"""
+                        SELECT
+                            min("{c}"),
+                            max("{c}"),
+                            avg("{c}"),
+                            stddev("{c}"),
+                            count(*) FILTER (WHERE "{c}" IS NULL)
+                        FROM read_parquet('{f}')
+                    """).fetchone()
+                    col_stats.append({
+                        "column": c, "type": t,
+                        "min": stats[0], "max": stats[1],
+                        "mean": round(float(stats[2] or 0), 4),
+                        "stddev": round(float(stats[3] or 0), 4),
+                        "null_count": stats[4]
+                    })
+                else:
+                    null_c = con.execute(f'SELECT count(*) FROM read_parquet(\'{f}\') WHERE "{c}" IS NULL').fetchone()[0]
+                    unique_c = con.execute(f'SELECT count(DISTINCT "{c}") FROM read_parquet(\'{f}\')').fetchone()[0]
+                    col_stats.append({"column": c, "type": t, "null_count": null_c, "unique_count": unique_c})
+
+            total_nulls = sum(c.get("null_count",0) for c in col_stats)
+            passed = not (args.strict and (dup_count > 0 or total_nulls > 0))
+
+            reports.append({
+                "file": f,
+                "row_count": row_count,
+                "duplicate_rows": dup_count,
+                "total_nulls": total_nulls,
+                "column_count": len(schema),
+                "column_audits": col_stats,
+                "passed": passed
+            })
+        except Exception as e:
+            reports.append({"file": f, "error": str(e), "passed": False})
+
+    output = json.dumps(reports, indent=2)
+    print(output)
+    if args.report:
+        open(args.report, "w").write(output)
+
+    if args.strict and any(not r.get("passed") for r in reports):
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

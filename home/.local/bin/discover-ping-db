@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+"""
+discover-ping-db — probe database connections, return reachability + metadata
+Usage:
+    discover-ping-db --dsn "postgresql://user:pass@host:5432/db"
+    discover-ping-db --dsn "sqlite:///path/to/db.sqlite"
+    cat connections.json | discover-ping-db --stdin
+"""
+import sys, json, argparse, time
+
+def ping_postgres(dsn):
+    import psycopg2
+    t = time.time()
+    conn = psycopg2.connect(dsn)
+    cur = conn.cursor()
+    cur.execute("SELECT version(), current_database(), pg_size_pretty(pg_database_size(current_database()))")
+    row = cur.fetchone()
+    conn.close()
+    return {"engine": "postgresql", "version": row[0], "database": row[1], "size": row[2], "latency_ms": round((time.time()-t)*1000,2)}
+
+def ping_sqlite(path):
+    import sqlite3
+    path = path.replace("sqlite:///", "")
+    t = time.time()
+    conn = sqlite3.connect(path)
+    tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+    conn.close()
+    return {"engine": "sqlite", "path": path, "tables": [r[0] for r in tables], "latency_ms": round((time.time()-t)*1000,2)}
+
+def ping_duckdb(path):
+    import duckdb
+    path = path.replace("duckdb:///", "")
+    t = time.time()
+    con = duckdb.connect(path)
+    tables = con.execute("SHOW TABLES").fetchall()
+    con.close()
+    return {"engine": "duckdb", "path": path, "tables": [r[0] for r in tables], "latency_ms": round((time.time()-t)*1000,2)}
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--dsn", help="Database DSN string")
+    p.add_argument("--stdin", action="store_true")
+    args = p.parse_args()
+
+    dsns = []
+    if args.stdin:
+        dsns = json.load(sys.stdin) if not args.dsn else [args.dsn]
+    elif args.dsn:
+        dsns = [args.dsn]
+    else:
+        p.error("Provide --dsn or --stdin with JSON array of DSNs")
+
+    results = []
+    for dsn in dsns:
+        try:
+            if dsn.startswith("postgresql") or dsn.startswith("postgres"):
+                info = ping_postgres(dsn)
+            elif dsn.startswith("sqlite"):
+                info = ping_sqlite(dsn)
+            elif dsn.startswith("duckdb"):
+                info = ping_duckdb(dsn)
+            else:
+                info = {"dsn": dsn, "error": "unsupported engine"}
+            info["dsn"] = dsn; info["reachable"] = True
+        except Exception as e:
+            info = {"dsn": dsn, "reachable": False, "error": str(e)}
+        results.append(info)
+
+    print(json.dumps(results, indent=2))
+
+if __name__ == "__main__":
+    main()

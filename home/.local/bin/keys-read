@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+"""
+keys-read — read encrypted secrets from age-encrypted keystore
+Usage:
+    keys-read --key anthropic_api_key
+    keys-read --list
+    keys-read --all
+Keystore: ~/.config/keys/keystore.age (encrypted with ~/.config/keys/identity.age)
+"""
+import sys, json, argparse, subprocess, os
+from pathlib import Path
+
+KEYS_DIR    = Path.home() / ".config" / "keys"
+KEYSTORE    = KEYS_DIR / "keystore.json.age"
+IDENTITY    = KEYS_DIR / "identity.age"
+
+def decrypt_keystore():
+    if not KEYSTORE.exists():
+        return {}
+    result = subprocess.run(
+        ["age", "--decrypt", "-i", str(IDENTITY), str(KEYSTORE)],
+        capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        sys.exit(f"Decrypt failed: {result.stderr.strip()}")
+    return json.loads(result.stdout)
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--key", help="Key name to retrieve")
+    p.add_argument("--list", action="store_true", help="List key names (not values)")
+    p.add_argument("--all", action="store_true", help="Dump all keys as JSON (sensitive!)")
+    args = p.parse_args()
+
+    if not IDENTITY.exists():
+        print(json.dumps({"error": "No identity key found", "hint": "Run keys-rotate --init"}), file=sys.stderr)
+        sys.exit(1)
+
+    store = decrypt_keystore()
+
+    if args.list:
+        print(json.dumps({"keys": sorted(store.keys()), "count": len(store)}, indent=2))
+    elif args.all:
+        print(json.dumps(store, indent=2))
+    elif args.key:
+        val = store.get(args.key)
+        if val is None:
+            print(json.dumps({"error": f"Key not found: {args.key}"}), file=sys.stderr); sys.exit(1)
+        print(json.dumps({"key": args.key, "value": val}))
+    else:
+        p.print_help()
+
+if __name__ == "__main__":
+    main()

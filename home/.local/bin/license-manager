@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""
+license-manager — manage software license keys with PQC-grade age encryption
+Usage:
+    license-manager add --product "MyApp Pro" --key "XXXX-XXXX" --email "me@x.com"
+    license-manager list
+    license-manager get --product "MyApp Pro"
+    license-manager export --output licenses_backup.age
+"""
+import sys, json, argparse, subprocess, tempfile, os
+from pathlib import Path
+from datetime import datetime
+
+KEYS_DIR  = Path.home() / ".config" / "keys"
+LICENSE_DB = KEYS_DIR / "licenses.json.age"
+IDENTITY   = KEYS_DIR / "identity.age"
+RECIPIENT  = KEYS_DIR / "identity.age.pub"
+
+def decrypt():
+    if not LICENSE_DB.exists(): return {}
+    r = subprocess.run(["age","--decrypt","-i",str(IDENTITY),str(LICENSE_DB)],
+                       capture_output=True, text=True)
+    if r.returncode != 0: sys.exit(f"Decrypt error: {r.stderr.strip()}")
+    return json.loads(r.stdout)
+
+def encrypt(data):
+    pub = RECIPIENT.read_text().strip()
+    raw = json.dumps(data, indent=2).encode()
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as tf:
+        tf.write(raw); tf.flush()
+        r = subprocess.run(["age","-r",pub,"-o",str(LICENSE_DB),tf.name],capture_output=True)
+        os.unlink(tf.name)
+    if r.returncode != 0: sys.exit(f"Encrypt error: {r.stderr.decode().strip()}")
+
+def main():
+    p = argparse.ArgumentParser()
+    sub = p.add_subparsers(dest="cmd")
+
+    a = sub.add_parser("add")
+    a.add_argument("--product",  required=True)
+    a.add_argument("--key",      required=True)
+    a.add_argument("--email",    default="")
+    a.add_argument("--expires",  default="")
+    a.add_argument("--notes",    default="")
+
+    sub.add_parser("list")
+
+    g = sub.add_parser("get")
+    g.add_argument("--product", required=True)
+
+    e = sub.add_parser("export")
+    e.add_argument("--output", required=True)
+
+    args = p.parse_args()
+
+    if not IDENTITY.exists():
+        sys.exit(json.dumps({"error":"No age identity. Run: keys-rotate --init"}))
+
+    if args.cmd == "add":
+        db = decrypt()
+        db[args.product] = {
+            "key": args.key, "email": args.email,
+            "expires": args.expires, "notes": args.notes,
+            "added": datetime.utcnow().isoformat()
+        }
+        encrypt(db)
+        print(json.dumps({"status": "saved", "product": args.product}))
+
+    elif args.cmd == "list":
+        db = decrypt()
+        items = [{"product": k, "email": v.get("email"), "expires": v.get("expires"), "added": v.get("added")}
+                 for k, v in db.items()]
+        print(json.dumps({"count": len(items), "licenses": items}, indent=2))
+
+    elif args.cmd == "get":
+        db = decrypt()
+        entry = db.get(args.product)
+        if not entry:
+            print(json.dumps({"error": f"Not found: {args.product}"}), file=sys.stderr); sys.exit(1)
+        print(json.dumps({"product": args.product, **entry}, indent=2))
+
+    elif args.cmd == "export":
+        import shutil
+        shutil.copy(str(LICENSE_DB), args.output)
+        print(json.dumps({"status": "exported", "output": args.output}))
+    else:
+        p.print_help()
+
+if __name__ == "__main__":
+    main()

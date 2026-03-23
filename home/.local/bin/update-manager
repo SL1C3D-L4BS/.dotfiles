@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# update-manager — orchestrate updates: Arch pacman/yay + nix + dotfiles
+# Usage:
+#   update-manager           # interactive: pick what to update
+#   update-manager --all     # update everything
+#   update-manager --arch    # pacman/yay only
+#   update-manager --nix     # nix flake update + home-manager switch
+#   update-manager --dots    # git pull dotfiles + chezmoi apply
+
+set -euo pipefail
+
+log() { echo "[$(date +%H:%M:%S)] $*"; }
+
+update_arch() {
+    log "Updating Arch packages..."
+    if command -v yay &>/dev/null; then
+        yay -Syu --noconfirm 2>&1 | tail -5
+    else
+        sudo pacman -Syu --noconfirm 2>&1 | tail -5
+    fi
+    log "Arch: done"
+}
+
+update_nix() {
+    log "Updating Nix flake inputs..."
+    cd ~/.config/home-manager 2>/dev/null || { log "No home-manager flake found"; return; }
+    nix flake update
+    log "Switching home-manager..."
+    home-manager switch --flake .#the_architect 2>&1 | tail -10
+    log "Nix: done"
+}
+
+update_dots() {
+    log "Pulling dotfiles..."
+    cd ~/dev/.dotfiles
+    git pull --rebase 2>&1
+    if command -v chezmoi &>/dev/null; then
+        chezmoi apply 2>&1 | tail -5
+    fi
+    log "Dotfiles: done"
+}
+
+CMD="${1:---all}"
+case "$CMD" in
+--arch) update_arch ;;
+--nix)  update_nix  ;;
+--dots) update_dots ;;
+--all)  update_arch; update_nix; update_dots ;;
+*)
+    selected=$(printf "arch\nnix\ndotfiles\nall" | fzf --prompt=" update › " --multi)
+    echo "$selected" | while read -r s; do
+        case "$s" in
+            arch) update_arch;;
+            nix)  update_nix;;
+            dotfiles) update_dots;;
+            all)  update_arch; update_nix; update_dots;;
+        esac
+    done
+    ;;
+esac
+
+echo "{\"status\":\"complete\",\"timestamp\":\"$(date -Iseconds)\"}"

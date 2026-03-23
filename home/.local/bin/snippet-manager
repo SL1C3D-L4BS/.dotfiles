@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# snippet-manager — fzf + bat powered code snippet manager
+# Usage:
+#   snippet-manager          # browse + copy
+#   snippet-manager add      # add snippet from stdin or file
+#   snippet-manager list     # list as JSON
+
+set -euo pipefail
+
+SNIP_DIR="$HOME/.local/share/snippets"
+mkdir -p "$SNIP_DIR"
+
+cmd="${1:-browse}"
+shift 2>/dev/null || true
+
+case "$cmd" in
+browse|"")
+    selected=$(fd . "$SNIP_DIR" -e md -e sh -e py -e js -e ts -e go -e rs 2>/dev/null \
+        | fzf --prompt=" snippet › " \
+              --preview 'bat --color=always --style=plain {}' \
+              --preview-window=right:60% \
+              --bind 'enter:execute(bat --paging=never {} | xclip -selection clipboard)+abort')
+    [[ -n "$selected" ]] && echo "{\"action\":\"copied\",\"file\":\"$selected\"}" || echo '{"action":"cancelled"}'
+    ;;
+
+add)
+    name="${1:-$(date +%Y%m%d_%H%M%S)}"
+    ext="${2:-md}"
+    outfile="$SNIP_DIR/$name.$ext"
+    cat > "$outfile"
+    echo "{\"status\":\"saved\",\"file\":\"$outfile\"}"
+    ;;
+
+list)
+    snippets=$(fd . "$SNIP_DIR" 2>/dev/null | jq -R '{"path":.,"name":(split("/")[-1])}' | jq -s '.')
+    echo "{\"count\":$(echo "$snippets"|jq 'length'),\"snippets\":$snippets}"
+    ;;
+
+*)
+    echo "{\"error\":\"unknown command\",\"commands\":[\"browse\",\"add\",\"list\"]}"
+    ;;
+esac

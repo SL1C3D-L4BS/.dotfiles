@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# file-browser — fzf + eza + bat file explorer
+# Usage:
+#   file-browser [start_dir]
+# Keys:
+#   Enter  → open in $EDITOR
+#   Ctrl+Y → copy path to clipboard
+#   Ctrl+D → cd to directory
+#   Ctrl+P → preview toggle
+
+set -euo pipefail
+
+START="${1:-$HOME}"
+
+selected=$(fd --type f --hidden --follow \
+    --exclude .git --exclude node_modules --exclude .direnv \
+    . "$START" 2>/dev/null \
+    | fzf \
+        --prompt=" file-browser › " \
+        --preview 'bat --color=always --style=numbers,header --line-range=:300 {}' \
+        --preview-window=right:55%:wrap \
+        --bind 'ctrl-y:execute-silent(echo -n {} | xclip -selection clipboard)' \
+        --bind 'ctrl-d:execute(alacritty --working-directory {//} &)+abort' \
+        --header 'Enter:edit  Ctrl-Y:copy-path  Ctrl-D:cd-dir')
+
+if [[ -n "$selected" ]]; then
+    echo "{\"action\":\"open\",\"file\":\"$selected\"}"
+    ${EDITOR:-nvim} "$selected"
+fi

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# env-switch — fuzzy-pick and enter a nix dev environment by project path
+# Usage: env-switch [search_dir]
+# Output: activates direnv in selected project (exec to new shell)
+
+set -euo pipefail
+
+SEARCH="${1:-$HOME/dev}"
+
+selected=$(fd -t d ".envrc" "$SEARCH" 2>/dev/null \
+    | sed 's|/.envrc$||' \
+    | fzf --prompt="  env-switch › " \
+          --preview 'cat {}/flake.nix 2>/dev/null || cat {}/.envrc' \
+          --preview-window=right:50%:wrap)
+
+[[ -z "$selected" ]] && exit 0
+echo "{\"action\":\"entering\",\"path\":\"$selected\"}"
+exec zsh -c "cd '$selected' && exec zsh"

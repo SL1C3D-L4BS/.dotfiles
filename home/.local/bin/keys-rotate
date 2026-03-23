@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+"""
+keys-rotate — manage age-encrypted secret keystore
+Usage:
+    keys-rotate --init                          # create identity + empty keystore
+    keys-rotate --set anthropic_api_key VALUE   # add/update key
+    keys-rotate --delete KEY                    # remove key
+    keys-rotate --export backup.age             # export encrypted backup
+"""
+import sys, json, argparse, subprocess, os, tempfile
+from pathlib import Path
+
+KEYS_DIR    = Path.home() / ".config" / "keys"
+KEYSTORE    = KEYS_DIR / "keystore.json.age"
+IDENTITY    = KEYS_DIR / "identity.age"
+RECIPIENT   = KEYS_DIR / "identity.age.pub"
+
+def encrypt_store(store):
+    pub = RECIPIENT.read_text().strip()
+    data = json.dumps(store, indent=2).encode()
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as tf:
+        tf.write(data); tf.flush()
+        result = subprocess.run(
+            ["age", "-r", pub, "-o", str(KEYSTORE), tf.name],
+            capture_output=True
+        )
+        os.unlink(tf.name)
+    if result.returncode != 0:
+        sys.exit(f"Encrypt failed: {result.stderr.decode().strip()}")
+
+def decrypt_store():
+    if not KEYSTORE.exists(): return {}
+    result = subprocess.run(
+        ["age", "--decrypt", "-i", str(IDENTITY), str(KEYSTORE)],
+        capture_output=True, text=True
+    )
+    if result.returncode != 0: sys.exit(f"Decrypt failed: {result.stderr.strip()}")
+    return json.loads(result.stdout)
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--init", action="store_true")
+    p.add_argument("--set", nargs=2, metavar=("KEY","VALUE"))
+    p.add_argument("--delete", metavar="KEY")
+    p.add_argument("--export", metavar="OUTPUT")
+    args = p.parse_args()
+
+    if args.init:
+        KEYS_DIR.mkdir(mode=0o700, parents=True, exist_ok=True)
+        if IDENTITY.exists():
+            sys.exit(json.dumps({"error": "Identity already exists", "path": str(IDENTITY)}))
+        result = subprocess.run(
+            ["age-keygen", "-o", str(IDENTITY)],
+            capture_output=True, text=True
+        )
+        IDENTITY.chmod(0o600)
+        # Extract public key
+        for line in result.stderr.split("\n"):
+            if "Public key:" in line:
+                pub = line.split("Public key:")[1].strip()
+                RECIPIENT.write_text(pub + "\n")
+                break
+        encrypt_store({})
+        print(json.dumps({"status": "initialized", "identity": str(IDENTITY), "public_key": RECIPIENT.read_text().strip()}))
+
+    elif args.set:
+        key, value = args.set
+        store = decrypt_store()
+        store[key] = value
+        encrypt_store(store)
+        print(json.dumps({"status": "ok", "key": key, "action": "set"}))
+
+    elif args.delete:
+        store = decrypt_store()
+        removed = store.pop(args.delete, None)
+        encrypt_store(store)
+        print(json.dumps({"status": "ok", "key": args.delete, "action": "deleted" if removed else "not_found"}))
+
+    elif args.export:
+        import shutil
+        shutil.copy(str(KEYSTORE), args.export)
+        print(json.dumps({"status": "exported", "output": args.export}))
+    else:
+        p.print_help()
+
+if __name__ == "__main__":
+    main()

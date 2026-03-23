@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+"""
+discover-sql-tables — list all tables in a SQL database with row counts
+Usage:
+    discover-sql-tables --dsn "postgresql://user:pass@host/db"
+    discover-sql-tables --dsn "sqlite:///db.sqlite" --count-rows
+"""
+import sys, json, argparse
+
+def tables_postgres(dsn, count_rows):
+    import psycopg2
+    conn = psycopg2.connect(dsn)
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT schemaname, tablename
+        FROM pg_tables
+        WHERE schemaname NOT IN ('pg_catalog','information_schema')
+        ORDER BY schemaname, tablename
+    """)
+    tables = cur.fetchall()
+    result = []
+    for schema, table in tables:
+        entry = {"schema": schema, "table": table, "full_name": f"{schema}.{table}"}
+        if count_rows:
+            cur.execute(f'SELECT count(*) FROM "{schema}"."{table}"')
+            entry["row_count"] = cur.fetchone()[0]
+        result.append(entry)
+    conn.close()
+    return result
+
+def tables_sqlite(path, count_rows):
+    import sqlite3
+    path = path.replace("sqlite:///", "")
+    conn = sqlite3.connect(path)
+    tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").fetchall()
+    result = []
+    for (t,) in tables:
+        entry = {"table": t}
+        if count_rows:
+            entry["row_count"] = conn.execute(f'SELECT count(*) FROM "{t}"').fetchone()[0]
+        result.append(entry)
+    conn.close()
+    return result
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--dsn", required=True)
+    p.add_argument("--count-rows", action="store_true")
+    args = p.parse_args()
+
+    try:
+        if args.dsn.startswith(("postgresql","postgres")):
+            tables = tables_postgres(args.dsn, args.count_rows)
+        elif args.dsn.startswith("sqlite"):
+            tables = tables_sqlite(args.dsn, args.count_rows)
+        else:
+            tables = []
+        print(json.dumps({"dsn": args.dsn, "table_count": len(tables), "tables": tables}, indent=2))
+    except Exception as e:
+        print(json.dumps({"dsn": args.dsn, "error": str(e)}), file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

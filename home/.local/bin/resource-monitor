@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# resource-monitor — btop wrapper with JSON snapshot capability
+# Usage:
+#   resource-monitor          # launch btop TUI
+#   resource-monitor --json   # one-shot JSON stats
+
+set -euo pipefail
+
+if [[ "${1:-}" == "--json" ]]; then
+    exec resource-profile
+fi
+
+# Launch btop with custom config if available
+if command -v btop &>/dev/null; then
+    exec btop
+else
+    echo '{"error":"btop not installed","hint":"nix run nixpkgs#btop"}' >&2
+    exit 1
+fi

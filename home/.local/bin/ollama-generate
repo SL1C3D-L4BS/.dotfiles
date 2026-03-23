@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+"""
+ollama-generate — send a prompt to a local ollama model, stream JSON
+Usage:
+    ollama-generate --model llama3 --prompt "explain DuckDB"
+    echo "summarize this" | ollama-generate --model mistral --stdin
+    ollama-generate --model codellama --prompt "write a hello world" --no-stream
+"""
+import sys, json, argparse, subprocess
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--model", "-m", default="llama3.2")
+    p.add_argument("--prompt", "-p", default=None)
+    p.add_argument("--stdin", action="store_true")
+    p.add_argument("--system", default=None)
+    p.add_argument("--no-stream", action="store_true")
+    p.add_argument("--format", choices=["text","json"], default="text")
+    args = p.parse_args()
+
+    prompt = args.prompt
+    if args.stdin or not prompt:
+        prompt = sys.stdin.read().strip()
+    if not prompt:
+        p.error("Provide --prompt or --stdin")
+
+    payload = {"model": args.model, "prompt": prompt, "stream": not args.no_stream}
+    if args.system:
+        payload["system"] = args.system
+    if args.format == "json":
+        payload["format"] = "json"
+
+    import urllib.request, urllib.error
+    data = json.dumps(payload).encode()
+    req = urllib.request.Request("http://localhost:11434/api/generate", data=data,
+                                  headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req) as resp:
+            full_response = ""
+            for line in resp:
+                chunk = json.loads(line.decode())
+                if "response" in chunk:
+                    full_response += chunk["response"]
+                    if not args.no_stream:
+                        print(chunk["response"], end="", flush=True)
+                if chunk.get("done"):
+                    if not args.no_stream: print()
+                    if args.no_stream:
+                        print(json.dumps({
+                            "model": args.model,
+                            "response": full_response,
+                            "eval_count": chunk.get("eval_count"),
+                            "eval_duration_ms": round(chunk.get("eval_duration",0)/1e6, 2)
+                        }, indent=2))
+    except urllib.error.URLError as e:
+        print(json.dumps({"error": str(e), "hint": "Is ollama running? Try: ollama serve"}), file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
