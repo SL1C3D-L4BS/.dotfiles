@@ -12,7 +12,7 @@ for_window [window_role="task_dialog"] floating enable
 
 # SL1C3dCLI — floating pill overlay, no border, always on top, sticky
 # Position: top-right of Vizio, flush with terminal right edge (x=1048), aligned with terminal top (y=460)
-for_window [class="sl1c3d-cli"]  floating enable, sticky enable, border none, resize set 560 px 480 px, move absolute position 1348 px 500 px
+for_window [class="sl1c3d-cli"]  floating enable, sticky enable, border none, resize set 620 px 480 px, move absolute position 1288 px 500 px
 
 # ── ws1: Dev (HDMI-A-0) — terminal, nvim, code editors ────────
 assign [class="dev_term"]       $ws1
