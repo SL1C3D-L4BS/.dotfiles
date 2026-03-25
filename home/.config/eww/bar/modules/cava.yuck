@@ -1,0 +1,10 @@
+; ── Cava audio visualizer (hides when silent) ─────────────────
+(deflisten cava_output
+  :initial ""
+  "~/.config/eww/bar/scripts/cava.sh")
+
+(defwidget cava-module []
+  (eventbox
+    :onclick "~/.config/eww/bar/popup-menus/media/scripts/toggle-music.sh &"
+    :visible {cava_output != ""}
+    (label :class "cava-box" :text "${cava_output}")))

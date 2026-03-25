@@ -1,0 +1,9 @@
+; ── CPU Temp module ────────────────────────────────────────────
+(defpoll cpu_temp
+  :interval "5s"
+  `sensors dell_smm-isa-00de 2>/dev/null | awk '/CPU/{gsub(/[+°C]/,"",$2); printf "%.0f°", $2}' || echo "N/A"`)
+
+(defwidget cpu-temp-module []
+  (box :class "cputemp-box" :orientation "h" :space-evenly false
+    (label :class "pill-icon cputemp-i" :text " 󱃂 ")
+    (label :class "pill-text" :text "${cpu_temp}")))

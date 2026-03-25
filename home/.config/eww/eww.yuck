@@ -1,0 +1,25 @@
+; ══════════════════════════════════════════════════════════════
+; eww.yuck — the_architect | Harry Potter themed i3 bar
+; Ported from randomboi404/eww · Rebranded for the_architect
+; ══════════════════════════════════════════════════════════════
+
+; ── Bar ───────────────────────────────────────────────────────
+(include "./bar/bar.yuck")
+
+; ── Popup Menus ───────────────────────────────────────────────
+(include "./bar/popup-menus/dashboard/dashboard.yuck")
+(include "./bar/popup-menus/calender/calender.yuck")
+(include "./bar/popup-menus/media/media.yuck")
+(include "./bar/popup-menus/utils/wifi.yuck")
+(include "./bar/popup-menus/utils/cpu-profile.yuck")
+(include "./bar/popup-menus/audio/audio-control.yuck")
+(include "./bar/popup-menus/network/net-panel.yuck")
+
+; ── AI Panel ─────────────────────────────────────────────────
+(include "./ai-panel/ai-panel.yuck")
+
+; ── OSD ───────────────────────────────────────────────────────
+(include "./osd/osd.yuck")
+
+; ── Dock ──────────────────────────────────────────────────────
+(include "./dock/dock.yuck")

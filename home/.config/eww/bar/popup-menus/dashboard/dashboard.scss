@@ -1,0 +1,236 @@
+// ══════════════════════════════════════════════════════════════
+// dashboard.scss — System command center · 4px grid
+// ══════════════════════════════════════════════════════════════
+
+.dash-container {
+  min-width: 312px;  // 78 × 4px
+}
+
+// ── Shared section card ──────────────────────────────────────
+.dash-section {
+  background-color: $hp-surface;
+  border-radius: $r-lg;
+  padding: $sp-4;
+}
+
+// ══════════════════════════════════════════════════════════════
+// 1. Identity header
+// ══════════════════════════════════════════════════════════════
+
+.dash-identity {
+  background-color: $hp-surface;
+  border-radius: $r-lg;
+  padding: $sp-4;
+}
+
+.dash-sigil-box {
+  min-width: 44px;   // 11 × 4px
+  min-height: 44px;
+  border-radius: $r-lg;
+  background: linear-gradient(135deg, $hp-red, $hp-crimson, $hp-maroon);
+}
+
+.dash-sigil {
+  font-size: $fs-3xl;
+  font-weight: bold;
+  color: $hp-fg;
+}
+
+.dash-username {
+  font-size: $fs-lg;
+  font-weight: bold;
+  color: $hp-red;
+}
+
+.dash-host {
+  font-size: $fs-lg;
+  color: $hp-fg-dim;
+}
+
+.dash-meta {
+  font-size: $fs-2xs;
+  color: $hp-fg-dim;
+}
+
+// ══════════════════════════════════════════════════════════════
+// 2. System gauges
+// ══════════════════════════════════════════════════════════════
+
+.dash-gauge {
+  padding: $sp-3;
+  border-radius: $r-lg;
+  background-color: rgba($hp-bg, 0.4);
+}
+
+.dash-ring {
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.dash-ring-blue   { color: $hp-blue; }
+.dash-ring-purple { color: $hp-purple; }
+.dash-ring-red    { color: $hp-red; }
+.dash-ring-gold   { color: $hp-gold; }
+
+.dash-ring-val {
+  font-size: $fs-2xs;
+  color: $hp-fg;
+}
+
+.dash-gauge-label {
+  font-size: $fs-2xs;
+  color: $hp-fg-dim;
+  font-weight: bold;
+}
+
+// ══════════════════════════════════════════════════════════════
+// 3. Volume control
+// ══════════════════════════════════════════════════════════════
+
+.dash-vol-section {
+  background-color: $hp-surface;
+  border-radius: $r-lg;
+  padding: $sp-3 $sp-4;
+}
+
+.dash-vol-icon {
+  font-size: $fs-xl;
+  color: $hp-purple;
+  min-width: $sp-8;
+  padding: $sp-1;
+  border-radius: $r-sm;
+  transition: all $t-fast ease;
+
+  &:hover {
+    background-color: rgba($hp-purple, 0.2);
+  }
+}
+
+.dash-vol-muted {
+  color: $hp-fg-dim;
+}
+
+.dash-vol-slider {
+  min-height: $sp-3;
+
+  trough {
+    background-color: rgba($hp-bg, 0.6);
+    border-radius: $r-pill;
+    min-height: $sp-2;
+
+    highlight {
+      background: linear-gradient(to right, $hp-purple, $hp-green);
+      border-radius: $r-pill;
+      min-height: $sp-2;
+    }
+
+    slider {
+      background-color: $hp-green;
+      border-radius: 50%;
+      min-width: $sp-5;
+      min-height: $sp-5;
+      margin: (-$sp-2) 0;
+    }
+  }
+}
+
+.dash-vol-pct {
+  font-size: $fs-xs;
+  color: $hp-fg-muted;
+  min-width: 32px;
+}
+
+// ══════════════════════════════════════════════════════════════
+// 4. Quick toggles
+// ══════════════════════════════════════════════════════════════
+
+.dash-tog {
+  padding: $sp-3 $sp-2;
+  border-radius: $r-lg;
+  transition: all $t-base ease;
+  min-width: 56px;
+}
+
+.dash-tog-off {
+  background-color: rgba($hp-bg, 0.4);
+  &:hover { background-color: $hp-surface-hover; }
+}
+
+.dash-tog-on {
+  background-color: rgba($hp-green, 0.25);
+  border: 1px solid rgba($hp-green, 0.4);
+  &:hover { background-color: rgba($hp-green, 0.35); }
+}
+
+.dash-tog-icon {
+  font-size: $fs-xl;
+  color: $hp-fg-muted;
+
+  .dash-tog-on & { color: $hp-green; }
+}
+
+.dash-tog-label {
+  font-size: $fs-2xs;
+  color: $hp-fg-dim;
+
+  .dash-tog-on & { color: $hp-green; }
+}
+
+// ══════════════════════════════════════════════════════════════
+// 5. Quick actions
+// ══════════════════════════════════════════════════════════════
+
+.dash-act {
+  padding: $sp-3 $sp-1;
+  border-radius: $r-lg;
+  background-color: rgba($hp-bg, 0.4);
+  transition: all $t-base ease;
+  min-width: 44px;
+
+  &:hover {
+    background-color: $hp-surface-hover;
+  }
+}
+
+.dash-act-icon {
+  font-size: $fs-lg;
+  color: $hp-blue;
+}
+
+.dash-act-label {
+  font-size: $fs-2xs;
+  color: $hp-fg-dim;
+}
+
+// ══════════════════════════════════════════════════════════════
+// 6. Power row
+// ══════════════════════════════════════════════════════════════
+
+.dash-power {
+  padding: $sp-2 0 0 0;
+}
+
+.dash-pwr {
+  padding: $sp-3 $sp-1;
+  border-radius: $r-lg;
+  background-color: $hp-surface;
+  transition: all $t-base ease;
+  min-width: 44px;
+}
+
+.dash-pwr-icon {
+  font-size: $fs-lg;
+  color: $hp-fg-muted;
+}
+
+.dash-pwr-label {
+  font-size: $fs-2xs;
+  color: $hp-fg-dim;
+}
+
+// Per-action hover colors
+.dash-pwr-lock:hover    { background-color: $hp-blue;   .dash-pwr-icon, .dash-pwr-label { color: $hp-fg; } }
+.dash-pwr-logout:hover  { background-color: $hp-purple; .dash-pwr-icon, .dash-pwr-label { color: $hp-fg; } }
+.dash-pwr-sleep:hover   { background-color: $hp-navy;   .dash-pwr-icon, .dash-pwr-label { color: $hp-fg; } }
+.dash-pwr-reboot:hover  { background-color: $hp-gold;   .dash-pwr-icon, .dash-pwr-label { color: $hp-bg; } }
+.dash-pwr-shutdown:hover { background-color: $hp-red;   .dash-pwr-icon, .dash-pwr-label { color: $hp-fg; } }

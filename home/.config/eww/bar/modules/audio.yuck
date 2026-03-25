@@ -1,0 +1,32 @@
+; ══════════════════════════════════════════════════════════════
+; audio.yuck — Dual output/input bar module
+; Output pill: L-click opens audio panel | Scroll: volume
+; Input pill:  L-click mute | R-click opens audio panel
+; ══════════════════════════════════════════════════════════════
+
+(deflisten audio_info
+  :initial '{"icon":"󰕾","volume":"0","out_name":"Out","mic_icon":"󰍬","mic_vol":"0","mic_name":"Mic","mic_muted":"no"}'
+  "~/.config/eww/bar/scripts/audio.sh")
+
+(defwidget audio-module []
+  (box :class "audio-group" :orientation "h" :spacing 2 :space-evenly false
+    ; ── Output pill ──
+    (eventbox
+      :onclick "~/.config/eww/bar/popup-menus/scripts/toggle-audio.sh &"
+      :onrightclick "~/.config/eww/bar/scripts/audio-cycle.sh sink &"
+      :onscroll "if [ '{}' = 'up' ]; then pactl set-sink-volume @DEFAULT_SINK@ +5%; else pactl set-sink-volume @DEFAULT_SINK@ -5%; fi"
+      :tooltip "L: Audio panel | R: Cycle output | Scroll: Volume"
+      (box :orientation "h" :space-evenly false
+        (label :class "pill-icon audio-i" :text " ${audio_info.icon} ")
+        (label :class "pill-text" :text "${audio_info.volume}% ${audio_info.out_name}")))
+    ; ── Input pill ──
+    (eventbox
+      :onclick "pactl set-source-mute @DEFAULT_SOURCE@ toggle &"
+      :onrightclick "~/.config/eww/bar/popup-menus/scripts/toggle-audio.sh &"
+      :onscroll "if [ '{}' = 'up' ]; then pactl set-source-volume @DEFAULT_SOURCE@ +5%; else pactl set-source-volume @DEFAULT_SOURCE@ -5%; fi"
+      :tooltip "L: Mute mic | R: Audio panel | Scroll: Mic vol"
+      (box :orientation "h" :space-evenly false
+        (label :class {audio_info.mic_muted == "yes" ? "pill-icon mic-i mic-muted" : "pill-icon mic-i"}
+          :text " ${audio_info.mic_icon} ")
+        (label :class {audio_info.mic_muted == "yes" ? "pill-text mic-muted-text" : "pill-text"}
+          :text "${audio_info.mic_name}")))))

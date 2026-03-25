@@ -1,0 +1,44 @@
+// ══════════════════════════════════════════════════════════════
+// calender.scss — Calendar popup · 4px grid
+// ══════════════════════════════════════════════════════════════
+
+.cal-container {
+  min-width: 272px;  // 68 × 4px
+  padding: $sp-6;
+}
+
+.cal-time {
+  font-size: $fs-3xl;
+  font-weight: bold;
+  color: $hp-green;
+}
+
+.cal-date {
+  font-size: $fs-sm;
+  color: $hp-fg-dim;
+  margin-bottom: $sp-4;
+}
+
+.cal-widget {
+  color: $hp-fg;
+  background-color: $hp-surface;
+  border-radius: $r-lg;
+  padding: $sp-4;
+}
+
+calendar {
+  &:selected {
+    color: $hp-bg;
+    background-color: $hp-purple;
+    border-radius: $r-sm;
+  }
+
+  &.header {
+    color: $hp-green;
+    font-weight: bold;
+  }
+
+  &.highlight {
+    color: $hp-blue;
+  }
+}

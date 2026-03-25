@@ -1,0 +1,38 @@
+; ══════════════════════════════════════════════════════════════
+; calender.yuck — Calendar popup
+; ══════════════════════════════════════════════════════════════
+
+(defvar calrev false)
+
+(defpoll cal_time
+  :interval "1s"
+  `date +'%-I:%M:%S %p'`)
+
+(defpoll cal_date
+  :interval "60s"
+  `date +'%A, %B %-d, %Y'`)
+
+(defwindow calender
+  :monitor 2
+  :geometry (geometry
+    :x "0%"
+    :y "32px"
+    :width "0px"
+    :height "0px"
+    :anchor "top center")
+  :stacking "overlay"
+  :namespace "eww-cal"
+  (revealer
+    :transition "slidedown"
+    :reveal calrev
+    :duration "200ms"
+    (calender-content)))
+
+(defwidget calender-content []
+  (box :class "popup-container cal-container" :orientation "v" :spacing 12 :space-evenly false
+    (label :class "cal-time" :text cal_time)
+    (label :class "cal-date" :text cal_date)
+    (calendar :class "cal-widget"
+      :show-details true
+      :show-heading true
+      :show-day-names true)))

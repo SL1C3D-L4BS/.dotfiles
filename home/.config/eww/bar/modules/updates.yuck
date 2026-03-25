@@ -1,0 +1,14 @@
+; ── Updates module (click opens updates TUI) ──────────────────
+(deflisten update_info
+  :initial '{"icon": "󰏔", "count": "0", "tooltip": "Checking..."}'
+  "~/.config/eww/bar/scripts/updator.sh")
+
+(defwidget updates-module []
+  (eventbox
+    :onclick "alacritty --class float_term,float_term -e system-updates --check &"
+    :onrightclick "alacritty --class float_term,float_term -e system-updates --apply &"
+    :tooltip "${update_info.tooltip} | Right-click: Apply updates"
+    (box :class "update-box" :orientation "h" :space-evenly false
+      :visible {update_info.count != "0"}
+      (label :class "pill-icon update-i" :text " 󰏔 ")
+      (label :class "pill-text" :text "${update_info.count}"))))

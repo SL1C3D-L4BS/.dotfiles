@@ -1,0 +1,13 @@
+; ── Weather module ─────────────────────────────────────────────
+(deflisten weather_info
+  :initial '{"icon": "", "temp": "", "desc": ""}'
+  "~/.config/eww/bar/scripts/weather.sh")
+
+(defwidget weather-module []
+  (box :class "weather-box" :orientation "h" :space-evenly false
+    :visible {weather_info.temp != ""}
+    :tooltip "${weather_info.desc}"
+    (eventbox :onclick "xdg-open 'https://wttr.in' &"
+      (box :orientation "h" :space-evenly false
+        (label :class "pill-icon weather-i" :text " ${weather_info.icon} ")
+        (label :class "pill-text" :text "${weather_info.temp}")))))

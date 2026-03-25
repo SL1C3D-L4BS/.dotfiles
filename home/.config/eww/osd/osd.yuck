@@ -1,0 +1,28 @@
+; ══════════════════════════════════════════════════════════════
+; osd.yuck — On-screen display for volume
+; ══════════════════════════════════════════════════════════════
+
+(defvar vosdrev false)
+
+(defwindow vol-osd
+  :monitor 0
+  :geometry (geometry
+    :x "0%"
+    :y "100px"
+    :width "200px"
+    :height "20px"
+    :anchor "bottom center")
+  :stacking "overlay"
+  :namespace "eww-osd"
+  (revealer
+    :transition "slideup"
+    :reveal vosdrev
+    :duration "200ms"
+    (box :class "osd-container" :orientation "h" :spacing 8 :space-evenly false
+      (label :class "osd-icon" :text {audio_info.icon})
+      (scale :class "osd-slider"
+        :min 0
+        :max 101
+        :value {audio_info.volume}
+        :orientation "h"
+        :onchange "pactl set-sink-volume @DEFAULT_SINK@ {}%"))))

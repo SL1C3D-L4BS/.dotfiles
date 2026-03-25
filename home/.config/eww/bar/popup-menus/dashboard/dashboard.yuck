@@ -1,0 +1,183 @@
+; ══════════════════════════════════════════════════════════════
+; dashboard.yuck — System command center
+; Inspired by ml4w sidebar + omarchy hierarchical menus
+; ══════════════════════════════════════════════════════════════
+
+(defvar dashrev false)
+
+; ── Polls ─────────────────────────────────────────────────────
+(defpoll dash_uptime  :interval "60s"
+  `uptime -p | sed 's/up //'`)
+
+(defpoll dash_host :interval "3600s"
+  `hostname`)
+
+(defpoll dash_kernel :interval "3600s"
+  `uname -r | sed 's/-zen.*/-zen/'`)
+
+(defpoll dash_pkgs :interval "600s"
+  `pacman -Q 2>/dev/null | wc -l`)
+
+(defpoll dash_cpu :interval "2s"
+  `top -bn1 | awk '/^%Cpu/{printf "%.0f", $2}'`)
+
+(defpoll dash_ram :interval "2s"
+  `free | awk '/^Mem:/{printf "%.0f", $3/$2 * 100}'`)
+
+(defpoll dash_disk :interval "60s"
+  `df -h / | awk 'NR==2{gsub(/%/,"",$5); print $5}'`)
+
+(defpoll dash_gpu :interval "2s"
+  `cat /sys/class/drm/card1/device/gpu_busy_percent 2>/dev/null || echo "0"`)
+
+(defpoll dash_vol :interval "1s"
+  `pactl get-sink-volume @DEFAULT_SINK@ 2>/dev/null | grep -oP '\\d+%' | head -1 | tr -d '%' || echo "0"`)
+
+(defpoll dash_muted :interval "1s"
+  `pactl get-sink-mute @DEFAULT_SINK@ 2>/dev/null | grep -oP 'yes|no'`)
+
+(defpoll dash_idle :interval "2s"
+  `[[ -f /tmp/.idle-inhibited ]] && echo "on" || echo "off"`)
+
+(defpoll dash_dnd :interval "2s"
+  `dunstctl is-paused 2>/dev/null || echo "false"`)
+
+(defpoll dash_blur :interval "2s"
+  `pgrep -x picom >/dev/null && echo "on" || echo "off"`)
+
+; ── Window ────────────────────────────────────────────────────
+(defwindow dash
+  :monitor 2
+  :geometry (geometry
+    :x "4px"
+    :y "32px"
+    :width "320px"
+    :height "0px"
+    :anchor "top left")
+  :stacking "overlay"
+  :namespace "eww-dash"
+  (revealer
+    :transition "slidedown"
+    :reveal dashrev
+    :duration "300ms"
+    (dashboard-content)))
+
+; ══════════════════════════════════════════════════════════════
+; Main layout
+; ══════════════════════════════════════════════════════════════
+(defwidget dashboard-content []
+  (box :class "popup-container dash-container" :orientation "v" :spacing 8 :space-evenly false
+
+    ; ── 1. Identity header ─────────────────────────────────────
+    (box :class "dash-identity" :orientation "h" :spacing 12 :space-evenly false
+      (box :class "dash-sigil-box" :valign "center"
+        (label :class "dash-sigil" :text "A"))
+      (box :orientation "v" :spacing 2 :space-evenly false :valign "center" :hexpand true
+        (box :orientation "h" :spacing 4 :space-evenly false
+          (label :class "dash-username" :halign "start" :text "the_architect")
+          (label :class "dash-host" :halign "start" :text "@${dash_host}"))
+        (box :orientation "h" :spacing 8 :space-evenly false
+          (label :class "dash-meta" :text " ${dash_kernel}")
+          (label :class "dash-meta" :text "󰏗 ${dash_pkgs}"))
+        (label :class "dash-meta" :halign "start" :text "󰥔 ${dash_uptime}")))
+
+    ; ── 2. System gauges ───────────────────────────────────────
+    (box :class "dash-section" :orientation "h" :spacing 8 :space-evenly true
+      (dash-gauge :label "CPU" :value dash_cpu :color "blue")
+      (dash-gauge :label "RAM" :value dash_ram :color "purple")
+      (dash-gauge :label "GPU" :value dash_gpu :color "red")
+      (dash-gauge :label "DSK" :value dash_disk :color "gold"))
+
+    ; ── 3. Volume control ──────────────────────────────────────
+    (box :class "dash-vol-section" :orientation "h" :spacing 8 :space-evenly false
+      (eventbox :onclick "pactl set-sink-mute @DEFAULT_SINK@ toggle &"
+        (label :class {dash_muted == "yes" ? "dash-vol-icon dash-vol-muted" : "dash-vol-icon"}
+          :text {dash_muted == "yes" ? "󰝟" : dash_vol > 66 ? "󰕾" : dash_vol > 33 ? "󰖀" : "󰕿"}))
+      (scale :class "dash-vol-slider"
+        :min 0 :max 101
+        :value dash_vol
+        :orientation "h"
+        :hexpand true
+        :onchange "pactl set-sink-volume @DEFAULT_SINK@ {}%")
+      (label :class "dash-vol-pct" :text "${dash_vol}%"))
+
+    ; ── 4. Quick toggles ──────────────────────────────────────
+    (box :class "dash-section" :orientation "h" :spacing 4 :space-evenly true
+      (dash-toggle
+        :label "Caffeine"
+        :icon {idle_state == "on" ? "󰅶" : "󰛊"}
+        :active {idle_state == "on"}
+        :cmd "~/.config/eww/bar/scripts/toggle-idle.sh")
+      (dash-toggle
+        :label "DND"
+        :icon {dash_dnd == "true" ? "󰂛" : "󰂚"}
+        :active {dash_dnd == "true"}
+        :cmd "dunstctl set-paused toggle")
+      (dash-toggle
+        :label "Blur"
+        :icon {dash_blur == "on" ? "󰂵" : "󰂳"}
+        :active {dash_blur == "on"}
+        :cmd "bash -c 'if pgrep -x picom >/dev/null; then killall picom; else picom --config ~/.config/picom/picom.conf --daemon; fi'"))
+
+    ; ── 5. Quick actions ──────────────────────────────────────
+    (box :class "dash-section" :orientation "h" :spacing 4 :space-evenly true
+      (dash-action :icon "󰄀" :label "btop"
+        :cmd "alacritty --class float_term,float_term -e btop")
+      (dash-action :icon "󰉋" :label "Files"
+        :cmd "thunar")
+      (dash-action :icon "󰏘" :label "Theme"
+        :cmd "~/.local/bin/theme-switch")
+      (dash-action :icon "󰹑" :label "Screen"
+        :cmd "~/.local/bin/screenshot select")
+      (dash-action :icon "󰸉" :label "Wall"
+        :cmd "~/.local/bin/wallpaper-set"))
+
+    ; ── 6. Power row ──────────────────────────────────────────
+    (box :class "dash-power" :orientation "h" :spacing 4 :space-evenly true
+      (dash-power-btn :icon "󰌾" :label "Lock" :class "lock"
+        :cmd "i3lock -c 0D0D1A")
+      (dash-power-btn :icon "󰗽" :label "Logout" :class "logout"
+        :cmd "i3-msg exit")
+      (dash-power-btn :icon "󰒲" :label "Sleep" :class "sleep"
+        :cmd "systemctl suspend")
+      (dash-power-btn :icon "󰑐" :label "Reboot" :class "reboot"
+        :cmd "systemctl reboot")
+      (dash-power-btn :icon "󰐥" :label "Off" :class "shutdown"
+        :cmd "systemctl poweroff"))))
+
+; ══════════════════════════════════════════════════════════════
+; Component widgets
+; ══════════════════════════════════════════════════════════════
+
+; Circular gauge
+(defwidget dash-gauge [label value color]
+  (box :class "dash-gauge dash-gauge-${color}" :orientation "v" :spacing 4 :space-evenly false
+    (circular-progress
+      :class "dash-ring dash-ring-${color}"
+      :value value
+      :thickness 3
+      :start-at 75
+      (label :class "dash-ring-val" :text "${value}%"))
+    (label :class "dash-gauge-label" :text label)))
+
+; Toggle switch
+(defwidget dash-toggle [label icon active cmd]
+  (eventbox :onclick "${cmd} &"
+    (box :class {active ? "dash-tog dash-tog-on" : "dash-tog dash-tog-off"}
+      :orientation "v" :spacing 2 :space-evenly false
+      (label :class "dash-tog-icon" :text icon)
+      (label :class "dash-tog-label" :text label))))
+
+; Action button
+(defwidget dash-action [icon label cmd]
+  (eventbox :onclick "${cmd} &"
+    (box :class "dash-act" :orientation "v" :spacing 2 :space-evenly false
+      (label :class "dash-act-icon" :text icon)
+      (label :class "dash-act-label" :text label))))
+
+; Power button
+(defwidget dash-power-btn [icon label class cmd]
+  (eventbox :onclick "${cmd} &"
+    (box :class "dash-pwr dash-pwr-${class}" :orientation "v" :spacing 2 :space-evenly false
+      (label :class "dash-pwr-icon" :text icon)
+      (label :class "dash-pwr-label" :text label))))

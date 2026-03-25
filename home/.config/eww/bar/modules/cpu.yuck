@@ -1,0 +1,9 @@
+; ── CPU module ─────────────────────────────────────────────────
+(defpoll cpu_usage
+  :interval "2s"
+  `top -bn1 | awk '/^%Cpu/{printf "%.0f", $2}'`)
+
+(defwidget cpu-module []
+  (box :class "cpu-box" :orientation "h" :space-evenly false
+    (label :class "pill-icon cpu-i" :text " 󰍛 ")
+    (label :class "pill-text" :text "${cpu_usage}%")))

@@ -1,0 +1,171 @@
+// ══════════════════════════════════════════════════════════════
+// audio-control.scss — Audio control panel · 4px grid
+// ══════════════════════════════════════════════════════════════
+
+.aud-container {
+  min-width: 304px;  // 76 × 4px
+}
+
+// ── Section card ─────────────────────────────────────────────
+.aud-section {
+  background-color: $hp-surface;
+  border-radius: $r-lg;
+  padding: $sp-4;
+}
+
+.aud-section-title {
+  font-size: $fs-2xs;
+  font-weight: bold;
+  color: $hp-fg-dim;
+  letter-spacing: 1px;
+}
+
+// ── Mute toggle button ──────────────────────────────────────
+.aud-mute-btn {
+  font-size: $fs-xl;
+  color: $hp-purple;
+  min-width: $sp-8;
+  padding: $sp-1 $sp-2;
+  border-radius: $r-sm;
+  transition: all $t-fast ease;
+
+  &:hover {
+    background-color: rgba($hp-purple, 0.2);
+  }
+}
+
+.aud-mic-live {
+  color: $hp-green;
+  &:hover { background-color: rgba($hp-green, 0.2); }
+}
+
+.aud-muted {
+  color: $hp-red;
+  &:hover { background-color: rgba($hp-red, 0.2); }
+}
+
+// ── Volume label ─────────────────────────────────────────────
+.aud-vol-label {
+  font-size: $fs-sm;
+  color: $hp-fg-muted;
+  min-width: 36px;  // 9 × 4px
+  font-weight: bold;
+}
+
+// ── Output volume slider ─────────────────────────────────────
+.aud-slider {
+  min-height: $sp-4;
+
+  trough {
+    background-color: rgba($hp-bg, 0.6);
+    border-radius: $r-pill;
+    min-height: $sp-3;
+
+    highlight {
+      background: linear-gradient(to right, $hp-purple, $hp-lavender);
+      border-radius: $r-pill;
+      min-height: $sp-3;
+    }
+
+    slider {
+      background-color: $hp-lavender;
+      border-radius: 50%;
+      min-width: $sp-6;
+      min-height: $sp-6;
+      margin: (-$sp-2) 0;
+      transition: all $t-fast ease;
+    }
+  }
+}
+
+// ── Mic volume slider (green gradient) ───────────────────────
+.aud-mic-slider {
+  min-height: $sp-4;
+
+  trough {
+    background-color: rgba($hp-bg, 0.6);
+    border-radius: $r-pill;
+    min-height: $sp-3;
+
+    highlight {
+      background: linear-gradient(to right, $hp-emerald, $hp-green);
+      border-radius: $r-pill;
+      min-height: $sp-3;
+    }
+
+    slider {
+      background-color: $hp-green;
+      border-radius: 50%;
+      min-width: $sp-6;
+      min-height: $sp-6;
+      margin: (-$sp-2) 0;
+      transition: all $t-fast ease;
+    }
+  }
+}
+
+// ── Muted slider override ────────────────────────────────────
+.aud-slider-muted {
+  trough {
+    highlight {
+      background: $hp-fg-dim;
+    }
+    slider {
+      background-color: $hp-fg-dim;
+    }
+  }
+}
+
+// ── Device selector button ───────────────────────────────────
+.aud-dev {
+  padding: $sp-3 $sp-2;
+  border-radius: $r-lg;
+  background-color: rgba($hp-bg, 0.4);
+  transition: all $t-base ease;
+  min-width: 52px;  // 13 × 4px
+
+  &:hover {
+    background-color: $hp-surface-hover;
+  }
+}
+
+.aud-dev-active {
+  background-color: rgba($hp-green, 0.2);
+  border: 1px solid rgba($hp-green, 0.4);
+
+  &:hover {
+    background-color: rgba($hp-green, 0.3);
+  }
+
+  .aud-dev-icon { color: $hp-green; }
+  .aud-dev-label { color: $hp-green; }
+}
+
+.aud-dev-icon {
+  font-size: $fs-xl;
+  color: $hp-fg-muted;
+}
+
+.aud-dev-label {
+  font-size: $fs-2xs;
+  color: $hp-fg-dim;
+}
+
+// ── Footer ───────────────────────────────────────────────────
+.aud-footer {
+  padding: $sp-3 0 0 0;
+  transition: all $t-base ease;
+}
+
+.aud-footer-text {
+  font-size: $fs-xs;
+  color: $hp-fg-dim;
+  padding: $sp-2 $sp-4;
+  border-radius: $r-md;
+  transition: all $t-base ease;
+
+  &:hover {
+    color: $hp-purple;
+    background-color: rgba($hp-purple, 0.1);
+  }
+}

@@ -1,0 +1,17 @@
+; ── Workspaces module (i3 IPC) ─────────────────────────────────
+(deflisten workspaces_json
+  :initial "[]"
+  "~/.config/eww/bar/scripts/workspaces.sh")
+
+(defwidget workspaces []
+  (box :class "workspace-container" :orientation "h" :spacing 2 :space-evenly false
+    (for ws in workspaces_json
+      (eventbox
+        :onclick "i3-msg workspace number '${ws.num}' &"
+        (label
+          :class {ws.focused ? "workspace-active" :
+                  ws.visible ? "workspace-visible" :
+                  ws.urgent  ? "workspace-urgent" :
+                  ws.empty   ? "workspace-empty" :
+                  "workspace"}
+          :text {ws.name})))))

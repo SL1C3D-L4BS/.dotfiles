@@ -1,0 +1,11 @@
+; ── Idle inhibitor module ──────────────────────────────────────
+(defpoll idle_state
+  :interval "2s"
+  `[[ -f /tmp/.idle-inhibited ]] && echo "on" || echo "off"`)
+
+(defwidget idle-inhibitor-module []
+  (eventbox :onclick "~/.config/eww/bar/scripts/toggle-idle.sh &"
+    :tooltip {idle_state == "on" ? "Idle inhibited (caffeine on)" : "Idle enabled (sleep allowed)"}
+    (box :class "idle-box" :orientation "h" :space-evenly false
+      (label :class {idle_state == "on" ? "pill-icon idle-i idle-active" : "pill-icon idle-i idle-inactive"}
+        :text {idle_state == "on" ? " 󰅶 " : " 󰛊 "}))))

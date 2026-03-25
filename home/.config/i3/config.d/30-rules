@@ -1,8 +1,8 @@
 # ── Window rules ──────────────────────────────────────────────
 
 # Float rules
-for_window [class="float_term"]     floating enable, resize set 900 600, move position center
-for_window [class="fzf_launcher"]   floating enable, resize set 1000 700, move position center
+for_window [class="float_term"]     floating enable, resize set 896 576, move position center
+for_window [class="fzf_launcher"]   floating enable, resize set 1024 704, move position center
 for_window [class="Pavucontrol"]    floating enable
 for_window [class="Nm-connection-editor"] floating enable
 for_window [class=".*" title="^Picture in picture$"] floating enable, sticky enable
@@ -10,15 +10,32 @@ for_window [class="Xdg-open"]       floating enable
 for_window [window_role="pop-up"]   floating enable
 for_window [window_role="task_dialog"] floating enable
 
-# Workspace assignments
-assign [class="Alacritty"]   $ws1
-assign [class="Cursor"]      $ws2
-assign [class="firefox"]     $ws3
-assign [class="Chromium"]    $ws3
-assign [class="discord"]     $ws5
-assign [class="Slack"]       $ws5
-assign [class="Spotify"]     $ws10
-assign [class="Pavucontrol"] $ws8
+# SL1C3dCLI — floating pill overlay, no border, always on top, sticky
+# Position: top-right of Vizio, flush with terminal right edge (x=1048), aligned with terminal top (y=460)
+for_window [class="sl1c3d-cli"]  floating enable, sticky enable, border none, resize set 560 px 480 px, move absolute position 1348 px 500 px
+
+# ── ws1: Dev (HDMI-A-0) — terminal, nvim, code editors ────────
+assign [class="dev_term"]       $ws1
+assign [class="Cursor"]         $ws1
+assign [class="Code"]           $ws1
+assign [class="code-oss"]       $ws1
+assign [class="Alacritty"]      $ws1
+
+# ── ws2: Browser (DisplayPort-1) ─────────────────────────────
+assign [class="Brave-browser"]  $ws2
+assign [class="firefox"]        $ws2
+assign [class="Chromium"]       $ws2
+
+# ── ws3: Recording/Streaming (DisplayPort-2) ─────────────────
+assign [class="obs"]            $ws3
+assign [class="Spotify"]        $ws3
+
+# ── ws5: Chat ─────────────────────────────────────────────────
+assign [class="discord"]        $ws5
+assign [class="Slack"]          $ws5
+
+# ── ws8: Settings/Audio ──────────────────────────────────────
+assign [class="Pavucontrol"]    $ws8
 
 # No focus stealing
 focus_on_window_activation smart

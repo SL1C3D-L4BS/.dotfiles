@@ -1,0 +1,42 @@
+; ══════════════════════════════════════════════════════════════
+; wifi.yuck — WiFi toggle popup
+; ══════════════════════════════════════════════════════════════
+
+(defvar wifirev false)
+
+(defpoll wifi_status
+  :interval "3s"
+  `nmcli radio wifi 2>/dev/null || echo "disabled"`)
+
+(defpoll wifi_ssid
+  :interval "5s"
+  `nmcli -t -f active,ssid dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2 | head -1 || echo ""`)
+
+(defwindow wifi
+  :monitor 2
+  :geometry (geometry
+    :x "-64px"
+    :y "32px"
+    :width "0px"
+    :height "0px"
+    :anchor "top right")
+  :stacking "overlay"
+  :namespace "eww-wifi"
+  (revealer
+    :transition "slidedown"
+    :reveal wifirev
+    :duration "200ms"
+    (wifi-content)))
+
+(defwidget wifi-content []
+  (box :class "popup-container" :orientation "v" :spacing 10 :space-evenly false
+    (box :orientation "h" :spacing 12 :space-evenly false
+      (label :class "wifi-icon" :text {wifi_status == "enabled" ? "󰖩" : "󰖪"})
+      (box :orientation "v" :spacing 2 :space-evenly false :valign "center"
+        (label :class "wifi-label" :halign "start" :text "WiFi")
+        (label :class "wifi-ssid" :halign "start" :limit-width 20
+          :text {wifi_status == "enabled" ? (wifi_ssid != "" ? wifi_ssid : "Not connected") : "Disabled"})))
+    (eventbox :onclick "~/.config/eww/bar/popup-menus/utils/scripts/toggle-wifi.sh &"
+      (box :class {wifi_status == "enabled" ? "wifi-toggle wifi-on" : "wifi-toggle wifi-off"}
+        :halign "center"
+        (label :text {wifi_status == "enabled" ? "Turn Off" : "Turn On"})))))

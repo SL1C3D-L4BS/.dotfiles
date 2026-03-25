@@ -1,0 +1,26 @@
+// ══════════════════════════════════════════════════════════════
+// dock.scss — Bottom dock · 4px grid
+// ══════════════════════════════════════════════════════════════
+
+.dock-container {
+  background-color: $hp-bg;
+  border: 1px solid $hp-border;
+  border-radius: $r-xl;
+  padding: $sp-3 $sp-5;
+  box-shadow: 0 (-$sp-2) $sp-5 $hp-shadow;
+}
+
+.dock-icon {
+  font-size: $fs-3xl;
+  color: $hp-fg-muted;
+  padding: $sp-3 $sp-4;
+  border-radius: $r-lg;
+  transition: all $t-base ease;
+  min-width: $sp-8;
+
+  &:hover {
+    color: $hp-green;
+    background-color: $hp-surface;
+    font-size: 28px;
+  }
+}

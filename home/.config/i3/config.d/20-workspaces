@@ -1,10 +1,10 @@
 # ── Monitor → workspace binding ───────────────────────────────
-# Monitor 1: Vizio 43"    (HDMI-A-0)      → ws 1-6  (main)
-# Monitor 2: ONN 24" L    (DisplayPort-1) → ws 7-8
-# Monitor 3: ONN 24" R    (DisplayPort-2) → ws 9-10
+# Monitor 1: Vizio 43"    (HDMI-A-0)      → ws 1  (main)
+# Monitor 2: ONN 24" C    (DisplayPort-1) → ws 2
+# Monitor 3: ONN 24" R    (DisplayPort-2) → ws 3
 workspace $ws1  output HDMI-A-0
-workspace $ws2  output HDMI-A-0
-workspace $ws3  output HDMI-A-0
+workspace $ws2  output DisplayPort-1
+workspace $ws3  output DisplayPort-2
 workspace $ws4  output HDMI-A-0
 workspace $ws5  output HDMI-A-0
 workspace $ws6  output HDMI-A-0

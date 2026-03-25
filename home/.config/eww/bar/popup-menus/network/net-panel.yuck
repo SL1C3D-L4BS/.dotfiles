@@ -1,0 +1,90 @@
+; ══════════════════════════════════════════════════════════════
+; net-panel.yuck — Network control & info panel
+; Shows: interface, IP, gateway, DNS, live bandwidth, latency
+; Actions: restart networkd, flush DNS, speed test, terminal
+; ══════════════════════════════════════════════════════════════
+
+(defvar netrev false)
+
+(deflisten net_rate
+  :initial '{"rx_rate":"0 B/s","tx_rate":"0 B/s","rx_total":"0 KB","tx_total":"0 KB"}'
+  "~/.config/eww/bar/scripts/network-rate.sh")
+
+(defpoll net_dns :interval "30s"
+  `resolvectl status 2>/dev/null | awk '/DNS Servers:/{print $3; exit}' || echo "--"`)
+
+(defpoll net_latency :interval "10s"
+  `ping -c1 -W2 1.1.1.1 2>/dev/null | awk -F'=' '/time=/{printf "%.0fms", $4}' || echo "--"`)
+
+(defwindow net-panel
+  :monitor 2
+  :geometry (geometry
+    :x "-160px"
+    :y "32px"
+    :width "320px"
+    :height "0px"
+    :anchor "top right")
+  :stacking "overlay"
+  :namespace "eww-net"
+  (revealer
+    :transition "slidedown"
+    :reveal netrev
+    :duration "300ms"
+    (net-panel-content)))
+
+(defwidget net-panel-content []
+  (box :class "popup-container net-container" :orientation "v" :spacing 8 :space-evenly false
+
+    ; ── Interface header ───────────────────────────────────────
+    (box :class "net-header" :orientation "h" :spacing 12 :space-evenly false
+      (box :class "net-icon-box" :valign "center"
+        (label :class "net-header-icon" :text "${net_info.icon}"))
+      (box :orientation "v" :spacing 2 :space-evenly false :valign "center" :hexpand true
+        (box :orientation "h" :spacing 4 :space-evenly false
+          (label :class "net-header-title" :halign "start" :text {net_info.iface != "--" ? net_info.iface : "No Interface"})
+          (label :class {net_info.ip != "--" ? "net-status-badge net-status-up" : "net-status-badge net-status-down"}
+            :text {net_info.ip != "--" ? "● Connected" : "● Offline"}))
+        (label :class "net-header-ip" :halign "start"
+          :text "${net_info.ip}")))
+
+    ; ── Connection details ─────────────────────────────────────
+    (box :class "net-details" :orientation "v" :spacing 4 :space-evenly false
+      (net-detail-row :icon "󰩟" :label "Gateway" :value "${net_info.gateway}")
+      (net-detail-row :icon "󰇖" :label "DNS" :value net_dns)
+      (net-detail-row :icon "󰓅" :label "Latency" :value net_latency))
+
+    ; ── Live bandwidth ─────────────────────────────────────────
+    (box :class "net-bandwidth" :orientation "h" :spacing 8 :space-evenly true
+      (box :class "net-bw-card net-bw-rx" :orientation "v" :spacing 2 :space-evenly false
+        (label :class "net-bw-icon" :text "󰁆")
+        (label :class "net-bw-rate" :text "${net_rate.rx_rate}")
+        (label :class "net-bw-total" :text "↓ ${net_rate.rx_total}"))
+      (box :class "net-bw-card net-bw-tx" :orientation "v" :spacing 2 :space-evenly false
+        (label :class "net-bw-icon" :text "󰁞")
+        (label :class "net-bw-rate" :text "${net_rate.tx_rate}")
+        (label :class "net-bw-total" :text "↑ ${net_rate.tx_total}")))
+
+    ; ── Actions ────────────────────────────────────────────────
+    (box :class "net-actions" :orientation "h" :spacing 4 :space-evenly true
+      (net-action-btn :icon "󰑓" :label "Restart"
+        :cmd "sudo systemctl restart systemd-networkd systemd-resolved")
+      (net-action-btn :icon "󰇖" :label "Flush DNS"
+        :cmd "resolvectl flush-caches")
+      (net-action-btn :icon "󰓅" :label "Speedtest"
+        :cmd "alacritty --class float_term,float_term -e bash -c 'curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python3; echo; read -n1'")
+      (net-action-btn :icon "" :label "Terminal"
+        :cmd "alacritty --class float_term,float_term -e bash -c 'networkctl status; echo; ip addr; echo; ip route; echo; resolvectl status; echo; read -n1'"))))
+
+; ── Detail row widget ─────────────────────────────────────────
+(defwidget net-detail-row [icon label value]
+  (box :orientation "h" :spacing 8 :space-evenly false
+    (label :class "net-detail-icon" :text icon :min-width 20)
+    (label :class "net-detail-label" :text label :min-width 56)
+    (label :class "net-detail-value" :halign "start" :hexpand true :text value)))
+
+; ── Action button widget ──────────────────────────────────────
+(defwidget net-action-btn [icon label cmd]
+  (eventbox :onclick "${cmd} &"
+    (box :class "net-act" :orientation "v" :spacing 2 :space-evenly false
+      (label :class "net-act-icon" :text icon)
+      (label :class "net-act-label" :text label))))

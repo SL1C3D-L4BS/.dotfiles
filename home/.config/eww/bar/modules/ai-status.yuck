@@ -1,0 +1,20 @@
+; ══════════════════════════════════════════════════════════════
+; ai-status.yuck — AI status bar module (SL1C3dCLI + Claude + Ollama)
+; Left click: SL1C3dCLI (floating pill GUI)
+; Right click: Claude Code in terminal
+; Middle click: quick prompt via rofi
+; ══════════════════════════════════════════════════════════════
+
+(defwidget ai-status-module []
+  (eventbox
+    :onclick "~/.config/eww/bar/scripts/toggle-sl1c3d.sh &"
+    :onrightclick "alacritty --class float_term,float_term -e claude &"
+    :onmiddleclick `prompt=$(rofi -dmenu -p "󰧑 Claude" -theme-str 'entry{placeholder:"Ask Claude..."}' 2>/dev/null) && [[ -n "$prompt" ]] && echo "prompt:$prompt" > /tmp/ai-panel/cmd &`
+    :tooltip "L: SL1C3dCLI | R: Claude Code | M: Quick prompt"
+    (box :class "ai-box" :orientation "h" :space-evenly false
+      (label
+        :class "pill-icon ai-i"
+        :text " 󰧑 ")
+      (label
+        :class "pill-text"
+        :text "SL1C3d"))))

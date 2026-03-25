@@ -1,0 +1,133 @@
+// ══════════════════════════════════════════════════════════════
+// ai-panel.scss — Claude AI panel · 4px grid
+// ══════════════════════════════════════════════════════════════
+
+.ai-panel-container {
+  min-width: 352px;  // 88 × 4px
+}
+
+// ── Header ────────────────────────────────────────────────────
+.ai-panel-header {
+  background-color: $hp-surface;
+  border-radius: $r-lg;
+  padding: $sp-4;
+}
+
+.ai-panel-icon {
+  font-size: $fs-3xl;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: $r-lg;
+  background-color: $hp-emerald;
+  color: $hp-green;
+}
+
+.ai-panel-title {
+  font-size: $fs-lg;
+  font-weight: bold;
+  color: $hp-green;
+}
+
+.ai-panel-subtitle {
+  font-size: $fs-xs;
+  color: $hp-fg-dim;
+}
+
+.ai-panel-cost {
+  font-size: $fs-sm;
+  font-weight: bold;
+  color: $hp-gold;
+}
+
+// ── Status bar ────────────────────────────────────────────────
+.ai-panel-status {
+  padding: $sp-3 $sp-5;
+  border-radius: $r-lg;
+  background-color: $hp-surface;
+  border-left: $sp-1 solid $hp-green;
+}
+
+.ai-panel-status-running { border-left-color: $hp-purple; }
+.ai-panel-status-error   { border-left-color: $hp-red; }
+.ai-panel-status-offline { border-left-color: $hp-fg-dim; }
+
+.ai-panel-stat {
+  font-size: $fs-xs;
+  color: $hp-fg-muted;
+}
+
+// ── Messages ──────────────────────────────────────────────────
+.ai-panel-messages {
+  background-color: $hp-surface;
+  border-radius: $r-lg;
+  padding: $sp-4;
+}
+
+.ai-panel-section-title {
+  font-size: $fs-2xs;
+  font-weight: bold;
+  color: $hp-fg-dim;
+  margin-bottom: $sp-2;
+}
+
+.ai-panel-msg {
+  padding: $sp-3 $sp-4;
+  border-radius: $r-md;
+  background-color: rgba($hp-bg, 0.5);
+}
+
+.ai-panel-msg-prompt  { border-left: $sp-1 solid $hp-purple; }
+.ai-panel-msg-response { border-left: $sp-1 solid $hp-green; }
+
+.ai-panel-msg-role {
+  font-size: $fs-base;
+  min-width: $sp-6;
+  color: $hp-fg-muted;
+}
+
+.ai-panel-msg-text {
+  font-size: $fs-xs;
+  color: $hp-fg;
+}
+
+// ── Action buttons ────────────────────────────────────────────
+.ai-panel-actions {
+  padding: $sp-2 0 0 0;
+}
+
+.ai-panel-btn {
+  padding: $sp-3 $sp-4;
+  border-radius: $r-lg;
+  background-color: $hp-surface;
+  transition: all $t-base ease;
+
+  &:hover {
+    background-color: $hp-green;
+    color: $hp-fg;
+  }
+}
+
+.ai-panel-btn-danger {
+  &:hover {
+    background-color: $hp-red;
+  }
+}
+
+.ai-panel-btn-icon {
+  font-size: $fs-xl;
+  color: $hp-fg-muted;
+}
+
+.ai-panel-btn-label {
+  font-size: $fs-2xs;
+  color: $hp-fg-dim;
+}
+
+// ── Bar module status-dependent colors ────────────────────────
+.ai-i-idle    { background-color: $hp-green;  color: $hp-fg; }
+.ai-i-running { background-color: $hp-purple; color: $hp-bg; }
+.ai-i-error   { background-color: $hp-red;    color: $hp-fg; }
+.ai-i-off     { background-color: $hp-fg-dim; color: $hp-bg; }
+
+.ai-text-running { color: $hp-lavender; }
+.ai-text-error   { color: $hp-red; }

@@ -1,0 +1,145 @@
+// ══════════════════════════════════════════════════════════════
+// net-panel.scss — Network control panel · 4px grid
+// ══════════════════════════════════════════════════════════════
+
+.net-container {
+  min-width: 304px;
+}
+
+// ── Header ───────────────────────────────────────────────────
+.net-header {
+  background-color: $hp-surface;
+  border-radius: $r-lg;
+  padding: $sp-4;
+}
+
+.net-icon-box {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: $r-lg;
+  background: linear-gradient(135deg, darken($hp-green, 8%), $hp-green);
+}
+
+.net-header-icon {
+  font-size: $fs-3xl;
+  color: $hp-fg;
+}
+
+.net-header-title {
+  font-size: $fs-lg;
+  font-weight: bold;
+  color: $hp-green;
+}
+
+.net-header-ip {
+  font-size: $fs-sm;
+  color: $hp-fg-muted;
+  font-family: "JetBrainsMono Nerd Font", monospace;
+}
+
+.net-status-badge {
+  font-size: $fs-2xs;
+  padding: $sp-1 $sp-3;
+  border-radius: $r-sm;
+}
+
+.net-status-up {
+  color: $hp-green;
+  background-color: rgba($hp-green, 0.15);
+}
+
+.net-status-down {
+  color: $hp-red;
+  background-color: rgba($hp-red, 0.15);
+}
+
+// ── Details ──────────────────────────────────────────────────
+.net-details {
+  background-color: $hp-surface;
+  border-radius: $r-lg;
+  padding: $sp-4;
+}
+
+.net-detail-icon {
+  font-size: $fs-base;
+  color: $hp-fg-dim;
+}
+
+.net-detail-label {
+  font-size: $fs-xs;
+  color: $hp-fg-dim;
+}
+
+.net-detail-value {
+  font-size: $fs-xs;
+  color: $hp-fg-muted;
+  font-family: "JetBrainsMono Nerd Font", monospace;
+}
+
+// ── Bandwidth cards ──────────────────────────────────────────
+.net-bandwidth {
+  // container is the popup-container
+}
+
+.net-bw-card {
+  background-color: $hp-surface;
+  border-radius: $r-lg;
+  padding: $sp-4;
+  min-width: 136px;
+}
+
+.net-bw-rx {
+  border-left: $sp-1 solid $hp-green;
+}
+
+.net-bw-tx {
+  border-left: $sp-1 solid $hp-blue;
+}
+
+.net-bw-icon {
+  font-size: $fs-xl;
+  color: $hp-fg-dim;
+}
+
+.net-bw-rate {
+  font-size: $fs-lg;
+  font-weight: bold;
+  color: $hp-fg;
+  font-family: "JetBrainsMono Nerd Font", monospace;
+
+  .net-bw-rx & { color: $hp-green; }
+  .net-bw-tx & { color: $hp-blue; }
+}
+
+.net-bw-total {
+  font-size: $fs-2xs;
+  color: $hp-fg-dim;
+  font-family: "JetBrainsMono Nerd Font", monospace;
+}
+
+// ── Action buttons ───────────────────────────────────────────
+.net-actions {
+  padding: $sp-2 0 0 0;
+}
+
+.net-act {
+  padding: $sp-3 $sp-2;
+  border-radius: $r-lg;
+  background-color: $hp-surface;
+  transition: all $t-base ease;
+  min-width: 56px;
+
+  &:hover {
+    background-color: $hp-surface-hover;
+  }
+}
+
+.net-act-icon {
+  font-size: $fs-lg;
+  color: $hp-green;
+}
+
+.net-act-label {
+  font-size: $fs-2xs;
+  color: $hp-fg-dim;
+}

@@ -1,0 +1,52 @@
+// ══════════════════════════════════════════════════════════════
+// media.scss — Media player popup · 4px grid
+// ══════════════════════════════════════════════════════════════
+
+.media-container {
+  min-width: 288px;  // 72 × 4px
+  padding: $sp-5;
+}
+
+.media-icon {
+  font-size: $fs-4xl;
+  color: $hp-purple;
+  min-width: 40px;
+}
+
+.media-title {
+  font-size: $fs-base;
+  font-weight: bold;
+  color: $hp-fg;
+}
+
+.media-artist {
+  font-size: $fs-xs;
+  color: $hp-fg-dim;
+}
+
+.media-controls {
+  padding: $sp-4 0 0 0;
+}
+
+.media-btn {
+  font-size: $fs-2xl;
+  color: $hp-fg-muted;
+  padding: $sp-3 $sp-4;
+  border-radius: $r-lg;
+  transition: all $t-base ease;
+
+  &:hover {
+    color: $hp-green;
+    background-color: $hp-surface;
+  }
+}
+
+.media-btn-main {
+  font-size: $fs-3xl;
+  color: $hp-green;
+
+  &:hover {
+    color: $hp-bg;
+    background-color: $hp-green;
+  }
+}

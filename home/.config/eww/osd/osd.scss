@@ -1,0 +1,42 @@
+// ══════════════════════════════════════════════════════════════
+// osd.scss — On-screen display · 4px grid
+// ══════════════════════════════════════════════════════════════
+
+.osd-container {
+  background-color: $hp-bg;
+  border: 1px solid $hp-border;
+  border-radius: $r-xl;
+  padding: $sp-4 $sp-5;
+  box-shadow: 0 $sp-2 $sp-5 $hp-shadow;
+}
+
+.osd-icon {
+  font-size: $fs-xl;
+  color: $hp-purple;
+  min-width: $sp-8;
+}
+
+.osd-slider {
+  min-width: 144px;  // 36 × 4px
+  min-height: $sp-3;
+
+  trough {
+    background-color: $hp-surface;
+    border-radius: $r-pill;
+    min-height: $sp-2;
+
+    highlight {
+      background: linear-gradient(to right, $hp-purple, $hp-green);
+      border-radius: $r-pill;
+      min-height: $sp-2;
+    }
+
+    slider {
+      background-color: $hp-green;
+      border-radius: 50%;
+      min-width: $sp-5;
+      min-height: $sp-5;
+      margin: (-$sp-2) 0;
+    }
+  }
+}

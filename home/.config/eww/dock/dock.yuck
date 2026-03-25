@@ -1,0 +1,36 @@
+; ══════════════════════════════════════════════════════════════
+; dock.yuck — Bottom dock with app launchers
+; ══════════════════════════════════════════════════════════════
+
+(defvar dockrev false)
+
+(defwindow dock
+  :monitor 2
+  :geometry (geometry
+    :x "0%"
+    :y "8px"
+    :width "0px"
+    :height "0px"
+    :anchor "bottom center")
+  :stacking "overlay"
+  :namespace "eww-dock"
+  (revealer
+    :transition "slideup"
+    :reveal dockrev
+    :duration "300ms"
+    (dock-content)))
+
+(defwidget dock-content []
+  (box :class "dock-container" :orientation "h" :spacing 8 :space-evenly false
+    (dock-item :cmd "rofi -show drun -show-icons"  :icon "󰀻" :tip "Launcher")
+    (dock-item :cmd "alacritty"                     :icon "󰆍" :tip "Terminal")
+    (dock-item :cmd "thunar"                        :icon "󰉋" :tip "Files")
+    (dock-item :cmd "brave"                         :icon "󰊯" :tip "Browser")
+    (dock-item :cmd "discord"                       :icon "󰙯" :tip "Discord")
+    (dock-item :cmd "spotify-launcher"              :icon "󰓇" :tip "Spotify")))
+
+(defwidget dock-item [cmd icon tip]
+  (eventbox
+    :onclick "${cmd} &"
+    :tooltip tip
+    (label :class "dock-icon" :text icon)))

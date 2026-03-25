@@ -1,0 +1,9 @@
+; ── GPU Temp module ────────────────────────────────────────────
+(defpoll gpu_temp
+  :interval "5s"
+  `sensors amdgpu-pci-0100 2>/dev/null | awk '/edge/{gsub(/[+°C]/,"",$2); printf "%.0f°", $2}' || echo "N/A"`)
+
+(defwidget gpu-temp-module []
+  (box :class "gpu-box" :orientation "h" :space-evenly false
+    (label :class "pill-icon gpu-i" :text " 󰾲 ")
+    (label :class "pill-text" :text "${gpu_temp}")))

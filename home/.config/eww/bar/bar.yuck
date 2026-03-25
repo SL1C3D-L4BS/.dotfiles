@@ -1,0 +1,101 @@
+; ══════════════════════════════════════════════════════════════
+; bar.yuck — Main bar widget for 3 monitors
+; ══════════════════════════════════════════════════════════════
+
+; ── Module includes ───────────────────────────────────────────
+(include "./bar/modules/logo.yuck")
+(include "./bar/modules/workspaces.yuck")
+(include "./bar/modules/cpu.yuck")
+(include "./bar/modules/memory.yuck")
+(include "./bar/modules/clock.yuck")
+(include "./bar/modules/audio.yuck")
+(include "./bar/modules/network.yuck")
+(include "./bar/modules/updates.yuck")
+(include "./bar/modules/gpu-temp.yuck")
+(include "./bar/modules/cpu-temp.yuck")
+(include "./bar/modules/ai-status.yuck")
+(include "./bar/modules/cava.yuck")
+(include "./bar/modules/tray.yuck")
+(include "./bar/modules/weather.yuck")
+(include "./bar/modules/idle-inhibitor.yuck")
+
+; ── Main bar (HDMI-A-0 — Vizio 43") ─────────────────────────
+(defwindow bar
+  :monitor 2
+  :geometry (geometry
+    :x "0%"
+    :y "4px"
+    :width "98%"
+    :height "24px"
+    :anchor "top center")
+  :stacking "fg"
+  :exclusive true
+  :namespace "eww-bar"
+  (bar-layout))
+
+; ── Secondary bar (DisplayPort-1 — ONN portrait) ─────────────
+(defwindow bar-secondary
+  :monitor 0
+  :geometry (geometry
+    :x "0%"
+    :y "4px"
+    :width "98%"
+    :height "24px"
+    :anchor "top center")
+  :stacking "fg"
+  :exclusive true
+  :namespace "eww-bar"
+  (bar-layout-secondary))
+
+; ── Tertiary bar (DisplayPort-2 — ONN portrait) ──────────────
+(defwindow bar-tertiary
+  :monitor 1
+  :geometry (geometry
+    :x "0%"
+    :y "4px"
+    :width "98%"
+    :height "24px"
+    :anchor "top center")
+  :stacking "fg"
+  :exclusive true
+  :namespace "eww-bar"
+  (bar-layout-secondary))
+
+; ── Layout: Main ──────────────────────────────────────────────
+(defwidget bar-layout []
+  (centerbox
+    :class "bar-container"
+    :orientation "h"
+    (box :class "bar-left" :halign "start" :spacing 4 :space-evenly false
+      (logo)
+      (workspaces)
+      (cpu-module)
+      (memory-module))
+    (box :class "bar-center" :halign "center" :spacing 4 :space-evenly false
+      (cava-module)
+      (weather-module)
+      (clock-module))
+    (box :class "bar-right" :halign "end" :spacing 4 :space-evenly false
+      (ai-status-module)
+      (gpu-temp-module)
+      (cpu-temp-module)
+      (network-module)
+      (audio-module)
+      (idle-inhibitor-module)
+      (updates-module)
+      (systray :class "tray" :icon-size 16 :spacing 4))))
+
+; ── Layout: Secondary/Tertiary ────────────────────────────────
+(defwidget bar-layout-secondary []
+  (centerbox
+    :class "bar-container"
+    :orientation "h"
+    (box :class "bar-left" :halign "start" :spacing 4 :space-evenly false
+      (logo)
+      (workspaces))
+    (box :class "bar-center" :halign "center" :spacing 4 :space-evenly false
+      (clock-module))
+    (box :class "bar-right" :halign "end" :spacing 4 :space-evenly false
+      (cpu-module)
+      (memory-module)
+      (audio-module))))

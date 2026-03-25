@@ -1,0 +1,73 @@
+// ══════════════════════════════════════════════════════════════
+// popups.scss — Shared popup styles · 4px grid
+// ══════════════════════════════════════════════════════════════
+
+.popup-container {
+  background-color: $hp-bg;
+  border: 1px solid $hp-border;
+  border-radius: $r-xl;
+  box-shadow: 0 $sp-2 $sp-5 $hp-shadow;
+  padding: $sp-5;
+  color: $hp-fg;
+}
+
+// ── WiFi popup ────────────────────────────────────────────────
+.wifi-icon {
+  font-size: $fs-3xl;
+  color: $hp-green;
+}
+
+.wifi-label {
+  font-weight: bold;
+  color: $hp-fg;
+}
+
+.wifi-ssid {
+  color: $hp-fg-dim;
+  font-size: $fs-sm;
+}
+
+.wifi-toggle {
+  padding: $sp-3 $sp-6;
+  border-radius: $r-lg;
+  font-weight: bold;
+  transition: all $t-base ease;
+}
+
+.wifi-on {
+  background-color: $hp-green;
+  color: $hp-fg;
+  &:hover { background-color: lighten($hp-green, 10%); }
+}
+
+.wifi-off {
+  background-color: $hp-surface;
+  color: $hp-fg-dim;
+  &:hover { background-color: $hp-surface-hover; }
+}
+
+// ── CPU profile popup ─────────────────────────────────────────
+.cpu-profile-title {
+  font-weight: bold;
+  color: $hp-fg-muted;
+  font-size: $fs-sm;
+}
+
+.cpu-btn {
+  padding: $sp-3 $sp-5;
+  border-radius: $r-lg;
+  background-color: $hp-surface;
+  color: $hp-fg-dim;
+  transition: all $t-base ease;
+
+  &:hover {
+    background-color: $hp-surface-hover;
+    color: $hp-fg;
+  }
+}
+
+.cpu-btn-active {
+  background-color: $hp-green;
+  color: $hp-fg;
+  font-weight: bold;
+}

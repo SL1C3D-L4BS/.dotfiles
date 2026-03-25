@@ -3,8 +3,14 @@
 # Terminal
 bindsym $mod+Return exec alacritty
 bindsym $mod+Shift+Return exec alacritty --class float_term,float_term
+bindsym $mod+$alt+Return exec --no-startup-id ~/.local/bin/terminal-cwd
 
-# Launcher (rofi)
+# Launch-or-focus (omarchy pattern)
+bindsym $mod+Shift+b exec --no-startup-id launch-or-focus Brave-browser brave
+bindsym $mod+Shift+m exec --no-startup-id launch-or-focus Spotify spotify-launcher
+
+# Launcher (rofi) — $mod+space is the main launcher
+bindsym $mod+space exec --no-startup-id rofi -show drun -show-icons
 bindsym $mod+d exec --no-startup-id rofi -show drun -show-icons
 bindsym $mod+Tab exec --no-startup-id rofi -show window -show-icons
 bindsym $mod+p exec --no-startup-id rofi -show run
@@ -50,7 +56,7 @@ bindsym $mod+f fullscreen toggle
 
 # Float
 bindsym $mod+Shift+space floating toggle
-bindsym $mod+space focus mode_toggle
+bindsym $mod+Shift+f focus mode_toggle
 
 # Scratchpads
 bindsym $mod+F12 move scratchpad
@@ -64,7 +70,6 @@ bindsym $mod+a focus parent
 bindsym $mod+z focus child
 
 # Volume (PulseAudio)
-
 bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +5%
 bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -5%
 bindsym XF86AudioMute       exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle
@@ -74,13 +79,38 @@ bindsym XF86AudioMicMute    exec --no-startup-id pactl set-source-mute @DEFAULT_
 bindsym XF86MonBrightnessUp   exec --no-startup-id brightnessctl set +10%
 bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 10%-
 
-# Screenshots
-bindsym Print exec --no-startup-id maim ~/Pictures/shot_$(date +%Y%m%d_%H%M%S).png
-bindsym Shift+Print exec --no-startup-id maim -s ~/Pictures/shot_$(date +%Y%m%d_%H%M%S).png
-bindsym $mod+Shift+s exec --no-startup-id maim -s | xclip -selection clipboard -t image/png
+# Screenshots (multi-mode — stolen from omarchy)
+bindsym Print exec --no-startup-id ~/.local/bin/screenshot full
+bindsym Shift+Print exec --no-startup-id ~/.local/bin/screenshot select
+bindsym $mod+Shift+s exec --no-startup-id ~/.local/bin/screenshot clipboard
+bindsym $mod+Print exec --no-startup-id ~/.local/bin/screenshot window
+
+# Audio device switching (stolen from omarchy)
+bindsym $mod+F10 exec --no-startup-id ~/.local/bin/audio-switch
 
 # Lock screen
-bindsym $mod+Shift+x exec --no-startup-id i3lock -c 1e1e2e
+bindsym $mod+Shift+x exec --no-startup-id i3lock -c 0D0D1A
+
+# eww widgets
+bindsym $mod+t exec --no-startup-id ~/.config/eww/bar/popup-menus/scripts/toggle-dashboard.sh
+bindsym $mod+Shift+d exec --no-startup-id ~/.config/eww/dock/scripts/toggle-dock.sh
+bindsym $mod+c exec --no-startup-id ~/.config/eww/bar/popup-menus/scripts/toggle-cal.sh
+bindsym $mod+m exec --no-startup-id ~/.config/eww/bar/popup-menus/media/scripts/toggle-music.sh
+bindsym $mod+v exec --no-startup-id ~/.config/eww/bar/popup-menus/scripts/toggle-audio.sh
+
+# SL1C3dCLI — AI overlay
+bindsym $mod+$alt+space exec --no-startup-id ~/.config/eww/bar/scripts/toggle-sl1c3d.sh
+bindsym $mod+i exec --no-startup-id alacritty --class float_term,float_term -e claude
+
+# Caffeine / idle toggle (omarchy)
+bindsym $mod+F9 exec --no-startup-id ~/.local/bin/toggle-idle
+
+# Window float presets (omarchy)
+bindsym $mod+Shift+p exec --no-startup-id ~/.local/bin/window-float pip
+bindsym $mod+Shift+w exec --no-startup-id ~/.local/bin/window-float medium
+
+# System updates TUI
+bindsym $mod+u exec --no-startup-id alacritty --class float_term,float_term -e system-updates
 
 # Theme reload (matugen → reload all)
 bindsym $mod+Shift+t exec --no-startup-id ~/.local/bin/theme-switch

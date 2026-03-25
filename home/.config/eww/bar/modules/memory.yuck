@@ -1,0 +1,9 @@
+; ── Memory module ──────────────────────────────────────────────
+(defpoll mem_used
+  :interval "2s"
+  `free -h | awk '/^Mem:/{print $3}'`)
+
+(defwidget memory-module []
+  (box :class "mem-box" :orientation "h" :space-evenly false
+    (label :class "pill-icon mem-i" :text " 󰘚 ")
+    (label :class "pill-text" :text "${mem_used}")))

@@ -1,0 +1,113 @@
+; ══════════════════════════════════════════════════════════════
+; ai-panel.yuck — Claude AI popup panel
+; Shows status, recent messages, quick actions
+; ══════════════════════════════════════════════════════════════
+
+(defvar ai_panel_rev false)
+
+(defpoll ai_panel_status
+  :interval "2s"
+  :initial `{"status":"offline","model":"--","last_prompt":"","last_response_preview":"","session_id":"","session_short":"none","cost_usd":"0.00"}`
+  `python3 -c "
+import json
+try:
+    with open('/tmp/ai-panel/status.json') as f:
+        d = json.load(f)
+    d['session_short'] = d.get('session_id','')[:8] or 'none'
+    print(json.dumps(d))
+except Exception:
+    print('{\"status\":\"offline\",\"model\":\"--\",\"last_prompt\":\"\",\"last_response_preview\":\"\",\"session_id\":\"\",\"session_short\":\"none\",\"cost_usd\":\"0.00\"}')
+" 2>/dev/null || echo '{"status":"offline","model":"--","last_prompt":"","last_response_preview":"","session_id":"","session_short":"none","cost_usd":"0.00"}'`)
+
+(defpoll ai_panel_history
+  :interval "3s"
+  `python3 -c "
+import json, sys
+try:
+    with open('/tmp/ai-panel/history.json') as f:
+        h = json.load(f)
+    last = h[-6:] if len(h) >= 6 else h
+    out = []
+    for m in last:
+        c = m.get('content','')[:100].replace(chr(34), chr(39)).replace(chr(10), ' ')
+        out.append({'role': m.get('role','?'), 'preview': c})
+    print(json.dumps(out))
+except Exception:
+    print('[]')
+" 2>/dev/null || echo '[]'`)
+
+(defwindow ai-panel
+  :monitor 2
+  :geometry (geometry
+    :x "4px"
+    :y "32px"
+    :width "384px"
+    :height "0px"
+    :anchor "top right")
+  :stacking "overlay"
+  :namespace "eww-ai-panel"
+  (revealer
+    :transition "slidedown"
+    :reveal ai_panel_rev
+    :duration "300ms"
+    (ai-panel-content)))
+
+(defwidget ai-panel-content []
+  (box :class "popup-container ai-panel-container" :orientation "v" :spacing 12 :space-evenly false
+
+    ; ── Header ───────────────────────────────────────────────
+    (box :class "ai-panel-header" :orientation "h" :spacing 10 :space-evenly false
+      (label :class "ai-panel-icon" :text "󰧑")
+      (box :orientation "v" :spacing 2 :space-evenly false :valign "center" :hexpand true
+        (label :class "ai-panel-title" :halign "start" :text "Claude AI")
+        (label :class "ai-panel-subtitle" :halign "start"
+          :text "${ai_panel_status.model} ${ai_panel_status.status == 'running' ? '● thinking...' : ai_panel_status.status == 'error' ? '✖ error' : '● idle'}"))
+      (box :orientation "v" :spacing 2 :space-evenly false :valign "center"
+        (label :class "ai-panel-cost" :halign "end"
+          :text "$ ${ai_panel_status.cost_usd}")))
+
+    ; ── Status bar ───────────────────────────────────────────
+    (box :class "ai-panel-status ai-panel-status-${ai_panel_status.status}" :orientation "h" :spacing 8 :space-evenly true
+      (label :class "ai-panel-stat" :text "Session: ${ai_panel_status.session_short}")
+      (label :class "ai-panel-stat" :text "Cost: $${ai_panel_status.cost_usd}"))
+
+    ; ── Last exchange ────────────────────────────────────────
+    (box :class "ai-panel-messages" :orientation "v" :spacing 6 :space-evenly false
+      (label :class "ai-panel-section-title" :halign "start" :text "Last Exchange")
+      (box :class "ai-panel-msg ai-panel-msg-prompt" :orientation "h" :spacing 6 :space-evenly false
+        :visible {ai_panel_status.last_prompt != ""}
+        (label :class "ai-panel-msg-role" :text "")
+        (label :class "ai-panel-msg-text" :halign "start" :wrap true :xalign 0
+          :text "${ai_panel_status.last_prompt}" :limit-width 60))
+      (box :class "ai-panel-msg ai-panel-msg-response" :orientation "h" :spacing 6 :space-evenly false
+        :visible {ai_panel_status.last_response_preview != ""}
+        (label :class "ai-panel-msg-role" :text "󰧑")
+        (label :class "ai-panel-msg-text" :halign "start" :wrap true :xalign 0
+          :text "${ai_panel_status.last_response_preview}" :limit-width 80)))
+
+    ; ── Quick Actions ────────────────────────────────────────
+    (box :class "ai-panel-actions" :orientation "h" :spacing 8 :space-evenly true
+      (eventbox
+        :onclick "echo 'clear' > /tmp/ai-panel/cmd &"
+        :class "ai-panel-btn"
+        (box :orientation "v" :spacing 2 :space-evenly false
+          (label :class "ai-panel-btn-icon" :text "󰃭")
+          (label :class "ai-panel-btn-label" :text "New")))
+      (eventbox
+        :onclick "alacritty --class float_term,float_term -e ai-chat &"
+        :class "ai-panel-btn"
+        (box :orientation "v" :spacing 2 :space-evenly false
+          (label :class "ai-panel-btn-icon" :text "")
+          (label :class "ai-panel-btn-label" :text "Chat")))
+      (eventbox
+        :onclick "alacritty --class float_term,float_term -e claude &"
+        :class "ai-panel-btn"
+        (box :orientation "v" :spacing 2 :space-evenly false
+          (label :class "ai-panel-btn-icon" :text "")
+          (label :class "ai-panel-btn-label" :text "Code")))
+      (eventbox
+        :onclick "echo 'cancel' > /tmp/ai-panel/cmd &"
+        :class "ai-panel-btn ai-panel-btn-danger"
+        (box :orientation "v" :spacing 2 :space-evenly false
+          (label :class "ai-panel-btn-icon" :text "")
+          (label :class "ai-panel-btn-label" :text "Stop"))))))

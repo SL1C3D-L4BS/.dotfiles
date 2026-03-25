@@ -1,0 +1,4 @@
+; ── System tray (defined inline in bar.yuck via systray widget) ─
+; The systray is called directly in bar.yuck as:
+;   (systray :class "tray" :icon-size 18 :spacing 6)
+; This file exists for consistency with the modular pattern.

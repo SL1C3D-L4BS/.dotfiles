@@ -1,0 +1,8 @@
+; ── Logo module — the_architect sigil ─────────────────────────
+(defwidget logo []
+  (eventbox
+    :onclick "~/.config/eww/bar/popup-menus/scripts/toggle-dashboard.sh &"
+    :onrightclick "alacritty -e btop &"
+    :onmiddleclick "~/.local/bin/theme-switch &"
+    :tooltip "the_architect@sl1c3d-l4bs | L: Dashboard · R: btop · M: Theme"
+    (label :class "logo" :text "A")))

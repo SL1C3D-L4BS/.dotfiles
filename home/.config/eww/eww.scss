@@ -1,0 +1,110 @@
+// ══════════════════════════════════════════════════════════════
+// eww.scss — the_architect | Slytherin + Gryffindor Theme
+// Mathematical spacing system: 4px base grid
+// ══════════════════════════════════════════════════════════════
+
+// ── Harry Potter Palette — Slytherin/Gryffindor ──────────────
+$hp-bg:           #0D0D1A;       // Hogwarts midnight
+$hp-bg-bar:       transparent;
+$hp-bg-dark:      #070710;       // Chamber of secrets
+$hp-surface:      #1A1A2E;       // Dark corridor
+$hp-surface-alt:  #16213E;       // Ravenclaw depth
+$hp-surface-hover: #222244;
+
+$hp-fg:           #E8E6E3;       // Parchment
+$hp-fg-dim:       #6B6B7B;       // Faded ink
+$hp-fg-muted:     #9B9BAB;       // Weathered scroll
+
+// House Colors — Slytherin primary, Gryffindor secondary
+$hp-green:        #2D6A4F;       // Slytherin emerald (PRIMARY)
+$hp-emerald:      #1A472A;       // Slytherin dark
+$hp-silver:       #AAAAAA;       // Slytherin silver
+$hp-red:          #C41E3A;       // Gryffindor scarlet
+$hp-crimson:      #AE0001;       // Deep Gryffindor
+$hp-maroon:       #740001;       // Gryffindor dark
+$hp-purple:       #9B59B6;       // Magic amethyst
+$hp-blue:         #0077B6;       // Ravenclaw blue
+$hp-navy:         #222F5B;       // Ravenclaw navy
+$hp-gold:         #D4A017;       // Subtle gold (accents only)
+$hp-lavender:     #B97EDE;       // Light magic
+
+// Semantic
+$hp-accent:       $hp-green;
+$hp-urgent:       $hp-red;
+$hp-success:      #2ECC71;
+$hp-warning:      $hp-gold;
+
+// Shadow & Border
+$hp-shadow:       rgba(0, 0, 0, 0.4);
+$hp-border:       rgba(45, 106, 79, 0.25);
+
+// ── Mathematical spacing scale (4px base grid) ──────────────
+// Every value is a multiple of 2; major stops on 4px grid.
+// Ratio between adjacent major stops ≈ 1.5×
+$sp-1:   2px;     // micro — pill v-padding, margins
+$sp-2:   4px;     // base — module spacing, outer gap
+$sp-3:   6px;     // 1.5× — pill h-padding, inner sections
+$sp-4:   8px;     // 2×   — section spacing, inner gap
+$sp-5:   12px;    // 3×   — popup section spacing
+$sp-6:   16px;    // 4×   — popup padding
+$sp-8:   24px;    // 6×   — bar height, large elements
+$sp-10:  32px;    // 8×   — top gap
+
+// ── Font scale (minor-third ratio ≈ 1.2×) ──────────────────
+$fs-2xs:  9px;
+$fs-xs:   10px;
+$fs-sm:   11px;
+$fs-base: 12px;
+$fs-lg:   14px;
+$fs-xl:   16px;
+$fs-2xl:  20px;
+$fs-3xl:  24px;
+$fs-4xl:  32px;
+
+// ── Radius scale ────────────────────────────────────────────
+$r-sm:   4px;     // workspace buttons, calendar day
+$r-md:   6px;     // pills, small cards
+$r-lg:   8px;     // buttons, inner cards
+$r-xl:   12px;    // popup containers, major panels
+$r-pill: 99px;    // sliders, dividers
+
+// ── Transition ──────────────────────────────────────────────
+$t-fast:  150ms;
+$t-base:  200ms;
+$t-slow:  300ms;
+
+// ── Global Styles ────────────────────────────────────────────
+* {
+  all: unset;
+  font-family: "JetBrainsMono Nerd Font", "Cantarell", "Noto Sans CJK JP", monospace;
+  font-size: $fs-base;
+}
+
+// ── Divider ──────────────────────────────────────────────────
+.divider {
+  min-height: $sp-1;
+  margin: $sp-6 $sp-4;
+  border-radius: $r-pill;
+  background-color: rgba($hp-green, 0.2);
+}
+
+// ── Tooltip ──────────────────────────────────────────────────
+tooltip {
+  background-color: $hp-surface;
+  border: 1px solid rgba($hp-green, 0.3);
+  border-radius: $r-lg;
+  padding: $sp-3 $sp-4;
+  color: $hp-fg;
+}
+
+// ── Imports ──────────────────────────────────────────────────
+@import "./bar/bar.scss";
+@import "./bar/popup-menus/popups.scss";
+@import "./bar/popup-menus/dashboard/dashboard.scss";
+@import "./bar/popup-menus/calender/calender.scss";
+@import "./bar/popup-menus/media/media.scss";
+@import "./dock/dock.scss";
+@import "./osd/osd.scss";
+@import "./ai-panel/ai-panel.scss";
+@import "./bar/popup-menus/audio/audio-control.scss";
+@import "./bar/popup-menus/network/net-panel.scss";

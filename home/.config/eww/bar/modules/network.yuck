@@ -1,0 +1,17 @@
+; ══════════════════════════════════════════════════════════════
+; network.yuck — Network bar module (systemd-networkd)
+; L-click: network panel | R-click: networkctl status
+; ══════════════════════════════════════════════════════════════
+
+(deflisten net_info
+  :initial '{"icon":"󰈀","status":"...","name":"","ip":"--","iface":"--","rx":"--","tx":"--","gateway":"--"}'
+  "~/.config/eww/bar/scripts/network.sh")
+
+(defwidget network-module []
+  (eventbox
+    :onclick "~/.config/eww/bar/popup-menus/scripts/toggle-network.sh &"
+    :onrightclick "alacritty --class float_term,float_term -e bash -c 'networkctl status; echo; echo Press any key...; read -n1' &"
+    :tooltip "${net_info.iface} · ${net_info.ip} · GW ${net_info.gateway}"
+    (box :class "net-box" :orientation "h" :space-evenly false
+      (label :class "pill-icon net-i" :text " ${net_info.icon} ")
+      (label :class "pill-text" :text "${net_info.status}"))))

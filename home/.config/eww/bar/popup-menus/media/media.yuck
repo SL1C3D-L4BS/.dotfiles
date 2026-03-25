@@ -1,0 +1,48 @@
+; ══════════════════════════════════════════════════════════════
+; media.yuck — MPRIS media player popup
+; ══════════════════════════════════════════════════════════════
+
+(defvar musicrev false)
+
+(defpoll media_title
+  :interval "2s"
+  `playerctl metadata title 2>/dev/null || echo "No media"`)
+
+(defpoll media_artist
+  :interval "2s"
+  `playerctl metadata artist 2>/dev/null || echo ""`)
+
+(defpoll media_status
+  :interval "1s"
+  `playerctl status 2>/dev/null || echo "Stopped"`)
+
+(defwindow media
+  :monitor 2
+  :geometry (geometry
+    :x "0%"
+    :y "32px"
+    :width "0px"
+    :height "0px"
+    :anchor "top center")
+  :stacking "overlay"
+  :namespace "eww-media"
+  (revealer
+    :transition "slidedown"
+    :reveal musicrev
+    :duration "200ms"
+    (media-content)))
+
+(defwidget media-content []
+  (box :class "popup-container media-container" :orientation "v" :spacing 10 :space-evenly false
+    (box :orientation "h" :spacing 12 :space-evenly false
+      (label :class "media-icon" :text {media_status == "Playing" ? "󰎈" : "󰎊"})
+      (box :orientation "v" :spacing 2 :space-evenly false :valign "center"
+        (label :class "media-title" :halign "start" :limit-width 30 :text media_title)
+        (label :class "media-artist" :halign "start" :limit-width 30 :text media_artist)))
+    (box :class "media-controls" :orientation "h" :spacing 16 :halign "center" :space-evenly false
+      (eventbox :onclick "playerctl previous &"
+        (label :class "media-btn" :text "󰒮"))
+      (eventbox :onclick "playerctl play-pause &"
+        (label :class "media-btn media-btn-main" :text {media_status == "Playing" ? "󰏤" : "󰐊"}))
+      (eventbox :onclick "playerctl next &"
+        (label :class "media-btn" :text "󰒭")))))
