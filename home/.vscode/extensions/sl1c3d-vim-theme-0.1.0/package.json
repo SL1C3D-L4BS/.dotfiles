@@ -1,0 +1,22 @@
+{
+  "name": "sl1c3d-vim-theme",
+  "displayName": "SL1C3D-V1M",
+  "description": "Harry Potter x Cyberpunk theme — Hogwarts midnight, Slytherin emerald, Gryffindor scarlet, Ravenclaw blue, Amethyst magic",
+  "version": "0.1.0",
+  "publisher": "sl1c3d-l4bs",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Themes"
+  ],
+  "contributes": {
+    "themes": [
+      {
+        "label": "SL1C3D-V1M",
+        "uiTheme": "vs-dark",
+        "path": "./themes/sl1c3d-vim-color-theme.json"
+      }
+    ]
+  }
+}

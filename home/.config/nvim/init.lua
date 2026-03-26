@@ -65,10 +65,17 @@ require("lazy").setup({
       },
     },
   },
-  checker = { enabled = false },  -- disable auto update checks at startup
+  checker = { enabled = false },
+  rocks   = { enabled = false },
 })
 
--- Keymaps loaded after plugins
+-- Load ALL base46 theme caches immediately so nothing is grey
 vim.schedule(function()
+  local cache = vim.g.base46_cache
+  if cache then
+    for _, file in ipairs(vim.fn.readdir(cache)) do
+      dofile(cache .. file)
+    end
+  end
   require("config.mappings")
 end)

@@ -59,6 +59,23 @@
     # Build tools
     gnumake
     gcc
+    cmake
+    ninja
+    meson
+
+    # Formatters & Linters (global)
+    stylua
+    shfmt
+    shellcheck
+    nixfmt-rfc-style
+    nodePackages.prettier
+    hadolint
+
+    # Infra & Cloud
+    terraform
+    kubectl
+    k9s
+    dive          # docker image explorer
 
     # Secrets
     age
@@ -66,6 +83,10 @@
 
     # Dotfile management
     chezmoi
+
+    # HTTP & API
+    httpie
+    xh            # fast HTTP client
 
     # Utilities
     wget
@@ -79,8 +100,14 @@
     mosh
     xclip
     xdotool
-    maim        # screenshot
+    maim          # screenshot
     numlockx
+    just          # command runner (modern make)
+    hyperfine     # benchmarking
+    tokei         # code stats
+    sd            # sed replacement
+    choose        # cut replacement
+    gping         # ping with graph
   ];
 
   # ── Direnv integration ────────────────────────────────────────
@@ -129,7 +156,14 @@
       pull.rebase          = true;
       push.autoSetupRemote = true;
       init.defaultBranch   = "main";
-      diff.colorMoved      = "default";
+      diff.colorMoved      = "plain";
+      diff.algorithm       = "histogram";
+      diff.mnemonicPrefix  = true;
+      commit.verbose       = true;
+      branch.sort          = "-committerdate";
+      tag.sort             = "-version:refname";
+      rerere.enabled       = true;
+      rerere.autoupdate    = true;
     };
   };
 
@@ -170,10 +204,10 @@
     enable   = true;
     settings = {
       gui.theme = {
-        activeBorderColor   = [ "blue" "bold" ];
-        inactiveBorderColor = [ "white" ];
-        optionsTextColor    = [ "blue" ];
-        selectedLineBgColor = [ "blue" ];
+        activeBorderColor   = [ "#2D6A4F" "bold" ];
+        inactiveBorderColor = [ "#6B6B7B" ];
+        optionsTextColor    = [ "#9B59B6" ];
+        selectedLineBgColor = [ "#1A472A" ];
       };
       git.paging.colorArg = "always";
       git.paging.pager    = "delta --color-only";

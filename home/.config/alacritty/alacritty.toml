@@ -1,31 +1,28 @@
-# ══════════════════════════════════════════════════════════════
-# Alacritty config — the_architect | 2026
-# Colors via import from matugen-generated theme file
-# ══════════════════════════════════════════════════════════════
-
-import = ["~/.config/alacritty/theme.toml"]
 
 [env]
 TERM = "xterm-256color"
 
 [window]
-padding     = { x = 10, y = 8 }
+padding = { x = 14, y = 14 }
 decorations = "none"
-opacity     = 0.95
+opacity = 0.88
+blur = true
 dynamic_title = true
+startup_mode = "Windowed"
 
 [scrolling]
-history    = 10000
+history = 10000
 multiplier = 5
 
 [font]
-normal  = { family = "JetBrainsMono Nerd Font", style = "Regular" }
-bold    = { family = "JetBrainsMono Nerd Font", style = "Bold" }
-italic  = { family = "JetBrainsMono Nerd Font", style = "Italic" }
-size    = 12.0
+normal = { family = "JetBrainsMono Nerd Font", style = "Regular" }
+bold = { family = "JetBrainsMono Nerd Font", style = "Bold" }
+italic = { family = "JetBrainsMono Nerd Font", style = "Italic" }
+size = 11.0
 
 [cursor]
 style = { shape = "Block", blinking = "On" }
+blink_interval = 500
 
 [selection]
 save_to_clipboard = true
@@ -36,11 +33,18 @@ osc52 = "CopyPaste"
 [mouse]
 bindings = [
     { mouse = "Right", mods = "Control", action = "Paste" },
-    { mouse = "Middle", mods = "Shift",  action = "Paste" },
 ]
 
 [keyboard]
 bindings = [
-    # Ctrl+Shift+Space → fzf file browser
     { key = "Space", mods = "Control|Shift", action = "SpawnNewInstance" },
+    { key = "Return", mods = "Control|Shift", action = "SpawnNewInstance" },
 ]
+
+[general]
+# ══════════════════════════════════════════════════════════════
+# Alacritty — the_architect | 2026 elite terminal
+# Glassy + blurred via picom · Catppuccin Mocha colors via import
+# ══════════════════════════════════════════════════════════════
+
+import = ["~/.config/alacritty/theme.toml"]

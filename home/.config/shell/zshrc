@@ -151,5 +151,18 @@ if (( ${+commands[fzf]} )); then
     export FZF_CTRL_R_OPTS="--sort --exact"
 fi
 
+# ── tmux auto-session ────────────────────────────────────────
+# Every new terminal gets a fresh tmux session · C-Space prefix
+if (( ${+commands[tmux]} )) && [[ -z "$TMUX" ]] && [[ "$TERM_PROGRAM" != "vscode" ]]; then
+    _tmux_idx=$(tmux list-sessions 2>/dev/null | wc -l)
+    exec tmux new-session -s "ws-$((_tmux_idx + 1))"
+fi
+
+# ── Fastfetch greeting ───────────────────────────────────────
+if (( ${+commands[fastfetch]} )) && [[ -n "$TMUX" ]]; then
+    fastfetch --logo-padding-top 0
+fi
+
 # ── Local overrides ───────────────────────────────────────────
 [[ -f "$HOME/.config/shell/zshrc.local" ]] && source "$HOME/.config/shell/zshrc.local"
+export PATH="$HOME/.local/share/nvim/mason/bin:$PATH"

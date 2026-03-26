@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# wallpaper-set — apply per-monitor wallpapers via feh
+# Usage: wallpaper-set
+# Config: reads from ~/.config/wallpaper/config
+
+WALL_DIR="$HOME/Pictures/wallpapers"
+CONF_DIR="$HOME/.config/wallpaper"
+CONF_FILE="$CONF_DIR/config"
+
+mkdir -p "$CONF_DIR"
+
+# Default config if not present
+if [[ ! -f "$CONF_FILE" ]]; then
+    cat > "$CONF_FILE" <<'DEFAULTS'
+# wallpaper config — per-monitor
+# Format: MONITOR=path_to_wallpaper
+HDMI_A_0=$HOME/Pictures/wallpapers/Wallpaper1.jpg
+DISPLAYPORT_1=$HOME/Pictures/wallpapers/wallpaper2.jpg
+DISPLAYPORT_2=$HOME/Pictures/wallpapers/wallpaper2.jpg
+DEFAULTS
+fi
+
+source "$CONF_FILE"
+
+# Expand vars
+WALL1="${HDMI_A_0/#\$HOME/$HOME}"
+WALL2="${DISPLAYPORT_1/#\$HOME/$HOME}"
+WALL3="${DISPLAYPORT_2/#\$HOME/$HOME}"
+
+# feh --bg-fill sets wallpapers in xrandr output order
+# xrandr order: DisplayPort-1, DisplayPort-2, HDMI-A-0
+# So feh args must be: DP-1 wall, DP-2 wall, HDMI wall
+
+if [[ -s "$WALL1" && -s "$WALL2" && -s "$WALL3" ]]; then
+    feh --bg-fill "$WALL2" "$WALL3" "$WALL1" --no-fehbg
+    echo "wallpaper-set: applied 3 wallpapers"
+elif [[ -s "$WALL1" ]]; then
+    feh --bg-fill "$WALL1" --no-fehbg
+    echo "wallpaper-set: applied single wallpaper"
+else
+    echo "wallpaper-set: no valid wallpapers found in $WALL_DIR"
+    # Set solid color fallback
+    xsetroot -solid '#11111b'
+fi

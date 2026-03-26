@@ -1,0 +1,233 @@
+#!/usr/bin/env python3
+"""
+i3bar-status — elite status line for i3bar
+Uses i3bar JSON protocol with pango markup for per-block styling.
+Catppuccin Mocha palette · Nerd Font glyphs · zero dependencies beyond psutil
+"""
+
+import json
+import sys
+import time
+import subprocess
+import psutil
+from pathlib import Path
+
+# ── Catppuccin Mocha palette ──────────────────────────────────
+CRUST    = "#11111b"
+MANTLE   = "#181825"
+BASE     = "#1e1e2e"
+SURFACE0 = "#313244"
+SURFACE1 = "#45475a"
+SUBTEXT0 = "#a6adc8"
+TEXT     = "#cdd6f4"
+BLUE     = "#89b4fa"
+GREEN    = "#a6e3a1"
+PEACH    = "#fab387"
+RED      = "#f38ba8"
+MAUVE    = "#cba6f7"
+YELLOW   = "#f9e2af"
+TEAL     = "#94e2d5"
+SKY      = "#89dceb"
+LAVENDER = "#b4befe"
+FLAMINGO = "#f2cdcd"
+
+# ── Helpers ───────────────────────────────────────────────────
+
+def pango(text, color=TEXT, size=None, weight=None):
+    """Wrap text in pango span with color and optional attributes."""
+    attrs = f'color="{color}"'
+    if size:
+        attrs += f' size="{size}"'
+    if weight:
+        attrs += f' weight="{weight}"'
+    return f'<span {attrs}>{text}</span>'
+
+def block(full_text, icon="", icon_color=BLUE, bg=MANTLE, border=SURFACE0,
+          text_color=SUBTEXT0, urgent=False, min_width=None, sep=False):
+    """Build a single i3bar block with styled pango markup."""
+    markup = ""
+    if icon:
+        markup += pango(f"{icon} ", color=icon_color, weight="bold")
+    markup += pango(full_text, color=text_color)
+    b = {
+        "full_text": f"  {markup}  ",
+        "markup": "pango",
+        "background": bg,
+        "border": border,
+        "border_top": 1,
+        "border_bottom": 0,
+        "border_left": 0,
+        "border_right": 0,
+        "separator": sep,
+        "separator_block_width": 3,
+    }
+    if urgent:
+        b["urgent"] = True
+    if min_width:
+        b["min_width"] = min_width
+    return b
+
+# ── Data collectors ───────────────────────────────────────────
+
+def get_cpu():
+    pct = psutil.cpu_percent(interval=None)
+    color = GREEN if pct < 60 else YELLOW if pct < 85 else RED
+    return block(f"{pct:.0f}%", icon="", icon_color=TEAL, text_color=color,
+                 min_width="  000%  ")
+
+def get_memory():
+    m = psutil.virtual_memory()
+    used_gb = m.used / (1024**3)
+    pct = m.percent
+    color = GREEN if pct < 60 else YELLOW if pct < 85 else RED
+    return block(f"{used_gb:.1f}G", icon="", icon_color=MAUVE, text_color=color,
+                 min_width="  00.0G  ")
+
+def get_disk():
+    d = psutil.disk_usage("/")
+    free_gb = d.free / (1024**3)
+    color = GREEN if d.percent < 80 else YELLOW if d.percent < 90 else RED
+    return block(f"{free_gb:.0f}G", icon="󰋊", icon_color=PEACH, text_color=color)
+
+def get_cpu_temp():
+    try:
+        # AMD GPU temp from sensors
+        temps = psutil.sensors_temperatures()
+        # Try k10temp (AMD CPU) first, then coretemp (Intel)
+        for chip in ("k10temp", "coretemp", "dell_smm"):
+            if chip in temps and temps[chip]:
+                t = temps[chip][0].current
+                color = GREEN if t < 55 else YELLOW if t < 75 else RED
+                return block(f"{t:.0f}°", icon="", icon_color=FLAMINGO, text_color=color)
+    except Exception:
+        pass
+    return None
+
+def get_gpu():
+    try:
+        temps = psutil.sensors_temperatures()
+        if "amdgpu" in temps and temps["amdgpu"]:
+            t = temps["amdgpu"][0].current
+            color = GREEN if t < 65 else YELLOW if t < 80 else RED
+            return block(f"{t:.0f}°", icon="󰢮", icon_color=SKY, text_color=color)
+    except Exception:
+        pass
+    return None
+
+def get_network():
+    counters = psutil.net_io_counters()
+    return counters
+
+_prev_net = None
+_prev_time = None
+
+def get_network_speed():
+    global _prev_net, _prev_time
+    now = time.monotonic()
+    curr = psutil.net_io_counters()
+    if _prev_net is None:
+        _prev_net = curr
+        _prev_time = now
+        return block("…", icon="󰈀", icon_color=BLUE, text_color=SUBTEXT0)
+    dt = now - _prev_time
+    if dt < 0.1:
+        dt = 0.1
+    down = (curr.bytes_recv - _prev_net.bytes_recv) / dt
+    up = (curr.bytes_sent - _prev_net.bytes_sent) / dt
+    _prev_net = curr
+    _prev_time = now
+
+    def fmt(b):
+        if b > 1_000_000:
+            return f"{b/1_000_000:.1f}M"
+        if b > 1000:
+            return f"{b/1000:.0f}K"
+        return f"{b:.0f}B"
+
+    return block(f"{fmt(down)} ↓ {fmt(up)} ↑", icon="󰈀", icon_color=BLUE,
+                 text_color=SUBTEXT0)
+
+def get_volume():
+    try:
+        out = subprocess.run(
+            ["pactl", "get-sink-volume", "@DEFAULT_SINK@"],
+            capture_output=True, text=True, timeout=1
+        ).stdout
+        mute = subprocess.run(
+            ["pactl", "get-sink-mute", "@DEFAULT_SINK@"],
+            capture_output=True, text=True, timeout=1
+        ).stdout
+        is_muted = "yes" in mute.lower()
+        # Parse volume percentage
+        for part in out.split():
+            if "%" in part:
+                vol = part.strip("%")
+                if is_muted:
+                    return block("mute", icon="", icon_color=SURFACE1,
+                                 text_color=SURFACE1)
+                icon = "" if int(vol) > 50 else "" if int(vol) > 10 else ""
+                return block(f"{vol}%", icon=icon, icon_color=LAVENDER,
+                             text_color=SUBTEXT0)
+    except Exception:
+        pass
+    return block("–", icon="", icon_color=SURFACE1, text_color=SURFACE1)
+
+def get_datetime():
+    t = time.localtime()
+    date_str = time.strftime("%a %d %b", t)
+    time_str = time.strftime("%H:%M", t)
+    return block(
+        pango(date_str, color=SUBTEXT0) + pango("  ", color=SURFACE1) + pango(time_str, color=TEXT, weight="bold"),
+        icon="", icon_color=BLUE, bg=MANTLE, border=BLUE,
+        text_color=TEXT  # overridden by inner pango
+    )
+
+def get_load():
+    l1, _, _ = psutil.getloadavg()
+    cores = psutil.cpu_count()
+    ratio = l1 / cores if cores else l1
+    color = GREEN if ratio < 0.7 else YELLOW if ratio < 1.0 else RED
+    return block(f"{l1:.1f}", icon="󱗼", icon_color=TEAL, text_color=color)
+
+# ── Main loop ─────────────────────────────────────────────────
+
+def collect():
+    blocks = []
+    blocks.append(get_cpu())
+    load = get_load()
+    if load:
+        blocks.append(load)
+    temp = get_cpu_temp()
+    if temp:
+        blocks.append(temp)
+    gpu = get_gpu()
+    if gpu:
+        blocks.append(gpu)
+    blocks.append(get_memory())
+    blocks.append(get_disk())
+    blocks.append(get_network_speed())
+    blocks.append(get_volume())
+    blocks.append(get_datetime())
+    return [b for b in blocks if b is not None]
+
+def main():
+    # i3bar JSON protocol header
+    print(json.dumps({"version": 1, "click_events": False}))
+    print("[")
+    # Prime CPU percent
+    psutil.cpu_percent(interval=None)
+    first = True
+    while True:
+        blocks = collect()
+        prefix = "" if first else ","
+        first = False
+        print(f"{prefix}{json.dumps(blocks)}", flush=True)
+        time.sleep(2)
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(0)
+    except BrokenPipeError:
+        sys.exit(0)

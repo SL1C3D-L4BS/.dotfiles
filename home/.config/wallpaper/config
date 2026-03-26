@@ -1,0 +1,5 @@
+# wallpaper config — per-monitor
+# Format: MONITOR=path_to_wallpaper
+HDMI_A_0=$HOME/Pictures/wallpapers/123883.jpg
+DISPLAYPORT_1=$HOME/Pictures/wallpapers/9899707.jpg
+DISPLAYPORT_2=$HOME/Pictures/wallpapers/9899707.jpg
