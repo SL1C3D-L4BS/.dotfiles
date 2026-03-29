@@ -99,7 +99,7 @@ return {
         "lua_ls", "pyright", "rust_analyzer", "gopls",
         "ts_ls", "jsonls", "yamlls", "taplo", "bashls",
         -- Systems
-        "clangd", "zls",
+        "clangd", "zls", "omnisharp",
         -- Web
         "html", "cssls", "tailwindcss", "emmet_ls",
         -- Infra
@@ -216,8 +216,24 @@ return {
           init_options = { clangdFileStatus = true },
         },
 
-        -- ── C# ──
-        -- omnisharp managed externally; csharp_ls as fallback via Mason
+        -- ── C# (Unity + .NET) ──
+        omnisharp = {
+          cmd = { vim.fn.stdpath("data") .. "/mason/packages/omnisharp/omnisharp" },
+          settings = {
+            FormattingOptions  = { EnableEditorConfigSupport = true },
+            MsBuild            = { LoadProjectsOnDemand = false },
+            RoslynExtensionsOptions = {
+              EnableAnalyzersSupport   = true,
+              EnableImportCompletion   = true,
+              AnalyzeOpenDocumentsOnly = true,
+            },
+          },
+          handlers = {
+            ["textDocument/definition"] = function(...)
+              return require("omnisharp_extended").handler(...)
+            end,
+          },
+        },
 
         -- ── Zig ──
         zls = {},
@@ -835,6 +851,9 @@ return {
     },
     opts = { window = { position = "vertical", width = 0.4, open_on_start = false } },
   },
+
+  -- ── OmniSharp extended (go-to-definition in decompiled sources) ──
+  { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
 
   -- ── Schemastore ─────────────────────────────────────────
   { "b0o/schemastore.nvim", lazy = true },

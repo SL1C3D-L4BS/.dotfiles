@@ -45,17 +45,17 @@ except:
 
 # Map matugen names → Xresources entries
 mapping = {
-    "background":  colors.get("background", "#1e1e2e"),
-    "foreground":  colors.get("foreground", "#cdd6f4"),
-    "color0":      colors.get("surface", "#45475a"),
-    "color1":      colors.get("error", "#f38ba8"),
-    "color2":      colors.get("primary", "#a6e3a1"),
-    "color3":      colors.get("tertiary", "#f9e2af"),
-    "color4":      colors.get("secondary", "#89b4fa"),
-    "color5":      colors.get("pink", "#cba6f7"),
-    "color6":      colors.get("teal", "#94e2d5"),
-    "color7":      colors.get("on_surface", "#cdd6f4"),
-    "color8":      colors.get("surface_variant", "#585b70"),
+    "background":  colors.get("background", "#0D0D1A"),
+    "foreground":  colors.get("foreground", "#E8E6E3"),
+    "color0":      colors.get("surface", "#1A1A2E"),
+    "color1":      colors.get("error", "#C41E3A"),
+    "color2":      colors.get("primary", "#2D6A4F"),
+    "color3":      colors.get("tertiary", "#D4A017"),
+    "color4":      colors.get("secondary", "#0077B6"),
+    "color5":      colors.get("pink", "#9B59B6"),
+    "color6":      colors.get("teal", "#1A472A"),
+    "color7":      colors.get("on_surface", "#E8E6E3"),
+    "color8":      colors.get("surface_variant", "#333344"),
 }
 
 lines = ["! Matugen-generated colors"]
@@ -76,9 +76,9 @@ fi
 # ── 5. Update alacritty theme ─────────────────────────────────
 python3 "$HOME/.local/bin/_theme-alacritty" 2>/dev/null || true
 
-# ── 6. Reload polybar ─────────────────────────────────────────
-if pgrep -x polybar &>/dev/null; then
-    "$HOME/.config/polybar/launch.sh" &
+# ── 6. Reload eww ─────────────────────────────────────────────
+if pgrep -x eww &>/dev/null; then
+    eww reload 2>/dev/null || true
 fi
 
 # ── 7. Reload i3 colors ───────────────────────────────────────

@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════
+# system-updates — TUI for Arch Linux system updates
+# Hooks into pacman, AUR (yay), and flatpak
+# Integrates with eww bar updates module
+# ══════════════════════════════════════════════════════════════
+set -euo pipefail
+
+GREEN='\033[38;2;45;106;79m'
+RED='\033[38;2;196;30;58m'
+PURPLE='\033[38;2;155;89;182m'
+BLUE='\033[38;2;0;119;182m'
+DIM='\033[38;2;107;107;123m'
+BOLD='\033[1m'
+RESET='\033[0m'
+
+header() {
+    echo -e "\n${GREEN}${BOLD}󰏔 System Updates${RESET}"
+    echo -e "${DIM}══════════════════════════════════════${RESET}"
+}
+
+section() {
+    echo -e "\n${1}${BOLD}${2}${RESET}"
+}
+
+# ── Check mode ────────────────────────────────────────────────
+check_updates() {
+    header
+
+    section "$GREEN" "  Official Repositories"
+    OFFICIAL=$(checkupdates 2>/dev/null || true)
+    if [[ -n "$OFFICIAL" ]]; then
+        echo "$OFFICIAL" | while read -r pkg; do
+            echo -e "  ${DIM}├─${RESET} $pkg"
+        done
+        OFFICIAL_COUNT=$(echo "$OFFICIAL" | wc -l)
+        echo -e "  ${GREEN}└─ $OFFICIAL_COUNT package(s)${RESET}"
+    else
+        echo -e "  ${DIM}└─ Up to date${RESET}"
+    fi
+
+    section "$PURPLE" "󰣇  AUR Packages"
+    AUR=$(yay -Qua 2>/dev/null || true)
+    if [[ -n "$AUR" ]]; then
+        echo "$AUR" | while read -r pkg; do
+            echo -e "  ${DIM}├─${RESET} $pkg"
+        done
+        AUR_COUNT=$(echo "$AUR" | wc -l)
+        echo -e "  ${PURPLE}└─ $AUR_COUNT package(s)${RESET}"
+    else
+        echo -e "  ${DIM}└─ Up to date${RESET}"
+    fi
+
+    section "$BLUE" "󰏗  Orphaned Packages"
+    ORPHANS=$(pacman -Qtdq 2>/dev/null || true)
+    if [[ -n "$ORPHANS" ]]; then
+        ORPHAN_COUNT=$(echo "$ORPHANS" | wc -l)
+        echo -e "  ${BLUE}└─ $ORPHAN_COUNT orphan(s) (run with --clean to remove)${RESET}"
+    else
+        echo -e "  ${DIM}└─ None${RESET}"
+    fi
+
+    # Summary
+    local o_count=0 a_count=0
+    [[ -n "$OFFICIAL" ]] && o_count=$(echo "$OFFICIAL" | wc -l)
+    [[ -n "$AUR" ]] && a_count=$(echo "$AUR" | wc -l)
+    TOTAL=$(( o_count + a_count ))
+    echo -e "\n${DIM}──────────────────────────────────────${RESET}"
+    if (( TOTAL > 0 )); then
+        echo -e "${GREEN}${BOLD}  $TOTAL total update(s) available${RESET}"
+        echo -e "${DIM}Run 'system-updates --apply' to install${RESET}"
+    else
+        echo -e "${GREEN}${BOLD}  System is up to date${RESET}"
+    fi
+}
+
+# ── Apply mode ────────────────────────────────────────────────
+apply_updates() {
+    header
+    echo -e "${RED}${BOLD}Applying all updates...${RESET}\n"
+
+    section "$GREEN" "  Syncing official repos..."
+    sudo pacman -Syu --noconfirm 2>&1
+
+    section "$PURPLE" "󰣇  Updating AUR packages..."
+    yay -Sua --noconfirm 2>&1
+
+    echo -e "\n${GREEN}${BOLD}  Updates complete!${RESET}"
+
+    # Send notification
+    notify-send -u normal "󰏔 System Updates" "All packages updated successfully" 2>/dev/null || true
+}
+
+# ── Clean mode ────────────────────────────────────────────────
+clean_system() {
+    header
+    echo -e "${BLUE}${BOLD}Cleaning system...${RESET}\n"
+
+    section "$BLUE" "󰏗  Removing orphaned packages..."
+    ORPHANS=$(pacman -Qtdq 2>/dev/null || true)
+    if [[ -n "$ORPHANS" ]]; then
+        echo "$ORPHANS" | sudo pacman -Rns --noconfirm - 2>&1
+    else
+        echo -e "  ${DIM}No orphans to remove${RESET}"
+    fi
+
+    section "$BLUE" "󰃢  Cleaning package cache..."
+    sudo pacman -Sc --noconfirm 2>&1
+
+    echo -e "\n${GREEN}${BOLD}  Cleanup complete!${RESET}"
+}
+
+# ── Route ─────────────────────────────────────────────────────
+case "${1:---check}" in
+    --check|-c)   check_updates ;;
+    --apply|-a)   apply_updates ;;
+    --clean|-C)   clean_system ;;
+    --help|-h)
+        echo "Usage: system-updates [--check|--apply|--clean]"
+        echo "  --check   Show available updates (default)"
+        echo "  --apply   Install all updates"
+        echo "  --clean   Remove orphans + clean cache"
+        ;;
+    *)            check_updates ;;
+esac

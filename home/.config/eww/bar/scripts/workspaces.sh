@@ -5,6 +5,10 @@
 # ══════════════════════════════════════════════════════════════
 set -euo pipefail
 
+# Find i3 socket — eww doesn't inherit I3SOCK
+export I3SOCK=$(find /run/user/1000/i3 -name "ipc-socket.*" 2>/dev/null | head -1)
+[[ -z "$I3SOCK" ]] && { echo "[]"; exit 1; }
+
 PERSISTENT="1,2,3,4,5,6,7,8,9,10"
 
 get_workspaces() {
@@ -12,12 +16,12 @@ get_workspaces() {
 import json, sys
 
 # ── Workspace icons ──────────────────────────────────────────
-# 1: Dev      2: Browser   3: Stream    4: Database  5: Chat
+# 1: Computer (AI)  2: Code (editors)  3: Browser  4: Database  5: Chat
 # 6: Media    7: Files     8: Settings  9: Gaming   10: Misc
 ICONS = {
-    1: '\ue795',       #  terminal (dev)
-    2: '\U000f059f',   # 󰖟 web (browser)
-    3: '\U000f044b',   # 󰑋 record (stream/obs)
+    1: '\U000f0e99',   # 󰺙 computer/brain (AI dashboard)
+    2: '\ue795',       #  terminal/code
+    3: '\U000f059f',   # 󰖟 web (browser)
     4: '\U000f01bc',   # 󰆼 database
     5: '\U000f0b79',   # 󰭹 chat
     6: '\U000f075a',   # 󰝚 music

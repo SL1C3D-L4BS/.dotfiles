@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════
+# audio-switch — Cycle audio output devices (stolen from omarchy)
+# Adapted for i3/X11 with dunst notifications
+# ══════════════════════════════════════════════════════════════
+set -euo pipefail
+
+# Get all sinks as JSON
+SINKS=$(pactl -f json list sinks 2>/dev/null)
+CURRENT=$(pactl get-default-sink 2>/dev/null)
+
+# Get sink names as array
+mapfile -t SINK_NAMES < <(echo "$SINKS" | jq -r '.[].name')
+COUNT=${#SINK_NAMES[@]}
+
+[[ $COUNT -eq 0 ]] && exit 1
+[[ $COUNT -eq 1 ]] && exit 0
+
+# Find current index
+CURRENT_IDX=0
+for i in "${!SINK_NAMES[@]}"; do
+  [[ "${SINK_NAMES[$i]}" == "$CURRENT" ]] && CURRENT_IDX=$i
+done
+
+# Next sink (wrap around)
+NEXT_IDX=$(( (CURRENT_IDX + 1) % COUNT ))
+NEXT_SINK="${SINK_NAMES[$NEXT_IDX]}"
+
+# Switch
+pactl set-default-sink "$NEXT_SINK"
+
+# Move all current streams to new sink
+pactl list sink-inputs short 2>/dev/null | while read -r id _; do
+  pactl move-sink-input "$id" "$NEXT_SINK" 2>/dev/null || true
+done
+
+# Get friendly name
+FRIENDLY=$(echo "$SINKS" | jq -r ".[] | select(.name == \"$NEXT_SINK\") | .description" 2>/dev/null)
+FRIENDLY="${FRIENDLY:-$NEXT_SINK}"
+
+# Notify
+notify-send -u low -t 2000 "󰕾 Audio Output" "$FRIENDLY" 2>/dev/null || true

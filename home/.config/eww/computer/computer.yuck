@@ -1,0 +1,57 @@
+; ══════════════════════════════════════════════════════════════
+; computer.yuck — "Computer" AI assistant bar module
+; States: offline (grey) → idle (emerald) → chatting (purple) → voice (gold)
+; CRK nervous system constellation: step, attention, loops, trust, devices
+; ══════════════════════════════════════════════════════════════
+
+; ── CRK widget includes ──────────────────────────────────────
+(include "./computer/crk-status.yuck")
+(include "./computer/attention.yuck")
+(include "./computer/memory-loops.yuck")
+(include "./computer/trust-gauge.yuck")
+(include "./computer/devices.yuck")
+
+; ── Polls ────────────────────────────────────────────────────
+(defpoll computer_status
+  :interval "2s"
+  :initial `{"state":"offline","model":"","session":"","messages":0,"voice":false}`
+  `cat /tmp/computer/status.json 2>/dev/null || echo '{"state":"offline","model":"","session":"","messages":0,"voice":false}'`)
+
+; ── Main Computer status pill ────────────────────────────────
+(defwidget computer-status-pill []
+  (eventbox
+    :onclick "~/.config/eww/computer/toggle-computer.sh &"
+    :onrightclick "pkill -f 'computer/main.py' &"
+    :tooltip {computer_status.state == "offline" ? "Computer — Offline (click to launch)" :
+              computer_status.state == "idle" ? "Computer — Ready | ${computer_status.model}" :
+              computer_status.state == "chatting" ? "Computer — Chatting (${computer_status.messages} msgs)" :
+              computer_status.state == "voice" ? "Computer — Listening..." :
+              "Computer — ${computer_status.state}"}
+    (box :class "computer-box" :orientation "h" :space-evenly false
+      (label
+        :class "pill-icon computer-i computer-i-${computer_status.state}"
+        :text {computer_status.voice == true ? " " :
+               computer_status.state == "chatting" ? " 󰭹" :
+               computer_status.state == "thinking" ? " 󰧑" :
+               " 󰚩 "})
+      (label
+        :class "pill-text computer-t computer-t-${computer_status.state}"
+        :text {computer_status.state == "offline" ? "Computer" :
+               computer_status.state == "idle" ? "Computer" :
+               computer_status.state == "chatting" ? "Chatting" :
+               computer_status.state == "thinking" ? "Thinking" :
+               computer_status.state == "voice" ? "Listening" :
+               "Computer"}))))
+
+; ── Composite module: status + CRK constellation ────────────
+(defwidget computer-module []
+  (box :class "computer-constellation"
+       :orientation "h"
+       :space-evenly false
+       :spacing 4
+    (computer-status-pill)
+    (crk-status-module)
+    (attention-module)
+    (memory-loops-module)
+    (trust-gauge-module)
+    (devices-module)))

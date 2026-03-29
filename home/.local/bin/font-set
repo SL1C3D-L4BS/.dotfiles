@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════
+# font-set — Set monospace font system-wide (stolen from omarchy)
+# Adapted for i3 + eww + alacritty
+# Usage: font-set "JetBrainsMono Nerd Font"
+# ══════════════════════════════════════════════════════════════
+set -euo pipefail
+
+FONT="${1:?Usage: font-set <font-family>}"
+
+echo "Setting monospace font to: $FONT"
+
+# Alacritty
+ALACRITTY="$HOME/.config/alacritty/alacritty.toml"
+if [[ -f "$ALACRITTY" ]]; then
+  sed -i "s/family = \".*\"/family = \"$FONT\"/" "$ALACRITTY"
+  echo "  updated: alacritty"
+fi
+
+# eww global scss
+EWW_SCSS="$HOME/.config/eww/eww.scss"
+if [[ -f "$EWW_SCSS" ]]; then
+  sed -i "s/\"JetBrainsMono Nerd Font\"/\"$FONT\"/" "$EWW_SCSS"
+  echo "  updated: eww"
+fi
+
+# Dunst
+DUNST="$HOME/.config/dunst/dunstrc"
+if [[ -f "$DUNST" ]]; then
+  sed -i "s/font = .*/font = $FONT 11/" "$DUNST"
+  echo "  updated: dunst"
+  pkill -x dunst 2>/dev/null; dunst &
+fi
+
+# Reload eww
+eww reload 2>/dev/null && echo "  reloaded: eww" || true
+
+echo "font-set: done — $FONT"

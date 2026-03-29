@@ -1,8 +1,12 @@
-; ── Logo module — the_architect sigil ─────────────────────────
+; ── Logo module — the_architect official mark ────────────────
 (defwidget logo []
   (eventbox
     :onclick "~/.config/eww/bar/popup-menus/scripts/toggle-dashboard.sh &"
     :onrightclick "alacritty -e btop &"
     :onmiddleclick "~/.local/bin/theme-switch &"
     :tooltip "the_architect@sl1c3d-l4bs | L: Dashboard · R: btop · M: Theme"
-    (label :class "logo" :text "A")))
+    (box :class "logo-box" :orientation "h" :space-evenly false
+      (image :class "logo-img"
+             :path "/home/the_architect/.config/eww/assets/logo-white-22.png"
+             :image-width 22
+             :image-height 22))))

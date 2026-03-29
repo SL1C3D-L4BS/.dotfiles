@@ -1,0 +1,228 @@
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════
+# operator-notify — Viral Intelligence Engine notifications
+#
+# Two notification types ONLY:
+#   BUILD THIS NOW — viral project/tool idea (combined score > 0.6)
+#   QUICK GIG: $X  — freelance gig (profile fit > 0.4)
+#
+# On notification:
+#   1. dunst alert (critical for BUILD, normal for GIG)
+#   2. Markdown dropped into /data/ai/brain/00-inbox/
+#   3. URL auto-opens in Brave
+#
+# No noise. Only money and virality.
+# ══════════════════════════════════════════════════════════════
+set -euo pipefail
+
+API="http://localhost:8000/api/v1"
+STATE_DIR="/tmp/operator-core"
+SEEN_FILE="$STATE_DIR/seen_ids.txt"
+STATUS_FILE="$STATE_DIR/status.json"
+INBOX="/data/ai/brain/00-inbox"
+POLL_INTERVAL=45
+
+mkdir -p "$STATE_DIR" "$INBOX"
+touch "$SEEN_FILE"
+
+log() { echo "[$(date +%H:%M:%S)] $*"; }
+
+update_status() {
+    python3 -c "
+import json, urllib.request
+def api(path):
+    try:
+        r = urllib.request.urlopen('$API' + path, timeout=5)
+        return json.loads(r.read())
+    except: return []
+
+events = api('/events')
+opps = api('/opportunities')
+viral = [e for e in events if (e.get('extra_metadata') or {}).get('combined', 0) > 0.6]
+gigs = [o for o in opps if o.get('decision') in ('sell_now','build_now')]
+
+status = {
+    'events': len(events),
+    'opportunities': len(opps),
+    'viral_signals': len(viral),
+    'actionable_gigs': len(gigs),
+    'status': 'online',
+}
+with open('$STATUS_FILE', 'w') as f:
+    json.dump(status, f)
+" 2>/dev/null || true
+}
+
+check_signals() {
+    # Check for viral BUILD signals
+    curl -sf "$API/events" 2>/dev/null | python3 -c "
+import sys, json, os, re
+from datetime import datetime
+
+data = json.load(sys.stdin)
+seen_file = '$SEEN_FILE'
+inbox = '$INBOX'
+
+try:
+    with open(seen_file) as f:
+        seen = set(line.strip() for line in f if line.strip())
+except FileNotFoundError:
+    seen = set()
+
+def slugify(t):
+    return re.sub(r'[-\s]+', '-', re.sub(r'[^\w\s-]', '', t.lower())).strip('-')[:50]
+
+alerts = []
+for ev in data:
+    eid = ev['id']
+    if eid in seen:
+        continue
+    seen.add(eid)
+
+    meta = ev.get('extra_metadata') or {}
+    combined = meta.get('combined', 0)
+    source = ev.get('source_name', '')
+    url = ev.get('url', '')
+    title = ev['title']
+    et = ev.get('event_type', '')
+
+    # BUILD THIS NOW — viral signal with high combined score
+    if combined >= 0.6 and et in ('trend.github', 'trend.launch', 'buyer.pain', 'trend.news'):
+        ts = datetime.now().strftime('%Y%m%d-%H%M')
+        slug = slugify(title)
+        filepath = os.path.join(inbox, f'BUILD-{ts}-{slug}.md')
+
+        md = f'''---
+type: build-idea
+source: {source}
+url: {url}
+combined: {combined}
+virality: {meta.get('virality', 0)}
+content: {meta.get('content', 0)}
+captured: {datetime.now().isoformat()}
+tags: [build, viral, {source}]
+---
+
+# {title}
+
+**Source:** [{source}]({url})
+**Combined Score:** {combined:.0%}
+
+## Why Build This
+- Virality: {meta.get('virality', 0):.0%}
+- Monetization: {meta.get('monetization', 0):.0%}
+- Content potential: {meta.get('content', 0):.0%}
+- Build feasibility: {meta.get('feasibility', 0):.0%}
+
+## Links
+- [{url}]({url})
+'''
+        with open(filepath, 'w') as f:
+            f.write(md)
+
+        alerts.append(f'BUILD|{combined:.0%}|{title[:80]}|{url}|{filepath}')
+
+with open(seen_file, 'w') as f:
+    f.write('\n'.join(sorted(seen)))
+
+for alert in alerts:
+    print(alert)
+" 2>/dev/null | while IFS='|' read -r action score title url filepath; do
+        notify-send -u critical \
+            "BUILD THIS NOW  $score" \
+            "$title" \
+            -a "SL1C3D Operator" \
+            -t 0
+        log "BUILD: $title ($score)"
+        # No URL open — markdown in Obsidian is the capture point
+    done
+
+    # Check for freelance GIGS
+    curl -sf "$API/opportunities" 2>/dev/null | python3 -c "
+import sys, json, os, re
+from datetime import datetime
+
+data = json.load(sys.stdin)
+seen_file = '$SEEN_FILE'
+inbox = '$INBOX'
+
+try:
+    with open(seen_file) as f:
+        seen = set(line.strip() for line in f if line.strip())
+except FileNotFoundError:
+    seen = set()
+
+def slugify(t):
+    return re.sub(r'[-\s]+', '-', re.sub(r'[^\w\s-]', '', t.lower())).strip('-')[:50]
+
+alerts = []
+for opp in data:
+    oid = 'opp-' + opp['id']
+    if oid in seen:
+        continue
+    seen.add(oid)
+
+    score = opp.get('overall_score', 0)
+    decision = opp.get('decision', '')
+    url = opp.get('url', '')
+    title = opp['title']
+    meta = opp.get('extra_metadata') or {}
+    salary = meta.get('salary', '')
+
+    if decision in ('sell_now', 'build_now') and score >= 0.5 and url:
+        ts = datetime.now().strftime('%Y%m%d-%H%M')
+        slug = slugify(title)
+        filepath = os.path.join(inbox, f'GIG-{ts}-{slug}.md')
+
+        md = f'''---
+type: gig
+source: {opp.get('source', '')}
+url: {url}
+salary: {salary}
+score: {score}
+captured: {datetime.now().isoformat()}
+tags: [gig, freelance]
+---
+
+# {title}
+
+**Pay:** {salary if salary else 'Not listed'}
+**Fit:** {score:.0%}
+**Decision:** {decision}
+
+## Apply
+[{url}]({url})
+'''
+        with open(filepath, 'w') as f:
+            f.write(md)
+
+        pay_display = f' {salary}' if salary else ''
+        alerts.append(f'GIG|{score:.0%}|{title[:80]}{pay_display}|{url}')
+
+with open(seen_file, 'w') as f:
+    f.write('\n'.join(sorted(seen)))
+
+for alert in alerts:
+    print(alert)
+" 2>/dev/null | while IFS='|' read -r action score title url; do
+        notify-send -u normal \
+            "QUICK GIG  $score" \
+            "$title" \
+            -a "SL1C3D Operator" \
+            -t 15000
+        log "GIG: $title ($score)"
+        # No URL open — markdown in Obsidian is the capture point
+    done
+}
+
+log "SL1C3D Viral Intelligence Engine — notifications active"
+log "BUILD THIS NOW + QUICK GIG alerts only"
+log "Obsidian capture: $INBOX"
+
+update_status
+
+while true; do
+    check_signals
+    update_status
+    sleep "$POLL_INTERVAL"
+done

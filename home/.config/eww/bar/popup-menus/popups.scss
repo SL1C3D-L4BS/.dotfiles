@@ -3,10 +3,10 @@
 // ══════════════════════════════════════════════════════════════
 
 .popup-container {
-  background-color: $hp-bg;
-  border: 1px solid $hp-border;
+  background-color: rgba($hp-bg-dark, 0.95);
+  border: 1px solid rgba($hp-green, 0.3);
   border-radius: $r-xl;
-  box-shadow: 0 $sp-2 $sp-5 $hp-shadow;
+  box-shadow: 0 $sp-2 $sp-5 $hp-shadow, 0 0 12px rgba($hp-green, 0.06);
   padding: $sp-5;
   color: $hp-fg;
 }
@@ -61,8 +61,9 @@
   transition: all $t-base ease;
 
   &:hover {
-    background-color: $hp-surface-hover;
+    background-color: rgba($hp-green, 0.15);
     color: $hp-fg;
+    border: 1px solid rgba($hp-green, 0.25);
   }
 }
 

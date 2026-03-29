@@ -1,0 +1,203 @@
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════
+# ai-panel-daemon — Background daemon managing Claude sessions
+# IPC via named pipe + state files in /tmp/ai-panel/
+# Commands: prompt:<text>, cancel, clear, status
+# ══════════════════════════════════════════════════════════════
+set -uo pipefail
+
+STATE_DIR="/tmp/ai-panel"
+CMD_PIPE="$STATE_DIR/cmd"
+STATUS_FILE="$STATE_DIR/status.json"
+RESPONSE_FILE="$STATE_DIR/last-response.txt"
+SESSION_FILE="$STATE_DIR/session-id.txt"
+HISTORY_FILE="$STATE_DIR/history.json"
+PID_FILE="$STATE_DIR/daemon.pid"
+CLAUDE_PID_FILE="$STATE_DIR/claude.pid"
+
+CLAUDE_BIN="${CLAUDE_BIN:-$(which claude 2>/dev/null)}"
+
+# ── Cleanup on exit ─────────────────────────────────────────
+cleanup() {
+    kill_claude
+    rm -f "$CMD_PIPE" "$PID_FILE"
+    exit 0
+}
+trap cleanup EXIT INT TERM
+
+kill_claude() {
+    if [[ -f "$CLAUDE_PID_FILE" ]]; then
+        local pid
+        pid=$(<"$CLAUDE_PID_FILE")
+        if kill -0 "$pid" 2>/dev/null; then
+            kill "$pid" 2>/dev/null
+            wait "$pid" 2>/dev/null
+        fi
+        rm -f "$CLAUDE_PID_FILE"
+    fi
+}
+
+# ── Prevent double-launch ───────────────────────────────────
+if [[ -f "$PID_FILE" ]]; then
+    old_pid=$(<"$PID_FILE")
+    if kill -0 "$old_pid" 2>/dev/null; then
+        echo "daemon already running (pid $old_pid)" >&2
+        exit 1
+    fi
+fi
+
+# ── Init state dir ──────────────────────────────────────────
+mkdir -p "$STATE_DIR"
+echo $$ > "$PID_FILE"
+
+# Create pipe (recreate if stale)
+[[ -p "$CMD_PIPE" ]] && rm -f "$CMD_PIPE"
+mkfifo "$CMD_PIPE"
+
+# ── State helpers ───────────────────────────────────────────
+session_id=""
+last_prompt=""
+last_response_preview=""
+cost_usd="0.00"
+total_cost="0.00"
+model="claude"
+
+write_status() {
+    local status="$1"
+    cat > "$STATUS_FILE" <<JSONEOF
+{"status":"${status}","model":"${model}","last_prompt":"$(echo "$last_prompt" | head -c 80 | sed 's/"/\\"/g; s/\n/ /g')","last_response_preview":"$(echo "$last_response_preview" | head -c 120 | sed 's/"/\\"/g; s/\n/ /g')","session_id":"${session_id}","cost_usd":"${total_cost}"}
+JSONEOF
+}
+
+append_history() {
+    local role="$1" content="$2"
+    local escaped
+    escaped=$(printf '%s' "$content" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))" 2>/dev/null || echo '""')
+    local ts
+    ts=$(date +%s)
+    # Append entry
+    if [[ ! -f "$HISTORY_FILE" ]] || [[ ! -s "$HISTORY_FILE" ]]; then
+        echo "[]" > "$HISTORY_FILE"
+    fi
+    python3 -c "
+import json, sys
+try:
+    with open('$HISTORY_FILE') as f:
+        h = json.load(f)
+except:
+    h = []
+h.append({'role': '$role', 'content': $escaped, 'ts': $ts})
+# Keep last 50 messages
+h = h[-50:]
+with open('$HISTORY_FILE', 'w') as f:
+    json.dump(h, f)
+" 2>/dev/null
+}
+
+write_status "idle"
+echo "" > "$RESPONSE_FILE"
+echo "" > "$SESSION_FILE"
+
+# ── Check claude binary ─────────────────────────────────────
+if [[ -z "$CLAUDE_BIN" ]]; then
+    model="error:no-binary"
+    write_status "error"
+fi
+
+# ── Detect model ────────────────────────────────────────────
+detect_model() {
+    # Try to get model from claude config or just use default
+    model="claude"
+}
+detect_model
+
+# ── Main command loop ───────────────────────────────────────
+while true; do
+    # Read from pipe (blocks until a writer opens it)
+    if read -r cmd < "$CMD_PIPE" 2>/dev/null; then
+        case "$cmd" in
+            prompt:*)
+                prompt_text="${cmd#prompt:}"
+                [[ -z "$prompt_text" ]] && continue
+
+                last_prompt="$prompt_text"
+                write_status "running"
+                append_history "user" "$prompt_text"
+
+                # Build claude command
+                claude_args=(-p --output-format text)
+                if [[ -n "$session_id" ]]; then
+                    claude_args+=(--resume "$session_id")
+                fi
+
+                # Run claude in background, capture output
+                response=""
+                tmpout=$(mktemp)
+
+                "$CLAUDE_BIN" "${claude_args[@]}" "$prompt_text" > "$tmpout" 2>/dev/null &
+                claude_pid=$!
+                echo "$claude_pid" > "$CLAUDE_PID_FILE"
+
+                # Wait for completion
+                if wait "$claude_pid" 2>/dev/null; then
+                    response=$(<"$tmpout")
+                    last_response_preview="${response:0:120}"
+
+                    # Save full response
+                    echo "$response" > "$RESPONSE_FILE"
+                    append_history "assistant" "$response"
+
+                    # Try to capture session ID on first message
+                    if [[ -z "$session_id" ]]; then
+                        session_id=$("$CLAUDE_BIN" sessions list 2>/dev/null | tail -1 | awk '{print $1}' || echo "")
+                        echo "$session_id" > "$SESSION_FILE"
+                    fi
+
+                    write_status "idle"
+                else
+                    last_response_preview="[error or cancelled]"
+                    write_status "error"
+                    # Auto-recover to idle after error
+                    sleep 2
+                    write_status "idle"
+                fi
+
+                rm -f "$tmpout" "$CLAUDE_PID_FILE"
+                ;;
+
+            cancel)
+                kill_claude
+                last_response_preview="[cancelled]"
+                write_status "idle"
+                ;;
+
+            clear)
+                session_id=""
+                last_prompt=""
+                last_response_preview=""
+                total_cost="0.00"
+                echo "" > "$RESPONSE_FILE"
+                echo "" > "$SESSION_FILE"
+                echo "[]" > "$HISTORY_FILE"
+                write_status "idle"
+                ;;
+
+            status)
+                # Just refresh status file (already current)
+                write_status "$(python3 -c "import json; print(json.load(open('$STATUS_FILE'))['status'])" 2>/dev/null || echo idle)"
+                ;;
+
+            quit)
+                exit 0
+                ;;
+
+            *)
+                # Unknown command, ignore
+                ;;
+        esac
+    else
+        # Pipe broken or EOF — recreate
+        rm -f "$CMD_PIPE"
+        mkfifo "$CMD_PIPE"
+    fi
+done

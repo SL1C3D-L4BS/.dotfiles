@@ -1,0 +1,21 @@
+; ══════════════════════════════════════════════════════════════
+; memory-loops.yuck — Open loop counter
+; ══════════════════════════════════════════════════════════════
+
+(defpoll loops_data
+  :interval "2s"
+  :initial `{"open_loops":0}`
+  `cat /tmp/computer/status.json 2>/dev/null || echo '{"open_loops":0}'`)
+
+(defwidget memory-loops-module []
+  (box :class "loops-box"
+       :orientation "h"
+       :space-evenly false
+       :visible {loops_data.open_loops != 0}
+       :tooltip "Open loops: ${loops_data.open_loops}"
+    (label
+      :class "pill-icon loops-i ${loops_data.open_loops > 5 ? 'loops-i-warn' : 'loops-i-ok'}"
+      :text " 󰑖 ")
+    (label
+      :class "pill-text loops-t ${loops_data.open_loops > 5 ? 'loops-t-warn' : ''}"
+      :text "${loops_data.open_loops}")))

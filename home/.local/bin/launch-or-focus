@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════
+# launch-or-focus — Focus app if running, else launch it
+# Stolen from omarchy (basecamp/omarchy), adapted for i3
+# Usage: launch-or-focus <wm_class> <launch_command>
+# ══════════════════════════════════════════════════════════════
+set -euo pipefail
+
+CLASS="${1:?Usage: launch-or-focus <wm_class> <launch_command>}"
+shift
+CMD="$*"
+
+# Check if window with class exists
+if i3-msg "[class=\"${CLASS}\"]" focus 2>/dev/null | grep -q '"success":true'; then
+    exit 0
+fi
+
+# Not found — launch it
+exec $CMD

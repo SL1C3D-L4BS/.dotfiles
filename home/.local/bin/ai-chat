@@ -1,0 +1,353 @@
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════
+# ai-chat — Full-featured TUI chat for Claude AI
+# Slytherin green + Gryffindor red themed
+# Integrates with ai-panel-daemon via /tmp/ai-panel/
+# ══════════════════════════════════════════════════════════════
+set -uo pipefail
+
+CLAUDE_BIN="${CLAUDE_BIN:-$(which claude 2>/dev/null)}"
+STATE_DIR="/tmp/ai-panel"
+CMD_PIPE="$STATE_DIR/cmd"
+HISTORY_FILE="$STATE_DIR/history.json"
+STATUS_FILE="$STATE_DIR/status.json"
+RESPONSE_FILE="$STATE_DIR/last-response.txt"
+SESSION_FILE="$STATE_DIR/session-id.txt"
+
+# ── Colors (Slytherin green + Gryffindor red) ───────────────
+G='\033[38;2;45;106;79m'       # Slytherin emerald
+GBG='\033[48;2;45;106;79m'     # Emerald bg
+R='\033[38;2;196;30;58m'       # Gryffindor scarlet
+RBG='\033[48;2;196;30;58m'     # Scarlet bg
+P='\033[38;2;155;89;182m'      # Purple
+L='\033[38;2;185;126;222m'     # Lavender
+DIM='\033[38;2;107;107;123m'   # Faded ink
+MUTED='\033[38;2;155;155;171m' # Muted
+FG='\033[38;2;232;230;227m'    # Parchment
+GOLD='\033[38;2;212;160;23m'   # Gold
+BLD='\033[1m'
+RST='\033[0m'
+BG='\033[48;2;13;13;26m'       # Hogwarts midnight
+SURF='\033[48;2;26;26;46m'     # Surface
+
+# ── Box drawing chars ───────────────────────────────────────
+TL='╭' TR='╮' BL='╰' BR='╯' H='─' V='│'
+
+# ── Terminal width ──────────────────────────────────────────
+get_width() { tput cols 2>/dev/null || echo 80; }
+
+# ── Draw horizontal rule ────────────────────────────────────
+hr() {
+    local w=$(($(get_width) - 2))
+    local color="${1:-$DIM}"
+    printf "${color}%s" "$TL"
+    printf '%0.s─' $(seq 1 "$w")
+    printf "%s${RST}\n" "$TR"
+}
+
+hr_bottom() {
+    local w=$(($(get_width) - 2))
+    local color="${1:-$DIM}"
+    printf "${color}%s" "$BL"
+    printf '%0.s─' $(seq 1 "$w")
+    printf "%s${RST}\n" "$BR"
+}
+
+hr_flat() {
+    local w=$(get_width)
+    local color="${1:-$DIM}"
+    printf "${color}"
+    printf '%0.s─' $(seq 1 "$w")
+    printf "${RST}\n"
+}
+
+# ── Print boxed message ─────────────────────────────────────
+print_message() {
+    local role="$1" content="$2"
+    local w=$(($(get_width) - 4))
+    local color label icon
+
+    if [[ "$role" == "user" ]]; then
+        color="$P"
+        label=" you"
+        icon="  "
+    else
+        color="$G"
+        label=" claude"
+        icon=" 󰧑 "
+    fi
+
+    echo ""
+    printf "${color}${BLD}${icon}${label}${RST}\n"
+    printf "${color}${TL}"
+    printf '%0.s─' $(seq 1 $((w + 2)))
+    printf "${TR}${RST}\n"
+
+    # Word-wrap content
+    echo "$content" | fold -s -w "$w" | while IFS= read -r line; do
+        printf "${color}${V}${RST} %-${w}s ${color}${V}${RST}\n" "$line"
+    done
+
+    printf "${color}${BL}"
+    printf '%0.s─' $(seq 1 $((w + 2)))
+    printf "${BR}${RST}\n"
+}
+
+# ── Ensure daemon is running ────────────────────────────────
+ensure_daemon() {
+    if [[ ! -p "$CMD_PIPE" ]]; then
+        ai-panel-daemon &
+        disown
+        sleep 0.5
+    fi
+}
+
+# ── Send command to daemon ──────────────────────────────────
+daemon_cmd() {
+    if [[ -p "$CMD_PIPE" ]]; then
+        echo "$1" > "$CMD_PIPE"
+    fi
+}
+
+# ── Read daemon status ──────────────────────────────────────
+get_status() {
+    if [[ -f "$STATUS_FILE" ]]; then
+        python3 -c "import json; d=json.load(open('$STATUS_FILE')); print(d.get('status','?'), d.get('model','?'), d.get('cost_usd','0.00'))" 2>/dev/null || echo "? ? 0.00"
+    else
+        echo "offline ? 0.00"
+    fi
+}
+
+# ── Session state ───────────────────────────────────────────
+session_id=""
+messages=()
+msg_roles=()
+msg_count=0
+
+# ── Load history from daemon if available ───────────────────
+load_history() {
+    if [[ -f "$HISTORY_FILE" ]] && [[ -s "$HISTORY_FILE" ]]; then
+        local count
+        count=$(python3 -c "import json; h=json.load(open('$HISTORY_FILE')); print(len(h))" 2>/dev/null || echo 0)
+        if [[ "$count" -gt 0 ]]; then
+            msg_count=0
+            messages=()
+            msg_roles=()
+            while IFS=$'\t' read -r role content; do
+                msg_roles+=("$role")
+                messages+=("$content")
+                ((msg_count++))
+            done < <(python3 -c "
+import json
+h = json.load(open('$HISTORY_FILE'))
+for m in h:
+    c = m['content'].replace('\n', '\\\\n').replace('\t', ' ')
+    print(f\"{m['role']}\t{c}\")
+" 2>/dev/null)
+        fi
+    fi
+    if [[ -f "$SESSION_FILE" ]]; then
+        session_id=$(<"$SESSION_FILE")
+    fi
+}
+
+# ── Header ──────────────────────────────────────────────────
+print_header() {
+    clear
+    local w=$(get_width)
+    local status_info
+    read -r status model cost <<< "$(get_status)"
+
+    echo ""
+    printf "${G}${BLD}"
+    printf '%0.s═' $(seq 1 "$w")
+    printf "${RST}\n"
+    printf "${G}${BLD}  󰧑  CLAUDE AI CHAT${RST}"
+    printf "%*s" $((w - 30)) ""
+    printf "${DIM}${model}${RST}\n"
+
+    # Status line
+    local status_color="$G"
+    local status_icon="●"
+    case "$status" in
+        running) status_color="$P"; status_icon="◉" ;;
+        error)   status_color="$R"; status_icon="✖" ;;
+    esac
+    printf "  ${status_color}${status_icon} ${status}${RST}"
+    printf "  ${DIM}session: ${session_id:-none}${RST}"
+    printf "  ${GOLD}\$ ${cost}${RST}\n"
+
+    printf "${G}${BLD}"
+    printf '%0.s═' $(seq 1 "$w")
+    printf "${RST}\n"
+    echo ""
+}
+
+# ── Show history ────────────────────────────────────────────
+show_history() {
+    for ((i=0; i<msg_count; i++)); do
+        local content="${messages[$i]}"
+        # Unescape newlines
+        content="${content//\\\\n/$'\n'}"
+        print_message "${msg_roles[$i]}" "$content"
+    done
+}
+
+# ── Help ────────────────────────────────────────────────────
+show_help() {
+    echo ""
+    printf "${G}${BLD}  Commands:${RST}\n"
+    printf "  ${P}/clear${RST}   ${DIM}— Start a new session${RST}\n"
+    printf "  ${P}/exit${RST}    ${DIM}— Quit chat${RST}\n"
+    printf "  ${P}/model${RST}   ${DIM}— Show current model${RST}\n"
+    printf "  ${P}/cost${RST}    ${DIM}— Show session cost${RST}\n"
+    printf "  ${P}/history${RST} ${DIM}— Redisplay message history${RST}\n"
+    printf "  ${P}/help${RST}    ${DIM}— Show this help${RST}\n"
+    echo ""
+}
+
+# ── Main ────────────────────────────────────────────────────
+main() {
+    if [[ -z "$CLAUDE_BIN" ]]; then
+        echo "error: claude CLI not found in PATH" >&2
+        exit 1
+    fi
+
+    ensure_daemon
+    load_history
+    print_header
+    show_history
+
+    printf "${DIM}  Type your message. /help for commands. Ctrl+D to exit.${RST}\n"
+    echo ""
+
+    while true; do
+        printf "${P}${BLD}  ❯ ${RST}"
+        read -r -e prompt || break
+
+        [[ -z "$prompt" ]] && continue
+
+        case "$prompt" in
+            /clear)
+                daemon_cmd "clear"
+                session_id=""
+                messages=()
+                msg_roles=()
+                msg_count=0
+                sleep 0.3
+                print_header
+                printf "${DIM}  Session cleared.${RST}\n\n"
+                continue
+                ;;
+            /exit|/quit)
+                break
+                ;;
+            /model)
+                read -r _ model _ <<< "$(get_status)"
+                printf "\n  ${G}${BLD}Model:${RST} ${FG}${model}${RST}\n\n"
+                continue
+                ;;
+            /cost)
+                read -r _ _ cost <<< "$(get_status)"
+                printf "\n  ${GOLD}${BLD}Session cost:${RST} ${FG}\$${cost}${RST}\n\n"
+                continue
+                ;;
+            /history)
+                print_header
+                show_history
+                echo ""
+                continue
+                ;;
+            /help)
+                show_help
+                continue
+                ;;
+            /*)
+                printf "\n  ${R}Unknown command.${RST} ${DIM}Try /help${RST}\n\n"
+                continue
+                ;;
+        esac
+
+        # Display user message
+        msg_roles+=("user")
+        messages+=("$prompt")
+        ((msg_count++))
+        print_message "user" "$prompt"
+
+        # Show thinking indicator
+        printf "\n  ${G}${BLD}󰧑${RST} ${L}thinking...${RST}"
+
+        # Build claude args
+        claude_args=(-p --output-format text)
+        if [[ -n "$session_id" ]]; then
+            claude_args+=(--resume "$session_id")
+        fi
+
+        # Run claude and capture response
+        response=$("$CLAUDE_BIN" "${claude_args[@]}" "$prompt" 2>/dev/null)
+        exit_code=$?
+
+        # Clear thinking line
+        printf "\r\033[K"
+
+        if [[ $exit_code -eq 0 ]] && [[ -n "$response" ]]; then
+            # Capture session ID on first message
+            if [[ -z "$session_id" ]]; then
+                session_id=$("$CLAUDE_BIN" sessions list 2>/dev/null | tail -1 | awk '{print $1}' || echo "")
+                echo "$session_id" > "$SESSION_FILE"
+            fi
+
+            # Store and display
+            msg_roles+=("assistant")
+            messages+=("$response")
+            ((msg_count++))
+            print_message "assistant" "$response"
+
+            # Update daemon state files
+            echo "$response" > "$RESPONSE_FILE"
+            # Update history via daemon
+            if [[ -p "$CMD_PIPE" ]]; then
+                # Write history directly for speed
+                python3 -c "
+import json
+try:
+    with open('$HISTORY_FILE') as f:
+        h = json.load(f)
+except:
+    h = []
+h.append({'role': 'user', 'content': $(python3 -c "import json; print(json.dumps('$prompt'))" 2>/dev/null || echo '""'), 'ts': $(date +%s)})
+h.append({'role': 'assistant', 'content': $(python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))" <<< "$response" 2>/dev/null || echo '""'), 'ts': $(date +%s)})
+h = h[-50:]
+with open('$HISTORY_FILE', 'w') as f:
+    json.dump(h, f)
+" 2>/dev/null
+
+                # Update status
+                local preview="${response:0:120}"
+                preview="${preview//\"/\\\"}"
+                cat > "$STATUS_FILE" <<STATUSEOF
+{"status":"idle","model":"claude","last_prompt":"$(echo "$prompt" | head -c 80 | sed 's/"/\\"/g')","last_response_preview":"$(echo "$response" | head -c 120 | tr '\n' ' ' | sed 's/"/\\"/g')","session_id":"${session_id}","cost_usd":"0.00"}
+STATUSEOF
+            fi
+
+            # Cost display
+            printf "  ${DIM}─ response complete${RST}\n"
+        else
+            printf "\n  ${R}${BLD}Error:${RST} ${DIM}Claude returned no response (exit: ${exit_code})${RST}\n"
+        fi
+        echo ""
+    done
+
+    echo ""
+    printf "  ${DIM}Goodbye, wizard.${RST}\n\n"
+}
+
+# ── One-shot mode ───────────────────────────────────────────
+if [[ $# -gt 0 ]]; then
+    echo -e "${G}${BLD}󰧑 Claude${RST} ${DIM}(one-shot)${RST}"
+    hr_flat "$DIM"
+    "$CLAUDE_BIN" -p "$*" 2>/dev/null
+    exit $?
+fi
+
+main

@@ -1,17 +1,11 @@
 #!/usr/bin/env bash
 # ══════════════════════════════════════════════════════════════
-# toggle-sl1c3d.sh — toggle SL1C3dCLI via SIGUSR1
+# operator-status.sh — Read Operator Core status for eww bar
 # ══════════════════════════════════════════════════════════════
+STATUS_FILE="/tmp/operator-core/status.json"
 
-PID_FILE="/tmp/sl1c3d-cli.pid"
-
-if [[ -f "$PID_FILE" ]]; then
-    PID=$(cat "$PID_FILE")
-    if kill -0 "$PID" 2>/dev/null; then
-        kill -USR1 "$PID"
-        exit 0
-    fi
+if [[ -f "$STATUS_FILE" ]]; then
+    cat "$STATUS_FILE"
+else
+    echo '{"events":0,"opportunities":0,"proposals":0,"pending_actions":0,"pipeline_usd":0,"status":"offline"}'
 fi
-
-# Not running — launch
-nohup "$HOME/.local/bin/sl1c3d-cli" --no-sandbox &>/tmp/sl1c3d-cli.log &

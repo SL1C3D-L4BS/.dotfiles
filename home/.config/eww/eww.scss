@@ -1,42 +1,67 @@
 // ══════════════════════════════════════════════════════════════
-// eww.scss — the_architect | Slytherin + Gryffindor Theme
-// Mathematical spacing system: 4px base grid
+// eww.scss — the_architect | Cyber Hogwarts Master Palette
+// PRECISION ENGINEERED: One hex per concept. Zero duplicates.
+// 4 house colors + neutral scale + semantic tokens.
 // ══════════════════════════════════════════════════════════════
 
-// ── Harry Potter Palette — Slytherin/Gryffindor ──────────────
-$hp-bg:           #0D0D1A;       // Hogwarts midnight
-$hp-bg-bar:       transparent;
-$hp-bg-dark:      #070710;       // Chamber of secrets
-$hp-surface:      #1A1A2E;       // Dark corridor
-$hp-surface-alt:  #16213E;       // Ravenclaw depth
-$hp-surface-hover: #222244;
+// ═══════════════════════════════════════════════════════════
+// NEUTRAL SCALE — Blacks, Greys, Whites
+// ═══════════════════════════════════════════════════════════
+$hp-bg:           #08080F;       // Void — deepest black (OLED)
+$hp-bg-bar:       transparent;   // Bar floats on nothing
+$hp-bg-dark:      #06060C;       // Abyss — cards/pills
+$hp-surface:      #12121F;       // Surface L1 — panels
+$hp-surface-alt:  #18182A;       // Surface L2 — elevated
+$hp-surface-hover:#1E1E33;       // Surface L3 — hover
 
-$hp-fg:           #E8E6E3;       // Parchment
-$hp-fg-dim:       #6B6B7B;       // Faded ink
-$hp-fg-muted:     #9B9BAB;       // Weathered scroll
+$hp-fg:           #E2E0DD;       // Silver white — primary text
+$hp-fg-dim:       #5C5C6E;       // Ash grey — secondary
+$hp-fg-muted:     #8A8A9A;       // Mist grey — tertiary
 
-// House Colors — Slytherin primary, Gryffindor secondary
-$hp-green:        #2D6A4F;       // Slytherin emerald (PRIMARY)
-$hp-emerald:      #1A472A;       // Slytherin dark
-$hp-silver:       #AAAAAA;       // Slytherin silver
-$hp-red:          #C41E3A;       // Gryffindor scarlet
-$hp-crimson:      #AE0001;       // Deep Gryffindor
-$hp-maroon:       #740001;       // Gryffindor dark
-$hp-purple:       #9B59B6;       // Magic amethyst
-$hp-blue:         #0077B6;       // Ravenclaw blue
-$hp-navy:         #222F5B;       // Ravenclaw navy
-$hp-gold:         #D4A017;       // Subtle gold (accents only)
-$hp-lavender:     #B97EDE;       // Light magic
+// ═══════════════════════════════════════════════════════════
+// THE FOUR HOUSES — Cyber Edition
+// Each house: 1 primary + 1 light variant + 1 dark variant
+// ═══════════════════════════════════════════════════════════
 
-// Semantic
-$hp-accent:       $hp-green;
-$hp-urgent:       $hp-red;
-$hp-success:      #2ECC71;
-$hp-warning:      $hp-gold;
+// 🐍 SLYTHERIN — Cyber Emerald (PRIMARY ACCENT)
+$hp-green:        #2D6A4F;       // Emerald — primary brand color
+$hp-green-light:  #34D399;       // Bright emerald — highlights, active states
+$hp-emerald:      #1A3D2E;       // Deep emerald — dark accents, backgrounds
 
-// Shadow & Border
-$hp-shadow:       rgba(0, 0, 0, 0.4);
-$hp-border:       rgba(45, 106, 79, 0.25);
+// 🦅 RAVENCLAW — Cyber Blurple
+$hp-purple:       #7C3AED;       // Blurple — secondary accent
+$hp-lavender:     #A78BFA;       // Light blurple — hover, emphasis
+$hp-navy:         #1E1B4B;       // Deep indigo — dark variant
+
+// 🦁 GRYFFINDOR — Cyber Cherry
+$hp-red:          #E11D48;       // Cherry — errors, urgent, destructive
+$hp-cherry-light: #FB7185;       // Rose — warning highlights
+$hp-cherry-dark:  #881337;       // Deep cherry — pressed states
+
+// 🦡 HUFFLEPUFF — Cyber Gold
+$hp-gold:         #D97706;       // Amber — warnings, attention, status
+$hp-gold-light:   #FBBF24;       // Bright gold — highlights
+$hp-gold-dark:    #92400E;       // Deep amber — pressed states
+
+// ═══════════════════════════════════════════════════════════
+// LEGACY ALIASES (backward compat for existing modules)
+// ═══════════════════════════════════════════════════════════
+$hp-blue:         $hp-purple;    // Blurple replaces old blue
+$hp-silver:       #B0B0B0;       // Neutral silver
+$hp-crimson:      $hp-green-light;  // Legacy: now bright emerald
+$hp-maroon:       $hp-emerald;   // Legacy: now deep emerald
+
+// ═══════════════════════════════════════════════════════════
+// SEMANTIC TOKENS — Intent-based color usage
+// ═══════════════════════════════════════════════════════════
+$hp-accent:       $hp-green;     // Primary brand accent
+$hp-urgent:       $hp-red;       // Errors, destructive actions
+$hp-success:      $hp-green-light; // Success states
+$hp-warning:      $hp-gold;      // Attention needed
+
+// Borders & Shadows
+$hp-shadow:       rgba(0, 0, 0, 0.5);
+$hp-border:       rgba($hp-green, 0.2);
 
 // ── Mathematical spacing scale (4px base grid) ──────────────
 // Every value is a multiple of 2; major stops on 4px grid.
@@ -108,3 +133,5 @@ tooltip {
 @import "./ai-panel/ai-panel.scss";
 @import "./bar/popup-menus/audio/audio-control.scss";
 @import "./bar/popup-menus/network/net-panel.scss";
+@import "./computer/computer.scss";
+@import "./computer/crk-widgets.scss";

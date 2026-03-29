@@ -23,3 +23,7 @@
 
 ; ── Dock ──────────────────────────────────────────────────────
 (include "./dock/dock.yuck")
+
+; ── Computer — AI assistant module ───────────────────────────
+(include "./computer/computer.yuck")
+

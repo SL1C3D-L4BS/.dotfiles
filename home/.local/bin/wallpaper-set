@@ -40,5 +40,5 @@ elif [[ -s "$WALL1" ]]; then
 else
     echo "wallpaper-set: no valid wallpapers found in $WALL_DIR"
     # Set solid color fallback
-    xsetroot -solid '#11111b'
+    xsetroot -solid '#0D0D1A'
 fi

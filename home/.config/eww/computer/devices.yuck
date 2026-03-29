@@ -1,0 +1,21 @@
+; ══════════════════════════════════════════════════════════════
+; devices.yuck — Digital twin device status
+; ══════════════════════════════════════════════════════════════
+
+(defpoll devices_data
+  :interval "2s"
+  :initial `{"device_count":0,"devices_online":0}`
+  `cat /tmp/computer/status.json 2>/dev/null || echo '{"device_count":0,"devices_online":0}'`)
+
+(defwidget devices-module []
+  (box :class "dev-box"
+       :orientation "h"
+       :space-evenly false
+       :visible {devices_data.device_count != 0}
+       :tooltip "Devices: ${devices_data.devices_online} online / ${devices_data.device_count} total"
+    (label
+      :class "pill-icon dev-i"
+      :text " 󰑫 ")
+    (label
+      :class "pill-text dev-t"
+      :text "${devices_data.devices_online}/${devices_data.device_count}")))

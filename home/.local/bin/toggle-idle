@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════
+# toggle-idle — Toggle screen lock/DPMS (stolen from omarchy)
+# Adapted for X11/i3
+# ══════════════════════════════════════════════════════════════
+
+LOCK_FILE="/tmp/.idle-inhibited"
+
+if [[ -f "$LOCK_FILE" ]]; then
+    # Re-enable screen blanking
+    xset +dpms
+    xset s on
+    rm -f "$LOCK_FILE"
+    notify-send -u low -t 2000 "󰛊 Screen Lock" "Enabled — screen will lock normally" 2>/dev/null
+else
+    # Disable screen blanking
+    xset -dpms
+    xset s off
+    touch "$LOCK_FILE"
+    notify-send -u low -t 2000 "󰅶 Caffeine" "Screen lock disabled — staying awake" 2>/dev/null
+fi

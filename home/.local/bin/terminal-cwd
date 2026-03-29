@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════
+# terminal-cwd — Open terminal in focused window's CWD
+# Stolen from omarchy, adapted for i3 + alacritty
+# ══════════════════════════════════════════════════════════════
+
+# Get PID of focused window
+FOCUSED_PID=$(xdotool getactivewindow getwindowpid 2>/dev/null) || exit 1
+
+# Get the CWD of that process (or its first child)
+if [[ -d "/proc/$FOCUSED_PID/cwd" ]]; then
+    CWD=$(readlink "/proc/$FOCUSED_PID/cwd" 2>/dev/null)
+fi
+
+# Fallback: check children (for tmux/shell processes)
+if [[ -z "$CWD" ]] || [[ "$CWD" == "/" ]]; then
+    CHILD_PID=$(pgrep -P "$FOCUSED_PID" | head -1)
+    if [[ -n "$CHILD_PID" ]] && [[ -d "/proc/$CHILD_PID/cwd" ]]; then
+        CWD=$(readlink "/proc/$CHILD_PID/cwd" 2>/dev/null)
+    fi
+fi
+
+CWD="${CWD:-$HOME}"
+exec alacritty --working-directory "$CWD"

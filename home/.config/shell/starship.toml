@@ -1,123 +1,186 @@
 # ══════════════════════════════════════════════════════════════
-# Starship prompt — the_architect | 2026 elite
+# Starship prompt — the_architect | Cyber Hogwarts | Floating Pills
+# Powerline segments with rounded caps · 4 house color system
 # ══════════════════════════════════════════════════════════════
 
 add_newline = false
 command_timeout = 500
 
+# ── Floating pill powerline layout ───────────────────────────
+# Each segment is a rounded pill: [icon content]
+# Colors flow: 🐍 green → 🦅 blurple → 🐍 dark → neutral
 format = """
+[](green)\
+$os\
 $directory\
+[](fg:green bg:mauve)\
 $git_branch\
 $git_status\
+[](fg:mauve bg:teal)\
 $nix_shell\
 $python\
 $rust\
 $golang\
 $nodejs\
+$docker_context\
+[](teal)\
+[ ]()\
 $cmd_duration\
 $fill\
+[](surface1)\
+$memory_usage\
+[](fg:surface1 bg:peach)\
+$time\
+[](peach)\
+$line_break\
 $jobs\
 $status\
-$line_break\
 $character"""
 
-palette = "catppuccin_mocha"
+palette = "cyber_hogwarts"
 
-[palettes.catppuccin_mocha]
-rosewater = "#f5e0dc"
-flamingo  = "#f2cdcd"
-pink      = "#f5c2e7"
-mauve     = "#cba6f7"
-red       = "#f38ba8"
-maroon    = "#eba0ac"
-peach     = "#fab387"
-yellow    = "#f9e2af"
-green     = "#a6e3a1"
-teal      = "#94e2d5"
-sky       = "#89dceb"
-sapphire  = "#74c7ec"
-blue      = "#89b4fa"
-lavender  = "#b4befe"
-text      = "#cdd6f4"
-subtext1  = "#bac2de"
-subtext0  = "#a6adc8"
-overlay2  = "#9399b2"
-overlay1  = "#7f849c"
-overlay0  = "#6c7086"
-surface2  = "#585b70"
-surface1  = "#45475a"
-surface0  = "#313244"
-base      = "#1e1e2e"
-mantle    = "#181825"
-crust     = "#11111b"
+[palettes.cyber_hogwarts]
+rosewater = "#A78BFA"
+flamingo  = "#E11D48"
+pink      = "#FB7185"
+mauve     = "#7C3AED"
+red       = "#E11D48"
+maroon    = "#881337"
+peach     = "#D97706"
+yellow    = "#FBBF24"
+green     = "#2D6A4F"
+teal      = "#1A3D2E"
+sky       = "#7C3AED"
+sapphire  = "#1A3D2E"
+blue      = "#7C3AED"
+lavender  = "#A78BFA"
+text      = "#E2E0DD"
+subtext1  = "#B0B0B0"
+subtext0  = "#8A8A9A"
+overlay2  = "#6E6E7E"
+overlay1  = "#5C5C6E"
+overlay0  = "#4A4A5A"
+surface2  = "#1E1E33"
+surface1  = "#18182A"
+surface0  = "#12121F"
+base      = "#08080F"
+mantle    = "#06060C"
+crust     = "#040408"
 
+# ── OS Icon (leftmost pill cap) ──────────────────────────────
+[os]
+disabled = false
+style    = "bg:green fg:base bold"
+format   = "[ $symbol ]($style)"
+
+[os.symbols]
+Arch = "󰣇"
+Linux = ""
+
+# ── Directory (🐍 emerald pill) ──────────────────────────────
 [directory]
-style            = "bold blue"
-read_only        = " "
+style             = "bg:green fg:text bold"
+read_only         = " 󰌾"
 truncation_length = 3
-truncate_to_repo = true
+truncate_to_repo  = true
+format            = "[ $path$read_only ]($style)"
+read_only_style   = "bg:green fg:red"
 
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music"     = "󰝚 "
+"Pictures"  = " "
+"dev"       = " "
+
+# ── Git Branch (🦅 blurple pill) ─────────────────────────────
 [git_branch]
 symbol = " "
-style  = "bold mauve"
-format = "[$symbol$branch]($style) "
+style  = "bg:mauve fg:base bold"
+format = "[ $symbol$branch ]($style)"
 
 [git_status]
-format = "([$all_status$ahead_behind]($style) )"
-style  = "bold red"
-ahead  = "⇡${count}"
-behind = "⇣${count}"
-diverged = "⇕⇡${ahead_count}⇣${behind_count}"
-modified = "!${count}"
+format    = "[$all_status$ahead_behind ]($style)"
+style     = "bg:mauve fg:base bold"
+ahead     = "⇡${count}"
+behind    = "⇣${count}"
+diverged  = "⇕⇡${ahead_count}⇣${behind_count}"
+modified  = "!${count}"
 untracked = "?${count}"
-staged   = "+${count}"
-deleted  = "✘${count}"
+staged    = "+${count}"
+deleted   = "✘${count}"
+stashed   = "≡${count}"
 
+# ── Language pills (🐍 dark emerald) ─────────────────────────
 [nix_shell]
-symbol = " "
-style  = "bold sapphire"
-format = "[$symbol$state( \\($name\\))]($style) "
+symbol = "󱄅 "
+style  = "bg:teal fg:text bold"
+format = "[ $symbol$state( \\($name\\)) ]($style)"
 
 [python]
 symbol = " "
-style  = "bold yellow"
-format = "[$symbol$version]($style) "
+style  = "bg:teal fg:yellow bold"
+format = "[ $symbol$version ]($style)"
 
 [rust]
 symbol = " "
-style  = "bold peach"
-format = "[$symbol$version]($style) "
+style  = "bg:teal fg:peach bold"
+format = "[ $symbol$version ]($style)"
 
 [golang]
 symbol = " "
-style  = "bold sky"
-format = "[$symbol$version]($style) "
+style  = "bg:teal fg:lavender bold"
+format = "[ $symbol$version ]($style)"
 
 [nodejs]
 symbol = " "
-style  = "bold green"
-format = "[$symbol$version]($style) "
+style  = "bg:teal fg:green bold"
+format = "[ $symbol$version ]($style)"
 
+[docker_context]
+symbol = "󰡨 "
+style  = "bg:teal fg:sky bold"
+format = "[ $symbol$context ]($style)"
+
+# ── Duration (floating, no bg — cherry when slow) ────────────
 [cmd_duration]
-min_time       = 1000
-format         = "[ $duration]($style) "
-style          = "bold yellow"
+min_time          = 1000
+format            = "[  $duration ]($style)"
+style             = "bold red"
 show_milliseconds = false
 
+# ── Right-side pills ─────────────────────────────────────────
+[memory_usage]
+disabled  = false
+threshold = 60
+symbol    = "󰍛 "
+style     = "bg:surface1 fg:overlay1"
+format    = "[ $symbol$ram ]($style)"
+
+[time]
+disabled    = false
+time_format = "%H:%M"
+style       = "bg:peach fg:base bold"
+format      = "[ 󰅐 $time ]($style)"
+
+# ── Fill (transparent spacer) ────────────────────────────────
 [fill]
 symbol = " "
 
+# ── Jobs ─────────────────────────────────────────────────────
 [jobs]
-symbol = " "
+symbol = "󰠜 "
 style  = "bold blue"
 
+# ── Status ───────────────────────────────────────────────────
 [status]
 disabled = false
 symbol   = "✘"
 style    = "bold red"
-format   = "[$symbol $status]($style) "
+format   = "[$symbol $status ]($style)"
 
+# ── Character (prompt arrow) ─────────────────────────────────
 [character]
-success_symbol = "[❯](bold green)"
-error_symbol   = "[❯](bold red)"
-vimcmd_symbol  = "[❮](bold mauve)"
+success_symbol = "[ ❯](bold green)"
+error_symbol   = "[ ❯](bold red)"
+vimcmd_symbol  = "[ ❮](bold mauve)"

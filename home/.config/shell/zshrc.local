@@ -1,0 +1,30 @@
+# ══════════════════════════════════════════════════════════════
+# zshrc.local — the_architect | local overrides (sourced by nix .zshrc)
+# ══════════════════════════════════════════════════════════════
+
+# ── Override FZF colors (Slytherin + Gryffindor) ─────────────
+export FZF_DEFAULT_OPTS="
+    --height=40% --layout=reverse --border=rounded
+    --color=bg+:#1A1A2E,bg:#0D0D1A,spinner:#2D6A4F,hl:#C41E3A
+    --color=fg:#E8E6E3,header:#C41E3A,info:#9B59B6,pointer:#2D6A4F
+    --color=marker:#B97EDE,fg+:#E8E6E3,prompt:#2D6A4F,hl+:#C41E3A
+    --bind ctrl-d:half-page-down,ctrl-u:half-page-up
+    --bind ctrl-f:page-down,ctrl-b:page-up"
+
+# ── Mason nvim path ──────────────────────────────────────────
+export PATH="$HOME/.local/share/nvim/mason/bin:$PATH"
+
+# ── tmux auto-session ────────────────────────────────────────
+# Every new terminal gets a fresh tmux session · C-Space prefix
+if (( ${+commands[tmux]} )) && [[ -z "$TMUX" ]] && [[ "$TERM_PROGRAM" != "vscode" ]]; then
+    _tmux_idx=1
+    while tmux has-session -t "ws-$_tmux_idx" 2>/dev/null; do
+        (( _tmux_idx++ ))
+    done
+    exec tmux -f "$HOME/.config/tmux/tmux.conf" new-session -s "ws-$_tmux_idx"
+fi
+
+# ── Fastfetch greeting (inside tmux only) ────────────────────
+if (( ${+commands[fastfetch]} )) && [[ -n "$TMUX" ]]; then
+    fastfetch --logo-padding-top 0
+fi

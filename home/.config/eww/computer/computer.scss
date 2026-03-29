@@ -1,0 +1,24 @@
+// ══════════════════════════════════════════════════════════════
+// computer.scss — "Computer" bar module · state-driven glass
+// 2026 Premium — glow effects, state gradients
+// ══════════════════════════════════════════════════════════════
+
+.computer-constellation {
+  margin: 0 $sp-1;
+}
+
+// Icon per state — gradient + glow
+.computer-i          { transition: all $t-base ease; }
+.computer-i-offline  { background-color: rgba($hp-fg-dim, 0.5); color: $hp-bg; }
+.computer-i-idle     { background: linear-gradient(135deg, $hp-green, rgba(46, 204, 113, 0.8)); color: $hp-fg; box-shadow: 0 0 6px rgba($hp-green, 0.3); border: 1px solid rgba($hp-green, 0.2); border-right: none; }
+.computer-i-chatting { background: linear-gradient(135deg, $hp-purple, rgba($hp-lavender, 0.8)); color: $hp-fg; box-shadow: 0 0 6px rgba($hp-purple, 0.3); border: 1px solid rgba($hp-purple, 0.2); border-right: none; }
+.computer-i-thinking { background: linear-gradient(135deg, $hp-lavender, rgba($hp-purple, 0.8)); color: $hp-fg; box-shadow: 0 0 8px rgba($hp-lavender, 0.4); border: 1px solid rgba($hp-lavender, 0.2); border-right: none; }
+.computer-i-voice    { background: linear-gradient(135deg, $hp-gold, rgba(251, 191, 36, 0.8)); color: $hp-bg; box-shadow: 0 0 8px rgba($hp-gold, 0.4); border: 1px solid rgba($hp-gold, 0.2); border-right: none; }
+
+// Text per state
+.computer-t          { transition: all $t-base ease; }
+.computer-t-offline  { color: $hp-fg-dim; background-color: rgba($hp-bg-dark, 0.6); }
+.computer-t-idle     { color: $hp-fg-muted; background-color: rgba($hp-bg-dark, 0.88); border: 1px solid rgba($hp-green, 0.08); border-left: none; }
+.computer-t-chatting { color: $hp-lavender; font-weight: bold; background-color: rgba($hp-bg-dark, 0.88); border: 1px solid rgba($hp-purple, 0.1); border-left: none; }
+.computer-t-thinking { color: $hp-lavender; background-color: rgba($hp-bg-dark, 0.88); border: 1px solid rgba($hp-lavender, 0.08); border-left: none; }
+.computer-t-voice    { color: $hp-gold; font-weight: bold; background-color: rgba($hp-bg-dark, 0.88); border: 1px solid rgba($hp-gold, 0.1); border-left: none; }

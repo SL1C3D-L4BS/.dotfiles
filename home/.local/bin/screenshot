@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════
+# screenshot — Multi-mode screenshot tool (stolen from omarchy)
+# Adapted for i3/X11 with maim + xclip
+# Usage: screenshot [full|select|window|clipboard]
+# ══════════════════════════════════════════════════════════════
+set -euo pipefail
+
+PICTURES="${XDG_PICTURES_DIR:-$HOME/Pictures}"
+mkdir -p "$PICTURES"
+FILENAME="$PICTURES/screenshot-$(date +%Y-%m-%d_%H-%M-%S).png"
+MODE="${1:-select}"
+
+case "$MODE" in
+  full)
+    maim "$FILENAME"
+    ;;
+  select)
+    maim -s "$FILENAME"
+    ;;
+  window)
+    maim -i "$(xdotool getactivewindow)" "$FILENAME"
+    ;;
+  clipboard)
+    maim -s | xclip -selection clipboard -t image/png
+    notify-send -u low -t 2000 "󰹑 Screenshot" "Copied to clipboard" 2>/dev/null
+    exit 0
+    ;;
+  *)
+    echo "Usage: screenshot [full|select|window|clipboard]"
+    exit 1
+    ;;
+esac
+
+# Copy to clipboard too
+xclip -selection clipboard -t image/png < "$FILENAME" 2>/dev/null || true
+
+notify-send -u low -t 3000 "󰹑 Screenshot" "Saved: $(basename "$FILENAME")" 2>/dev/null || true
+echo "$FILENAME"

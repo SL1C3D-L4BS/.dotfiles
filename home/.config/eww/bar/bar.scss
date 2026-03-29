@@ -1,143 +1,161 @@
 // ══════════════════════════════════════════════════════════════
-// bar.scss — Floating pill bar · 4px grid · 24px bar height
+// bar.scss — 18px Ultra-Slim Floating Pill Bar
+// the_architect | SL1C3D-L4BS | Cyber Hogwarts
 // ══════════════════════════════════════════════════════════════
 
-// ── Container: fully transparent, pills float independently ──
+// ── Container ────────────────────────────────────────────────
 .bar-container {
   background-color: transparent;
-  padding: 0 $sp-2;
+  padding: 0 $sp-1;
 }
 
 .bar-left, .bar-center, .bar-right {
-  margin: $sp-1 0;
+  margin: 0;
 }
 
-// ── Compound pill pattern: icon │ text ───────────────────────
+// ── Pill pattern: icon │ text ────────────────────────────────
 .pill-icon {
-  padding: $sp-1 $sp-3;
-  border-radius: $r-md 0 0 $r-md;
-  margin: $sp-1 0;
-  font-size: $fs-base;
-  min-width: $sp-6;
+  padding: 0 $sp-2;
+  border-radius: $r-sm 0 0 $r-sm;
+  margin: 0;
+  font-size: $fs-sm;
+  min-width: 14px;
+  min-height: 16px;
+  transition: all $t-fast ease;
 }
 
 .pill-text {
-  padding: $sp-1 $sp-4;
-  border-radius: 0 $r-md $r-md 0;
-  background-color: rgba($hp-surface, 0.85);
+  padding: 0 $sp-3;
+  border-radius: 0 $r-sm $r-sm 0;
+  background-color: rgba($hp-bg-dark, 0.85);
   color: $hp-fg-muted;
-  margin: $sp-1 0;
-  min-width: $sp-8;
+  margin: 0;
+  min-width: 18px;
+  min-height: 16px;
+  font-size: $fs-xs;
+  transition: all $t-fast ease;
+  border: 1px solid rgba($hp-green, 0.06);
+  border-left: none;
 }
 
-// ── Logo — the_architect sigil ───────────────────────────────
-.logo {
-  padding: $sp-1 $sp-2;
+// ── Logo — official SL1C3D mark ──────────────────────────────
+.logo-box {
+  padding: 0;
   border-radius: $r-sm;
-  background: linear-gradient(135deg, $hp-red, $hp-crimson);
-  color: $hp-fg;
-  font-size: $fs-base;
-  font-weight: bold;
-  min-width: 20px;
-  margin: $sp-1 $sp-2 $sp-1 0;
+  background: transparent;
+  margin: 0 $sp-2 0 $sp-1;
   transition: all $t-base ease;
 
   &:hover {
-    background: linear-gradient(135deg, $hp-crimson, $hp-maroon);
-    color: $hp-fg;
+    background: rgba($hp-green, 0.1);
   }
+}
+
+.logo-img {
+  margin: 0;
+  padding: 0;
 }
 
 // ── Workspaces ───────────────────────────────────────────────
 .workspace-container {
-  margin: $sp-1 $sp-2;
+  margin: 0 $sp-1;
+  padding: 0 $sp-1;
+  background-color: rgba($hp-bg-dark, 0.5);
+  border-radius: $r-sm;
 }
 
 .workspace {
-  padding: $sp-1 $sp-3;
-  border-radius: $r-sm;
-  background-color: rgba($hp-surface, 0.85);
+  padding: 0 $sp-2;
+  border-radius: 3px;
+  background-color: transparent;
   color: $hp-fg-dim;
-  font-size: $fs-sm;
-  transition: all $t-base ease;
+  font-size: $fs-xs;
+  transition: all $t-fast ease;
+  min-width: 16px;
 
   &:hover {
-    background-color: $hp-surface-hover;
+    background-color: rgba($hp-green, 0.08);
     color: $hp-fg;
   }
 }
 
 .workspace-active {
-  padding: $sp-1 $sp-3;
-  border-radius: $r-sm;
-  background-color: rgba($hp-surface, 0.45);
-  color: $hp-green;
-  font-size: $fs-sm;
+  padding: 0 $sp-2;
+  border-radius: 3px;
+  background-color: rgba($hp-green, 0.15);
+  color: $hp-green-light;
+  font-size: $fs-xs;
   font-weight: bold;
+  min-width: 16px;
+  border-bottom: 1px solid $hp-green-light;
 }
 
 .workspace-visible {
-  padding: $sp-1 $sp-3;
-  border-radius: $r-sm;
-  background-color: rgba($hp-surface, 0.45);
+  padding: 0 $sp-2;
+  border-radius: 3px;
+  background-color: rgba($hp-surface, 0.25);
   color: $hp-fg-muted;
-  font-size: $fs-sm;
+  font-size: $fs-xs;
+  min-width: 16px;
 }
 
 .workspace-urgent {
-  padding: $sp-1 $sp-3;
-  border-radius: $r-sm;
-  background-color: $hp-red;
-  color: $hp-fg;
-  font-size: $fs-sm;
+  padding: 0 $sp-2;
+  border-radius: 3px;
+  background-color: rgba($hp-red, 0.15);
+  color: $hp-red;
+  font-size: $fs-xs;
   font-weight: bold;
+  min-width: 16px;
+  border-bottom: 1px solid $hp-red;
 }
 
 .workspace-empty {
-  padding: $sp-1 $sp-3;
-  border-radius: $r-sm;
-  background-color: rgba($hp-surface, 0.45);
-  color: $hp-fg-dim;
-  font-size: $fs-sm;
+  padding: 0 $sp-2;
+  border-radius: 3px;
+  background-color: transparent;
+  color: rgba($hp-fg-dim, 0.25);
+  font-size: $fs-xs;
+  min-width: 16px;
   transition: all $t-base ease;
 
   &:hover {
-    background-color: $hp-surface-hover;
-    color: $hp-fg;
+    color: $hp-fg-dim;
   }
 }
 
-// ── Module pill icon colors ──────────────────────────────────
-.cpu-i      { background-color: $hp-green;    color: $hp-fg; }
-.mem-i      { background-color: $hp-purple;   color: $hp-bg; }
-.clock-i    { background-color: $hp-blue;     color: $hp-fg; }
-.audio-i    { background-color: $hp-purple;   color: $hp-bg; }
-.net-i      { background-color: $hp-green;    color: $hp-fg; }
-.gpu-i      { background-color: $hp-red;      color: $hp-fg; }
-.cputemp-i  { background-color: $hp-red;      color: $hp-fg; }
-.ai-i       { background-color: $hp-lavender; color: $hp-bg; }
-.update-i   { background-color: $hp-blue;     color: $hp-fg; }
-.weather-i  { background-color: $hp-blue;     color: $hp-fg; }
-.idle-i     { font-size: $fs-base; }
-.idle-active   { background-color: $hp-green;   color: $hp-fg; }
-.idle-inactive { background-color: $hp-surface; color: $hp-fg-dim; }
+// ── Module pill icon colors — 4 House System ────────────────
+.cpu-i      { background: $hp-green;  color: $hp-fg; }
+.mem-i      { background: $hp-green;  color: $hp-fg; }
+.clock-i    { background: $hp-purple; color: $hp-fg; }
+.audio-i    { background: $hp-purple; color: $hp-fg; }
+.net-i      { background: $hp-green;  color: $hp-fg; }
+.gpu-i      { background: $hp-red;    color: $hp-fg; }
+.cputemp-i  { background: $hp-red;    color: $hp-fg; }
+.ai-i       { background: $hp-purple; color: $hp-fg; }
+.update-i   { background: $hp-gold;   color: $hp-fg; }
+.weather-i  { background: $hp-gold;   color: $hp-fg; }
+.idle-i     { font-size: $fs-sm; }
+.idle-active   { background: $hp-green;   color: $hp-fg; }
+.idle-inactive { background: $hp-surface; color: $hp-fg-dim; }
 
-// ── Mic input pill ───────────────────────────────────────────
-.mic-i         { background-color: $hp-green;   color: $hp-fg; }
-.mic-muted     { background-color: $hp-red;     color: $hp-fg; }
+// ── Mic ──────────────────────────────────────────────────────
+.mic-i         { background: $hp-green; color: $hp-fg; }
+.mic-muted     { background: $hp-red;   color: $hp-fg; }
 .mic-muted-text { color: $hp-red; }
-.audio-group   { margin: 0 $sp-1; }
+.audio-group   { margin: 0; }
 
 // ── Cava ─────────────────────────────────────────────────────
 .cava-box {
-  padding: $sp-1 $sp-3;
-  margin: $sp-1 $sp-2;
+  padding: 0 $sp-2;
+  margin: 0 $sp-1;
   color: $hp-green;
-  font-size: $fs-sm;
+  font-size: $fs-xs;
+  opacity: 0.6;
 }
 
 // ── Tray ─────────────────────────────────────────────────────
 .tray {
-  padding: 0 $sp-2;
-  margin: $sp-1 0;
+  padding: 0 $sp-1;
+  margin: 0;
 }

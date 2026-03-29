@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════
+# window-float — Pop focused window to floating with preset size
+# Stolen from omarchy, adapted for i3
+# Usage: window-float [small|medium|large|pip]
+# ══════════════════════════════════════════════════════════════
+set -euo pipefail
+
+SIZE="${1:-medium}"
+
+case "$SIZE" in
+    small|s)  W=640;  H=480 ;;
+    medium|m) W=960;  H=720 ;;
+    large|l)  W=1280; H=900 ;;
+    pip)      W=480;  H=270 ;;
+    *)        W=960;  H=720 ;;
+esac
+
+i3-msg "floating toggle" 2>/dev/null
+i3-msg "resize set $W $H" 2>/dev/null
+i3-msg "move position center" 2>/dev/null
+
+if [[ "$SIZE" == "pip" ]]; then
+    i3-msg "sticky enable" 2>/dev/null
+    i3-msg "move position 1400 750" 2>/dev/null
+fi

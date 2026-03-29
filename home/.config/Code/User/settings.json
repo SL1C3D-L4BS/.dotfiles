@@ -3,7 +3,7 @@
   "workbench.iconTheme": "icons-carbon",
   "workbench.startupEditor": "none",
   "workbench.sideBar.location": "left",
-  "workbench.activityBar.location": "side",
+  "workbench.activityBar.location": "default",
   "workbench.tree.indent": 16,
 
   "editor.fontFamily": "'JetBrainsMono Nerd Font', 'JetBrains Mono', 'Fira Code', monospace",
@@ -127,7 +127,15 @@
   "C_Cpp.clang_format_fallbackStyle": "LLVM",
   "C_Cpp.intelliSenseEngine": "default",
 
-  "[csharp]": { "editor.defaultFormatter": "ms-dotnettools.csharp", "editor.tabSize": 4 },
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.tabSize": 4,
+    "editor.codeActionsOnSave": { "source.fixAll": "explicit", "source.organizeImports": "explicit" }
+  },
+  "omnisharp.useModernNet": true,
+  "omnisharp.enableRoslynAnalyzers": true,
+  "omnisharp.enableEditorConfigSupport": true,
+  "dotnet.defaultSolution": "disable",
 
   "[zig]": { "editor.defaultFormatter": "ziglang.vscode-zig", "editor.tabSize": 4 },
 
@@ -178,5 +186,15 @@
 
   "todo-tree.general.tags": ["BUG", "HACK", "FIXME", "TODO", "XXX", "PERF", "NOTE"],
 
-  "cSpell.userWords": ["nvim", "nvchad", "treesitter", "keymaps", "dotfiles", "chezmoi", "sl1c3d", "sliced"]
+  "cSpell.userWords": ["nvim", "nvchad", "treesitter", "keymaps", "dotfiles", "chezmoi", "sl1c3d", "sliced"],
+
+  "files.associations": {
+    "*.shader": "shaderlab",
+    "*.cginc": "hlsl",
+    "*.compute": "hlsl",
+    "*.hlsl": "hlsl",
+    "*.asmdef": "json",
+    "*.asmref": "json",
+    "*.inputactions": "json"
+  }
 }

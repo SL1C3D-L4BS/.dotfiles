@@ -29,7 +29,7 @@
 calendar {
   &:selected {
     color: $hp-bg;
-    background-color: $hp-purple;
+    background-color: $hp-green;
     border-radius: $r-sm;
   }
 
@@ -39,6 +39,6 @@ calendar {
   }
 
   &.highlight {
-    color: $hp-blue;
+    color: $hp-crimson;
   }
 }

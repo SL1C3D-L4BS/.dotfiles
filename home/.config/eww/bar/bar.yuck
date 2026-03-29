@@ -19,6 +19,7 @@
 (include "./bar/modules/weather.yuck")
 (include "./bar/modules/idle-inhibitor.yuck")
 
+
 ; ── Main bar (HDMI-A-0 — Vizio 43") ─────────────────────────
 (defwindow bar
   :monitor 2
@@ -26,7 +27,7 @@
     :x "0%"
     :y "4px"
     :width "98%"
-    :height "24px"
+    :height "18px"
     :anchor "top center")
   :stacking "fg"
   :exclusive true
@@ -40,7 +41,7 @@
     :x "0%"
     :y "4px"
     :width "98%"
-    :height "24px"
+    :height "18px"
     :anchor "top center")
   :stacking "fg"
   :exclusive true
@@ -54,7 +55,7 @@
     :x "0%"
     :y "4px"
     :width "98%"
-    :height "24px"
+    :height "18px"
     :anchor "top center")
   :stacking "fg"
   :exclusive true
@@ -76,9 +77,8 @@
       (weather-module)
       (clock-module))
     (box :class "bar-right" :halign "end" :spacing 4 :space-evenly false
+      (computer-module)
       (ai-status-module)
-      (gpu-temp-module)
-      (cpu-temp-module)
       (network-module)
       (audio-module)
       (idle-inhibitor-module)

@@ -130,7 +130,8 @@
   min-width: 56px;
 
   &:hover {
-    background-color: $hp-surface-hover;
+    background-color: rgba($hp-green, 0.2);
+    border: 1px solid rgba($hp-green, 0.3);
   }
 }
 

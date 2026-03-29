@@ -7,6 +7,6 @@
 xrandr \
   --output HDMI-A-0      --mode 1920x1080 --rate 60    --pos 0x420    --rotate normal \
   --output DisplayPort-1 --mode 1920x1080 --rate 74.97 --pos 1920x0   --rotate left \
-  --output DisplayPort-2 --mode 1920x1080 --rate 74.97 --pos 3000x0   --rotate left \
+  --output DisplayPort-2 --mode 1920x1080 --rate 60    --pos 3000x0   --rotate left \
   --output DisplayPort-0 --off \
   --output DVI-D-0       --off

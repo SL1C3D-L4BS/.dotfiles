@@ -27,7 +27,7 @@
   min-width: 44px;   // 11 × 4px
   min-height: 44px;
   border-radius: $r-lg;
-  background: linear-gradient(135deg, $hp-red, $hp-crimson, $hp-maroon);
+  background: linear-gradient(135deg, $hp-green, $hp-crimson, $hp-maroon);
 }
 
 .dash-sigil {
@@ -39,7 +39,7 @@
 .dash-username {
   font-size: $fs-lg;
   font-weight: bold;
-  color: $hp-red;
+  color: $hp-green;
 }
 
 .dash-host {
@@ -69,7 +69,7 @@
 
 .dash-ring-blue   { color: $hp-blue; }
 .dash-ring-purple { color: $hp-purple; }
-.dash-ring-red    { color: $hp-red; }
+.dash-ring-red    { color: $hp-crimson; }
 .dash-ring-gold   { color: $hp-gold; }
 
 .dash-ring-val {
@@ -95,14 +95,14 @@
 
 .dash-vol-icon {
   font-size: $fs-xl;
-  color: $hp-purple;
+  color: $hp-green;
   min-width: $sp-8;
   padding: $sp-1;
   border-radius: $r-sm;
   transition: all $t-fast ease;
 
   &:hover {
-    background-color: rgba($hp-purple, 0.2);
+    background-color: rgba($hp-green, 0.2);
   }
 }
 
@@ -119,7 +119,7 @@
     min-height: $sp-2;
 
     highlight {
-      background: linear-gradient(to right, $hp-purple, $hp-green);
+      background: linear-gradient(to right, $hp-emerald, $hp-crimson);
       border-radius: $r-pill;
       min-height: $sp-2;
     }
@@ -229,8 +229,8 @@
 }
 
 // Per-action hover colors
-.dash-pwr-lock:hover    { background-color: $hp-blue;   .dash-pwr-icon, .dash-pwr-label { color: $hp-fg; } }
-.dash-pwr-logout:hover  { background-color: $hp-purple; .dash-pwr-icon, .dash-pwr-label { color: $hp-fg; } }
-.dash-pwr-sleep:hover   { background-color: $hp-navy;   .dash-pwr-icon, .dash-pwr-label { color: $hp-fg; } }
+.dash-pwr-lock:hover    { background-color: $hp-green;  .dash-pwr-icon, .dash-pwr-label { color: $hp-fg; } }
+.dash-pwr-logout:hover  { background-color: $hp-crimson; .dash-pwr-icon, .dash-pwr-label { color: $hp-fg; } }
+.dash-pwr-sleep:hover   { background-color: $hp-maroon; .dash-pwr-icon, .dash-pwr-label { color: $hp-fg; } }
 .dash-pwr-reboot:hover  { background-color: $hp-gold;   .dash-pwr-icon, .dash-pwr-label { color: $hp-bg; } }
-.dash-pwr-shutdown:hover { background-color: $hp-red;   .dash-pwr-icon, .dash-pwr-label { color: $hp-fg; } }
+.dash-pwr-shutdown:hover { background-color: #EF4444;   .dash-pwr-icon, .dash-pwr-label { color: $hp-fg; } }

@@ -23,14 +23,14 @@
 // ── Mute toggle button ──────────────────────────────────────
 .aud-mute-btn {
   font-size: $fs-xl;
-  color: $hp-purple;
+  color: $hp-green;
   min-width: $sp-8;
   padding: $sp-1 $sp-2;
   border-radius: $r-sm;
   transition: all $t-fast ease;
 
   &:hover {
-    background-color: rgba($hp-purple, 0.2);
+    background-color: rgba($hp-green, 0.2);
   }
 }
 
@@ -62,13 +62,13 @@
     min-height: $sp-3;
 
     highlight {
-      background: linear-gradient(to right, $hp-purple, $hp-lavender);
+      background: linear-gradient(to right, $hp-emerald, $hp-crimson);
       border-radius: $r-pill;
       min-height: $sp-3;
     }
 
     slider {
-      background-color: $hp-lavender;
+      background-color: $hp-crimson;
       border-radius: 50%;
       min-width: $sp-6;
       min-height: $sp-6;
@@ -165,7 +165,7 @@
   transition: all $t-base ease;
 
   &:hover {
-    color: $hp-purple;
-    background-color: rgba($hp-purple, 0.1);
+    color: $hp-green;
+    background-color: rgba($hp-green, 0.1);
   }
 }

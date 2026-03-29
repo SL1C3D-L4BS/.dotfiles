@@ -44,7 +44,7 @@ o.clipboard = "unnamedplus"
 
 -- Fold (via treesitter)
 o.foldmethod = "expr"
-o.foldexpr   = "nvim_treesitter#foldexpr()"
+o.foldexpr   = "v:lua.vim.treesitter.foldexpr()"
 o.foldenable = false
 
 -- Completion

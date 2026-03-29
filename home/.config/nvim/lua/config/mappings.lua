@@ -57,8 +57,8 @@ map("n", "<leader>fs", "<cmd>Telescope lsp_document_symbols<CR>", { desc = "Symb
 map("n", "<leader>ca", vim.lsp.buf.code_action,        { desc = "Code action" })
 map("n", "<leader>rn", vim.lsp.buf.rename,             { desc = "Rename symbol" })
 map("n", "gD",         vim.lsp.buf.declaration,        { desc = "Go to declaration" })
-map("n", "[d",         vim.diagnostic.goto_prev,       { desc = "Prev diagnostic" })
-map("n", "]d",         vim.diagnostic.goto_next,       { desc = "Next diagnostic" })
+map("n", "[d",         function() vim.diagnostic.jump({ count = -1 }) end, { desc = "Prev diagnostic" })
+map("n", "]d",         function() vim.diagnostic.jump({ count = 1 })  end, { desc = "Next diagnostic" })
 map("n", "<leader>lf", function() require("conform").format({ async = true, lsp_fallback = true }) end, { desc = "Format" })
 
 -- NvimTree (plugin key is also set in plugin opts)
