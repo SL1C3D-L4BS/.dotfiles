@@ -16,10 +16,10 @@ get_workspaces() {
 import json, sys
 
 # ── Workspace icons ──────────────────────────────────────────
-# 1: Computer (AI)  2: Code (editors)  3: Browser  4: Database  5: Chat
+# 1: Dev (terminal)  2: Code (editors)  3: Browser  4: Database  5: Chat
 # 6: Media    7: Files     8: Settings  9: Gaming   10: Misc
 ICONS = {
-    1: '\U000f0e99',   # 󰺙 computer/brain (AI dashboard)
+    1: '\ue795',       #  terminal/dev
     2: '\ue795',       #  terminal/code
     3: '\U000f059f',   # 󰖟 web (browser)
     4: '\U000f01bc',   # 󰆼 database

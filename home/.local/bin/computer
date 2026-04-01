@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-# ══════════════════════════════════════════════════════════════
-# computer — Launch Computer AI assistant (SL1C3D-L4BS)
-# ══════════════════════════════════════════════════════════════
-APP_DIR="$HOME/dev/projects/computer"
-cd "$APP_DIR" || exit 1
-exec setsid "$APP_DIR/.venv/bin/python" main.py "$@"

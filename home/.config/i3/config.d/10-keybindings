@@ -98,7 +98,7 @@ bindsym $mod+c exec --no-startup-id ~/.config/eww/bar/popup-menus/scripts/toggle
 bindsym $mod+m exec --no-startup-id ~/.config/eww/bar/popup-menus/media/scripts/toggle-music.sh
 bindsym $mod+v exec --no-startup-id ~/.config/eww/bar/popup-menus/scripts/toggle-audio.sh
 
-# SL1C3dCLI — AI overlay
+# AI tools
 bindsym $mod+$alt+space exec --no-startup-id ~/.config/eww/bar/scripts/toggle-sl1c3d.sh
 bindsym $mod+i exec --no-startup-id alacritty --class float_term,float_term -e claude
 

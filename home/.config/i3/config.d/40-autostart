@@ -22,9 +22,6 @@ exec --no-startup-id dunst
 # AI panel daemon (Claude chat backend)
 exec --no-startup-id ai-panel-daemon
 
-# SL1C3dCLI — floating AI overlay (Claude Code + Ollama)
-exec --no-startup-id bash -c 'sleep 2 && sl1c3d-cli --no-sandbox'
-
 # Clipboard manager
 exec --no-startup-id greenclip daemon
 

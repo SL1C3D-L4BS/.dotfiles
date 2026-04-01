@@ -77,7 +77,6 @@
       (weather-module)
       (clock-module))
     (box :class "bar-right" :halign "end" :spacing 4 :space-evenly false
-      (computer-module)
       (ai-status-module)
       (network-module)
       (audio-module)
